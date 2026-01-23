@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bill of Rights — Fix the Violation</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
+      --border: rgba(255,255,255,0.10);
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background: radial-gradient(900px 500px at 15% 15%, rgba(122,162,255,.18), transparent 60%),
+                  radial-gradient(900px 500px at 85% 25%, rgba(43,213,118,.14), transparent 60%),
+                  radial-gradient(900px 500px at 60% 85%, rgba(255,92,122,.12), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+    }
+    .app{
+      width:min(1060px,100%);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow:hidden;
+    }
+    header{
+      padding:18px 18px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    h1{margin:0;font-size:20px;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:13px;line-height:1.25;max-width:760px}
+
+    .stats{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      gap:6px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .pill b{color:var(--text);font-weight:700}
+
+    main{
+      padding:18px;
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+    }
+    @media (max-width:930px){ main{grid-template-columns:1fr} }
+
+    .card{
+      background: rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius: var(--radius2);
+      padding:14px;
+    }
+
+    .scenario{
+      background: linear-gradient(180deg, rgba(255,92,122,.10), rgba(0,0,0,.18));
+      border:1px solid rgba(255,92,122,.20);
+      border-radius: var(--radius2);
+      padding:16px;
+      min-height:170px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
+    }
+    .scenario::after{
+      content:"";
+      position:absolute;
+      inset:-60px -80px auto auto;
+      width:240px;height:240px;
+      background: radial-gradient(circle, rgba(255,92,122,.20), transparent 60%);
+      transform: rotate(18deg);
+    }
+    .scenario-label{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(231,238,252,.75);
+      letter-spacing:.6px;
+      text-transform:uppercase;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:1;
+    }
+    .badge{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background: rgba(0,0,0,.18);
+      white-space:nowrap;
+    }
+    .scenario-text{
+      font-size:17px;
+      line-height:1.35;
+      margin:0;
+      position:relative;
+      z-index:1;
+    }
+
+    .choices{
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .choices.grid3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .choices.grid2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (max-width:560px){
+      .choices.grid3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+
+    button{
+      appearance:none;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      padding: 12px 10px;
+      border-radius: 14px;
+      font-size: 14px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+      text-align:left;
+    }
+    button:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
+    button:active{ transform: translateY(1px); }
+    button.primary{ border-color: rgba(122,162,255,.35); background: rgba(122,162,255,.12); }
+    button.good{ border-color: rgba(43,213,118,.40); background: rgba(43,213,118,.14); }
+    button.bad{ border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.12); }
+    button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+
+    .feedback{
+      margin-top:10px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      min-height:54px;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .feedback .icon{
+      width:18px;height:18px;border-radius:6px;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:12px;margin-top:2px;flex:0 0 auto;
+    }
+    .icon.good{ background: rgba(43,213,118,.16); color: var(--good); border:1px solid rgba(43,213,118,.35); }
+    .icon.bad{ background: rgba(255,92,122,.16); color: var(--bad); border:1px solid rgba(255,92,122,.35); }
+    .icon.warn{ background: rgba(255,209,102,.16); color: var(--warn); border:1px solid rgba(255,209,102,.35); }
+
+    .explain{
+      margin-top:12px;
+      display:none;
+      border-radius:14px;
+      border:1px solid rgba(43,213,118,.30);
+      background: linear-gradient(180deg, rgba(43,213,118,.10), rgba(0,0,0,.18));
+      padding:12px;
+    }
+    .explain h3{ margin:0 0 8px; font-size:14px; }
+    .explain .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .explain b{ color: var(--text); }
+    .mini{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(231,238,252,.70);
+      margin-top:8px;
+    }
+
+    .sidebar h2{margin:0 0 10px;font-size:15px}
+    .help{color:var(--muted);font-size:13px;line-height:1.35;margin:0 0 12px}
+
+    .rulebox{
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .rule{display:flex;gap:10px;align-items:flex-start}
+    .dot{
+      width:10px;height:10px;border-radius:3px;margin-top:5px;flex:0 0 auto;
+      border:1px solid var(--border);
+      background: rgba(122,162,255,.22);
+      border-color: rgba(122,162,255,.32);
+    }
+
+    .footer{
+      padding:14px 18px 18px;
+      border-top:1px solid var(--border);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .linkish{color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Bill of Rights — Fix the Violation</h1>
+        <div class="sub">
+          You’re given a <b>rights violation</b>. Step 1: Identify the amendment. Step 2: Choose the best <b>fix</b> (what government must do instead).
+          You can’t advance until both steps are correct.
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="pill">Scenario <b id="qNum">1</b>/<b id="qTotal">0</b></div>
+        <div class="pill">Correct Chains <b id="correctCt">0</b></div>
+        <div class="pill">Total Attempts <b id="attemptCt">0</b></div>
+        <div class="pill">This Scenario Attempts <b id="attemptThis">0</b></div>
+        <div class="pill">Timer <b id="timeEl">0:00</b></div>
+        <div class="pill">Now <b id="nowStamp">—</b></div>
+        <div class="pill">Started <b id="startStamp">—</b></div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card">
+        <div class="scenario">
+          <div class="scenario-label">
+            <span class="badge" id="stageBadge">Stage: 1/2</span>
+            <span class="badge" id="attemptBadge">Attempt #: 0</span>
+            <span class="badge" id="streakBadge">Streak: 0</span>
+          </div>
+          <p class="scenario-text" id="scenarioText">Loading…</p>
+        </div>
+
+        <div class="choices grid3" id="stage1Choices"></div>
+        <div class="choices" id="stage2Choices" style="display:none"></div>
+
+        <div class="controls">
+          <button class="primary" id="btnHint">Hint</button>
+          <button id="btnSkip">Teacher Skip</button>
+          <button id="btnRestart">Restart</button>
+          <button class="good" id="btnNext" style="display:none">Next Scenario</button>
+        </div>
+
+        <div class="feedback" id="feedback">
+          <span class="icon warn">!</span>
+          <div>
+            <div><b>Directions:</b> Stage 1 — choose the amendment violated.</div>
+            <div style="margin-top:4px">Stage 2 — choose the best fix (what must change).</div>
+          </div>
+        </div>
+
+        <div class="explain" id="explainBox">
+          <h3 id="explainTitle">Explanation</h3>
+          <div class="grid" id="explainGrid"></div>
+          <div class="mini" id="explainMini"></div>
+        </div>
+      </section>
+
+      <aside class="card sidebar">
+        <h2>What “Fix the Violation” means</h2>
+        <p class="help">
+          This is the OST move from identification to application:
+          <b>What must the government do differently</b> to comply with the Bill of Rights?
+        </p>
+
+        <div class="rulebox">
+          <div class="rule"><span class="dot"></span><div><b>1st:</b> stop viewpoint punishment/censorship; use neutral, narrow rules if needed</div></div>
+          <div class="rule"><span class="dot"></span><div><b>4th:</b> get a warrant + probable cause (unless a real exception applies)</div></div>
+          <div class="rule"><span class="dot"></span><div><b>5th:</b> no forced confession; no second trial after acquittal</div></div>
+          <div class="rule"><span class="dot"></span><div><b>6th:</b> provide counsel; allow confrontation; ensure speedy/public, jury, charges</div></div>
+          <div class="rule"><span class="dot"></span><div><b>8th:</b> remove excessive bail/cruel punishment; make punishment proportional</div></div>
+          <div class="rule"><span class="dot"></span><div><b>10th:</b> keep non-delegated powers with states/people; federal can’t commandeer states</div></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h2>Teacher Tip</h2>
+        <p class="help">
+          Have students verbalize the fix as a sentence starter:
+          <b>“To comply, the government must…”</b>
+        </p>
+      </aside>
+    </main>
+
+    <div class="footer">
+      <div>Game 3 • no logins • no data saved</div>
+      <div><span class="linkish" id="toggleShuffle">Shuffle: ON</span></div>
+    </div>
+  </div>
+
+  <script>
+    /**********************
+     * SAFE INIT
+     **********************/
+    function safeInit(){
+      try { init(); }
+      catch (err) {
+        const box = document.getElementById("scenarioText");
+        box.textContent = "Error loading game: " + (err?.message || err);
+        console.error(err);
+      }
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", safeInit);
+    } else {
+      safeInit();
+    }
+
+    /**********************
+     * DATA
+     **********************/
+    const AMENDMENTS = [
+      { key:"1", label:"1st" },
+      { key:"2", label:"2nd" },
+      { key:"4", label:"4th" },
+      { key:"5", label:"5th" },
+      { key:"6", label:"6th" },
+      { key:"8", label:"8th" },
+      { key:"10", label:"10th" },
+    ];
+
+    // Violation scenarios + best fix
+    const scenarioBank = [
+      {
+        scenario: "Police search a student’s backpack and phone with no warrant and no probable cause—just a hunch.",
+        amendment: "4",
+        fixCorrect: "Obtain legal justification: probable cause and, when required, a warrant before searching (unless a real exception applies).",
+        fixChoices: [
+          "Obtain legal justification: probable cause and, when required, a warrant before searching (unless a real exception applies).",
+          "Search anyone’s property whenever police feel it would be helpful.",
+          "Require students to sign a form giving police unlimited access to their devices."
+        ],
+        right: "Protection against unreasonable search and seizure; warrants require probable cause.",
+        beliefTie: "The 4th Amendment limits federal/state police power by requiring probable cause and (usually) warrants.",
+        why: "The fix is to follow the warrant/probable cause rule instead of random searches."
+      },
+      {
+        scenario: "A prosecutor puts a person on trial again for the same crime after the jury already found them not guilty.",
+        amendment: "5",
+        fixCorrect: "Stop the second prosecution—an acquittal ends the case for that same offense (no double jeopardy).",
+        fixChoices: [
+          "Stop the second prosecution—an acquittal ends the case for that same offense (no double jeopardy).",
+          "Try the person again until the jury finally convicts.",
+          "Raise the bail amount to punish the person for being accused."
+        ],
+        right: "Protection against double jeopardy.",
+        beliefTie: "The 5th Amendment limits government by preventing repeated prosecutions and forcing self-incrimination.",
+        why: "Once acquitted, the government cannot try the same person again for that offense."
+      },
+      {
+        scenario: "During interrogation, officers threaten a suspect with harm unless they confess, and the suspect signs a confession to make it stop.",
+        amendment: "5",
+        fixCorrect: "End coercion—questioning must be voluntary; do not force self-incrimination through threats or compulsion.",
+        fixChoices: [
+          "End coercion—questioning must be voluntary; do not force self-incrimination through threats or compulsion.",
+          "Allow threats because it saves time.",
+          "Hold the suspect indefinitely without charges."
+        ],
+        right: "No compelled self-incrimination.",
+        beliefTie: "The 5th Amendment protects civil liberties by limiting government pressure during criminal investigations.",
+        why: "Coerced confessions violate the self-incrimination protection and due process."
+      },
+      {
+        scenario: "A defendant is charged with a serious crime but is not allowed a lawyer, even though they cannot afford one.",
+        amendment: "6",
+        fixCorrect: "Provide counsel (a lawyer) for the defendant in a serious criminal case to ensure a fair trial.",
+        fixChoices: [
+          "Provide counsel (a lawyer) for the defendant in a serious criminal case to ensure a fair trial.",
+          "Let the judge act as the defendant’s lawyer.",
+          "Tell the defendant to represent themselves even if they don’t understand the law."
+        ],
+        right: "Right to counsel.",
+        beliefTie: "The 6th Amendment limits government power by guaranteeing fair-trial protections in criminal cases.",
+        why: "A fair trial requires counsel when the defendant cannot afford one."
+      },
+      {
+        scenario: "At trial, the judge refuses to let the defense question the key witness who accuses the defendant.",
+        amendment: "6",
+        fixCorrect: "Allow confrontation and cross-examination of witnesses so the defense can challenge the accusation.",
+        fixChoices: [
+          "Allow confrontation and cross-examination of witnesses so the defense can challenge the accusation.",
+          "Let only the prosecution question witnesses.",
+          "Ban witnesses entirely and rely on rumors."
+        ],
+        right: "Right to confront accusers.",
+        beliefTie: "The 6th Amendment limits government by requiring a fair process where accusations can be tested in court.",
+        why: "Confrontation is essential to evaluate credibility and accuracy."
+      },
+      {
+        scenario: "A city punishes a citizen for peacefully criticizing the mayor online, even though it caused no disruption.",
+        amendment: "1",
+        fixCorrect: "Stop punishing criticism—government must allow protected speech and cannot target viewpoints.",
+        fixChoices: [
+          "Stop punishing criticism—government must allow protected speech and cannot target viewpoints.",
+          "Ban all online speech about elected officials.",
+          "Require citizens to get permission before speaking about the government."
+        ],
+        right: "Freedom of speech (no viewpoint-based punishment).",
+        beliefTie: "The 1st Amendment protects civil liberties by limiting government censorship and retaliation.",
+        why: "The fix is to protect criticism and avoid viewpoint discrimination."
+      },
+      {
+        scenario: "A judge sets extremely high bail for a minor nonviolent offense specifically to keep the accused jailed before trial.",
+        amendment: "8",
+        fixCorrect: "Set bail that is not excessive and is based on lawful factors (risk of flight/public safety), not punishment before conviction.",
+        fixChoices: [
+          "Set bail that is not excessive and is based on lawful factors (risk of flight/public safety), not punishment before conviction.",
+          "Increase bail until the person can’t pay, so they learn a lesson.",
+          "Skip trial entirely and impose punishment immediately."
+        ],
+        right: "Protection against excessive bail.",
+        beliefTie: "The 8th Amendment limits government punishment power (excessive bail, cruel/unusual punishment).",
+        why: "Bail cannot be used as pre-trial punishment."
+      },
+      {
+        scenario: "Congress orders states to run local school rules exactly as the federal government dictates, even though the Constitution does not delegate that power.",
+        amendment: "10",
+        fixCorrect: "Leave the non-delegated power to states/people; the federal government cannot commandeer state policy in areas not delegated.",
+        fixChoices: [
+          "Leave the non-delegated power to states/people; the federal government cannot commandeer state policy in areas not delegated.",
+          "Allow the federal government to control any local policy it wants.",
+          "Require all state officials to take orders directly from federal agencies."
+        ],
+        right: "Reserved powers to the states or the people.",
+        beliefTie: "The 10th Amendment limits federal power by reserving non-delegated powers to states/people.",
+        why: "The fix is to respect federalism and delegated powers."
+      }
+    ];
+
+    /**********************
+     * STATE
+     **********************/
+    let deck = [];
+    let idx = 0;
+
+    let stage = 1; // 1=amendment, 2=fix
+    let totalAttempts = 0;
+    let scenarioAttempts = 0;
+    let streak = 0;
+    let correctChains = 0;
+
+    let shuffleOn = true;
+
+    // Timer
+    let sessionStart = new Date();
+    let startTs = Date.now();
+    let timerId = null;
+    let nowId = null;
+
+    const el = (id) => document.getElementById(id);
+
+    function init(){
+      buildDeck();
+      el("qTotal").textContent = String(scenarioBank.length);
+
+      el("startStamp").textContent = fmtDateTime(sessionStart);
+      el("nowStamp").textContent = fmtDateTime(new Date());
+
+      renderButtons();
+      wireUI();
+      startTimers();
+      render();
+    }
+
+    function wireUI(){
+      el("btnHint").onclick = showHint;
+      el("btnSkip").onclick = teacherSkip;
+      el("btnRestart").onclick = restart;
+      el("btnNext").onclick = nextScenario;
+      el("toggleShuffle").onclick = toggleShuffle;
+    }
+
+    function buildDeck(){
+      deck = [...scenarioBank];
+      if(shuffleOn){
+        for(let k=deck.length-1;k>0;k--){
+          const j = Math.floor(Math.random()*(k+1));
+          [deck[k], deck[j]] = [deck[j], deck[k]];
+        }
+      }
+    }
+
+    function renderButtons(){
+      // Stage 1: amendments
+      const s1 = el("stage1Choices");
+      s1.innerHTML = "";
+      AMENDMENTS.forEach(a=>{
+        const b = document.createElement("button");
+        b.className = "primary";
+        b.textContent = a.label;
+        b.onclick = () => answerStage1(a.key);
+        s1.appendChild(b);
+      });
+    }
+
+    function renderFixButtons(card){
+      const s2 = el("stage2Choices");
+      s2.innerHTML = "";
+      // shuffle choices so students can't memorize position
+      const choices = [...card.fixChoices];
+      for(let k=choices.length-1;k>0;k--){
+        const j = Math.floor(Math.random()*(k+1));
+        [choices[k], choices[j]] = [choices[j], choices[k]];
+      }
+      choices.forEach(ch=>{
+        const b = document.createElement("button");
+        b.textContent = ch;
+        b.onclick = () => answerStage2(ch);
+        s2.appendChild(b);
+      });
+    }
+
+    function render(){
+      const card = deck[idx];
+
+      stage = 1;
+      scenarioAttempts = 0;
+
+      el("scenarioText").textContent = card.scenario;
+
+      el("stageBadge").textContent = "Stage: 1/2";
+      el("attemptBadge").textContent = "Attempt #: 0";
+      el("streakBadge").textContent = `Streak: ${streak}`;
+
+      el("stage1Choices").style.display = "grid";
+      el("stage2Choices").style.display = "none";
+      el("btnNext").style.display = "none";
+      el("explainBox").style.display = "none";
+
+      setFeedback("warn","Directions","Stage 1: Identify the amendment being violated.");
+      updateStats();
+    }
+
+    function updateStats(){
+      el("qNum").textContent = String(idx+1);
+      el("correctCt").textContent = String(correctChains);
+      el("attemptCt").textContent = String(totalAttempts);
+      el("attemptThis").textContent = String(scenarioAttempts);
+      el("attemptBadge").textContent = `Attempt #: ${scenarioAttempts}`;
+      el("streakBadge").textContent = `Streak: ${streak}`;
+    }
+
+    function answerStage1(choice){
+      const card = deck[idx];
+      totalAttempts++;
+      scenarioAttempts++;
+      updateStats();
+
+      if(choice === card.amendment){
+        stage = 2;
+        el("stageBadge").textContent = "Stage: 2/2";
+        el("stage1Choices").style.display = "none";
+        el("stage2Choices").style.display = "grid";
+        renderFixButtons(card);
+        setFeedback("good","Stage 1 Correct","Now Stage 2: Choose the best fix (what must the government do instead).");
+      } else {
+        streak = 0;
+        setFeedback("bad","Try again","Identify the RIGHT being violated, then match it to the amendment.");
+      }
+      updateStats();
+    }
+
+    function answerStage2(choice){
+      const card = deck[idx];
+      totalAttempts++;
+      scenarioAttempts++;
+      updateStats();
+
+      if(choice === card.fixCorrect){
+        correctChains++;
+        streak++;
+        setFeedback("good","Correct Chain!","You identified the amendment and the fix. Read the explanation, then click Next.");
+        showExplanation(card);
+        el("btnNext").style.display = "inline-block";
+      } else {
+        streak = 0;
+        setFeedback("bad","Not the best fix","Pick the option that stops the violation and follows the amendment’s limit on government power.");
+      }
+      updateStats();
+    }
+
+    function showExplanation(card){
+      el("explainBox").style.display = "block";
+      el("explainTitle").textContent = `Explanation: ${card.amendment}${suffix(card.amendment)} Amendment — Fix the Violation`;
+      el("explainGrid").innerHTML = `
+        <div><b>Right Protected:</b> ${escapeHtml(card.right)}</div>
+        <div><b>Best Fix:</b> ${escapeHtml(card.fixCorrect)}</div>
+        <div><b>Why:</b> ${escapeHtml(card.why)}</div>
+        <div><b>Belief Tie (limits on government):</b> ${escapeHtml(card.beliefTie)}</div>
+      `;
+      el("explainMini").textContent = "OST habit: Identify the right → name the amendment → apply the limit by choosing the fix.";
+    }
+
+    function showHint(){
+      const card = deck[idx];
+      const t = card.scenario.toLowerCase();
+      let hint = "Hint: Identify the right being violated first, then match the amendment.";
+
+      if(t.includes("search") || t.includes("warrant") || t.includes("probable")) hint = "Hint: Search/warrant/probable cause = 4th Amendment.";
+      if(t.includes("not guilty") || t.includes("again") || t.includes("same crime")) hint = "Hint: Second trial after acquittal = 5th (double jeopardy).";
+      if(t.includes("confess") || t.includes("threaten")) hint = "Hint: Forced confession = 5th (self-incrimination).";
+      if(t.includes("lawyer") || t.includes("counsel") || t.includes("witness")) hint = "Hint: Trial protections (counsel/confrontation) = 6th.";
+      if(t.includes("critic") || t.includes("speech") || t.includes("online")) hint = "Hint: Punishing criticism/speech = 1st.";
+      if(t.includes("bail")) hint = "Hint: Excessive bail = 8th.";
+      if(t.includes("states") || t.includes("federal") || t.includes("not delegate")) hint = "Hint: Reserved powers/federalism = 10th.";
+
+      setFeedback("warn","Hint",hint);
+    }
+
+    function nextScenario(){
+      if(idx < deck.length - 1){
+        idx++;
+        render();
+      } else {
+        finish();
+      }
+    }
+
+    function teacherSkip(){
+      if(idx < deck.length - 1){
+        idx++;
+        render();
+      } else {
+        finish();
+      }
+    }
+
+    function finish(){
+      el("stage1Choices").style.display = "none";
+      el("stage2Choices").style.display = "none";
+      el("btnNext").style.display = "none";
+      el("btnHint").disabled = true;
+
+      const elapsed = fmtTime(Date.now() - startTs);
+      setFeedback("good","Session Complete",`Correct chains: ${correctChains} • Attempts: ${totalAttempts} • Time: ${elapsed}. Click Restart to replay.`);
+
+      el("scenarioText").textContent = "Finish! Replay to build automaticity: identify → fix → explain.";
+      el("explainBox").style.display = "block";
+      el("explainTitle").textContent = "Next step";
+      el("explainGrid").innerHTML = `
+        <div><b>Goal:</b> Fewer attempts with accurate fixes (application skill).</div>
+        <div><b>Next game:</b> Game 4 will be an “Amendment Blitz” speed round.</div>
+      `;
+      el("explainMini").textContent = "Teacher note: add more violation scenarios in scenarioBank.";
+    }
+
+    function restart(){
+      idx = 0;
+      totalAttempts = 0;
+      scenarioAttempts = 0;
+      streak = 0;
+      correctChains = 0;
+
+      sessionStart = new Date();
+      startTs = Date.now();
+      el("startStamp").textContent = fmtDateTime(sessionStart);
+
+      el("btnHint").disabled = false;
+
+      buildDeck();
+      render();
+    }
+
+    function toggleShuffle(){
+      shuffleOn = !shuffleOn;
+      el("toggleShuffle").textContent = `Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
+      restart();
+    }
+
+    function setFeedback(kind,title,msg){
+      const box = el("feedback");
+      box.innerHTML = "";
+
+      const icon = document.createElement("span");
+      icon.className = `icon ${kind}`;
+      icon.textContent = kind === "good" ? "✓" : kind === "bad" ? "✕" : "!";
+
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `<div><b>${escapeHtml(title)}</b></div><div style="margin-top:4px">${escapeHtml(msg)}</div>`;
+
+      box.appendChild(icon);
+      box.appendChild(wrap);
+    }
+
+    function startTimers(){
+      if(timerId) clearInterval(timerId);
+      timerId = setInterval(()=> el("timeEl").textContent = fmtTime(Date.now() - startTs), 500);
+
+      if(nowId) clearInterval(nowId);
+      nowId = setInterval(()=> el("nowStamp").textContent = fmtDateTime(new Date()), 1000);
+    }
+
+    function fmtTime(ms){
+      const s = Math.floor(ms/1000);
+      const m = Math.floor(s/60);
+      const r = s % 60;
+      return `${m}:${String(r).padStart(2,"0")}`;
+    }
+
+    function fmtDateTime(d){
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      let hh = d.getHours();
+      const ampm = hh >= 12 ? "PM" : "AM";
+      hh = hh % 12; if(hh===0) hh = 12;
+      const mi = String(d.getMinutes()).padStart(2,"0");
+      const ss = String(d.getSeconds()).padStart(2,"0");
+      return `${mm}/${dd}/${yyyy} ${hh}:${mi}:${ss} ${ampm}`;
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function suffix(n){
+      if(n==="1") return "st";
+      if(n==="2") return "nd";
+      if(n==="3") return "rd";
+      return "th";
+    }
+  </script>
+</body>
+</html>
