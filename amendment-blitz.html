@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bill of Rights — Amendment Blitz</title>
+<style>
+:root{
+  --bg:#0b1220; --text:#e7eefc; --muted:#a8b4cf;
+  --border:rgba(255,255,255,.12);
+  --good:#2bd576; --bad:#ff5c7a; --accent:#7aa2ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:radial-gradient(900px 500px at 20% 20%,rgba(122,162,255,.18),transparent 60%),var(--bg);
+  color:var(--text);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:18px;
+}
+.app{
+  width:min(900px,100%);
+  background:rgba(0,0,0,.25);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:18px;
+}
+header{
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  border-bottom:1px solid var(--border);padding-bottom:12px;
+}
+h1{margin:0;font-size:20px}
+.sub{font-size:13px;color:var(--muted)}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;color:var(--muted);
+}
+.stat b{color:var(--text)}
+
+.scenario{
+  margin-top:16px;
+  padding:16px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(122,162,255,.12);
+  font-size:18px;line-height:1.35;
+  min-height:120px;
+}
+
+.choices{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-top:14px;
+}
+@media(max-width:600px){
+  .choices{grid-template-columns:repeat(2,1fr)}
+}
+button{
+  padding:14px 10px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.3);
+  color:var(--text);
+  font-size:15px;
+  cursor:pointer;
+}
+button:hover{background:rgba(255,255,255,.06)}
+button.good{background:rgba(43,213,118,.2);border-color:var(--good)}
+button.bad{background:rgba(255,92,122,.2);border-color:var(--bad)}
+
+.feedback{
+  margin-top:12px;
+  min-height:28px;
+  font-size:14px;
+}
+
+.footer{
+  margin-top:12px;
+  display:flex;justify-content:space-between;flex-wrap:wrap;
+  font-size:12px;color:var(--muted);
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<header>
+  <div>
+    <h1>Amendment Blitz ⚡</h1>
+    <div class="sub">Instant recognition. No hints. Go fast.</div>
+  </div>
+  <div class="stats">
+    <div class="stat">Q <b id="qNum">1</b>/<b id="qTotal">0</b></div>
+    <div class="stat">Attempts <b id="attempts">0</b></div>
+    <div class="stat">Streak <b id="streak">0</b></div>
+    <div class="stat">Time <b id="time">0:00</b></div>
+  </div>
+</header>
+
+<div class="scenario" id="scenario">Loading…</div>
+
+<div class="choices" id="choices"></div>
+
+<div class="feedback" id="feedback"></div>
+
+<div class="footer">
+  <div>Game 4 • Speed & Fluency</div>
+  <div id="done"></div>
+</div>
+</div>
+
+<script>
+const amendments = [
+ {k:"1st",a:"1"},
+ {k:"2nd",a:"2"},
+ {k:"4th",a:"4"},
+ {k:"5th",a:"5"},
+ {k:"6th",a:"6"},
+ {k:"8th",a:"8"},
+ {k:"10th",a:"10"},
+];
+
+const scenarios = [
+ {t:"Police search a home without a warrant or probable cause.",a:"4"},
+ {t:"A person is tried again after being found not guilty.",a:"5"},
+ {t:"Government punishes peaceful criticism of officials.",a:"1"},
+ {t:"Defendant is denied a lawyer in a serious criminal case.",a:"6"},
+ {t:"Judge sets extremely high bail for a minor offense.",a:"8"},
+ {t:"Congress forces states to follow a non-delegated local policy.",a:"10"},
+ {t:"Police threaten a suspect to force a confession.",a:"5"},
+ {t:"Law bans all firearms for law-abiding citizens.",a:"2"},
+ {t:"Defense cannot question the main witness at trial.",a:"6"},
+ {t:"Police seize personal property without legal justification.",a:"4"},
+];
+
+let deck=[...scenarios].sort(()=>Math.random()-0.5);
+let i=0,attempts=0,streak=0,start=Date.now();
+
+const el=id=>document.getElementById(id);
+
+function render(){
+  el("qTotal").textContent=deck.length;
+  el("qNum").textContent=i+1;
+  el("scenario").textContent=deck[i].t;
+  el("feedback").textContent="";
+  el("choices").innerHTML="";
+  amendments.forEach(m=>{
+    const b=document.createElement("button");
+    b.textContent=m.k;
+    b.onclick=()=>check(m.a,b);
+    el("choices").appendChild(b);
+  });
+}
+
+function check(choice,btn){
+  attempts++;
+  el("attempts").textContent=attempts;
+  if(choice===deck[i].a){
+    btn.classList.add("good");
+    streak++;
+    el("streak").textContent=streak;
+    setTimeout(next,300);
+  }else{
+    btn.classList.add("bad");
+    streak=0;
+    el("streak").textContent=streak;
+    el("feedback").textContent="Wrong — think right, then amendment.";
+  }
+}
+
+function next(){
+  i++;
+  if(i<deck.length){
+    render();
+  }else{
+    finish();
+  }
+}
+
+function finish(){
+  const t=Math.floor((Date.now()-start)/1000);
+  el("scenario").textContent="Blitz Complete!";
+  el("choices").innerHTML="";
+  el("feedback").innerHTML=`Finished in ${Math.floor(t/60)}:${String(t%60).padStart(2,"0")} with ${attempts} attempts.`;
+  el("done").textContent="Replay to beat your time.";
+}
+
+setInterval(()=>{
+  const s=Math.floor((Date.now()-start)/1000);
+  el("time").textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`;
+},500);
+
+render();
+</script>
+</body>
+</html>
