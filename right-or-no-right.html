@@ -6,140 +6,260 @@
   <title>Bill of Rights — Right or No Right?</title>
   <style>
     :root{
-      --bg:#0b1220; --text:#e7eefc; --muted:#a8b4cf;
+      --bg:#0b1220;
+      --panel:#111b2e;
+      --text:#e7eefc;
+      --muted:#a8b4cf;
       --border: rgba(255,255,255,0.10);
       --shadow: 0 18px 55px rgba(0,0,0,.35);
-      --radius: 18px; --radius2: 14px;
-      --good:#2bd576; --bad:#ff5c7a; --warn:#ffd166; --accent:#7aa2ff;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      --radius: 18px;
+      --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --good:#2bd576;
+      --bad:#ff5c7a;
+      --warn:#ffd166;
+      --accent:#7aa2ff;
     }
+
     *{box-sizing:border-box}
     body{
-      margin:0; font-family:var(--sans); color:var(--text);
+      margin:0;
+      font-family: var(--sans);
       background: radial-gradient(900px 500px at 15% 15%, rgba(122,162,255,.18), transparent 60%),
                   radial-gradient(900px 500px at 85% 25%, rgba(43,213,118,.14), transparent 60%),
                   radial-gradient(900px 500px at 60% 85%, rgba(255,92,122,.12), transparent 60%),
                   var(--bg);
-      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:22px;
+      color: var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
     }
+
     .app{
       width:min(1040px,100%);
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--border); box-shadow:var(--shadow);
-      border-radius:var(--radius); overflow:hidden;
+      border:1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow:hidden;
     }
-    header{
-      padding:18px 18px 14px; border-bottom:1px solid var(--border);
-      display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-    }
-    h1{margin:0; font-size:20px; letter-spacing:.2px}
-    .sub{color:var(--muted); font-size:13px; line-height:1.25; max-width:720px}
-    .stats{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
-    .pill{
-      border:1px solid var(--border); background: rgba(0,0,0,.18);
-      border-radius:999px; padding:8px 10px; font-size:12px; color:var(--muted);
-      display:flex; gap:6px; align-items:center; white-space:nowrap;
-    }
-    .pill b{color:var(--text)}
-    main{padding:18px; display:grid; grid-template-columns: 1.08fr .92fr; gap:14px}
-    @media(max-width:900px){main{grid-template-columns:1fr}}
 
-    .card{background: rgba(0,0,0,.18); border:1px solid var(--border); border-radius:var(--radius2); padding:14px}
+    header{
+      padding:18px 18px 14px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      gap:14px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    h1{margin:0;font-size:20px;letter-spacing:.2px}
+    .sub{color:var(--muted);font-size:13px;line-height:1.25;max-width:720px}
+
+    .stats{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      border-radius:999px;
+      padding:8px 10px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      gap:6px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .pill b{color:var(--text);font-weight:700}
+
+    main{
+      padding:18px;
+      display:grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap:14px;
+    }
+    @media (max-width:900px){ main{grid-template-columns:1fr} }
+
+    .card{
+      background: rgba(0,0,0,.18);
+      border:1px solid var(--border);
+      border-radius: var(--radius2);
+      padding:14px;
+    }
 
     .scenario{
       background: linear-gradient(180deg, rgba(122,162,255,.10), rgba(0,0,0,.18));
       border:1px solid rgba(122,162,255,.22);
-      border-radius:var(--radius2);
-      padding:16px; min-height:170px;
-      display:flex; flex-direction:column; gap:10px; position:relative; overflow:hidden;
+      border-radius: var(--radius2);
+      padding:16px;
+      min-height:170px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      position:relative;
+      overflow:hidden;
     }
     .scenario::after{
-      content:""; position:absolute; inset:-60px -80px auto auto;
-      width:240px; height:240px;
+      content:"";
+      position:absolute;
+      inset:-60px -80px auto auto;
+      width:240px;height:240px;
       background: radial-gradient(circle, rgba(122,162,255,.22), transparent 60%);
       transform: rotate(18deg);
     }
     .scenario-label{
-      font-family:var(--mono); font-size:11px; color: rgba(231,238,252,.75);
-      letter-spacing:.6px; text-transform:uppercase; display:flex; gap:8px; flex-wrap:wrap; z-index:1;
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(231,238,252,.75);
+      letter-spacing:.6px;
+      text-transform:uppercase;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      position:relative;
+      z-index:1;
     }
     .badge{
-      font-family:var(--mono); font-size:11px; padding:4px 8px; border-radius:999px;
-      border:1px solid var(--border); color:var(--muted); background: rgba(0,0,0,.18);
+      font-family:var(--mono);
+      font-size:11px;
+      padding:4px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      color:var(--muted);
+      background: rgba(0,0,0,.18);
       white-space:nowrap;
     }
-    .scenario-text{margin:0; font-size:17px; line-height:1.35; z-index:1}
+    .scenario-text{
+      font-size:17px;
+      line-height:1.35;
+      margin:0;
+      position:relative;
+      z-index:1;
+    }
 
-    .row2{display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px}
-    @media(max-width:540px){.row2{grid-template-columns:1fr}}
+    .choices{
+      display:grid;
+      gap:10px;
+      margin-top:12px;
+    }
+    .choices.grid2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .choices.grid3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    @media (max-width:540px){
+      .choices.grid3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
 
     button{
-      appearance:none; border:1px solid var(--border); background: rgba(0,0,0,.20);
-      color:var(--text); padding:12px 10px; border-radius:14px; font-size:14px;
-      cursor:pointer; transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      appearance:none;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      padding: 12px 10px;
+      border-radius: 14px;
+      font-size: 14px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
       user-select:none;
     }
     button:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
     button:active{ transform: translateY(1px); }
     button.primary{ border-color: rgba(122,162,255,.35); background: rgba(122,162,255,.12); }
-    button.primary:hover{ background: rgba(122,162,255,.18); }
     button.good{ border-color: rgba(43,213,118,.40); background: rgba(43,213,118,.14); }
-    button.bad{ border-color: rgba(255,92,122,.45); background: rgba(255,92,122,.14); }
-    button:disabled{ opacity:.55; cursor:not-allowed; transform:none; }
+    button.bad{ border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.12); }
+    button:disabled{opacity:.55;cursor:not-allowed;transform:none}
 
-    .choices{
-      display:grid; grid-template-columns: repeat(3, minmax(0,1fr));
-      gap:10px; margin-top: 12px;
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
     }
-    @media(max-width:540px){.choices{grid-template-columns:repeat(2, minmax(0,1fr))}}
 
     .feedback{
-      margin-top:10px; padding:12px; border-radius:14px; border:1px solid var(--border);
-      background: rgba(0,0,0,.18); color:var(--muted); min-height:54px;
-      display:flex; align-items:flex-start; gap:10px;
+      margin-top:10px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--muted);
+      min-height:54px;
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
     }
     .feedback .icon{
-      width:18px; height:18px; border-radius:6px; display:inline-flex;
-      align-items:center; justify-content:center; font-weight:900; font-size:12px; margin-top:2px;
-      flex: 0 0 auto;
+      width:18px;height:18px;border-radius:6px;
+      display:inline-flex;align-items:center;justify-content:center;
+      font-weight:900;font-size:12px;margin-top:2px;flex:0 0 auto;
     }
     .icon.good{ background: rgba(43,213,118,.16); color: var(--good); border:1px solid rgba(43,213,118,.35); }
     .icon.bad{ background: rgba(255,92,122,.16); color: var(--bad); border:1px solid rgba(255,92,122,.35); }
     .icon.warn{ background: rgba(255,209,102,.16); color: var(--warn); border:1px solid rgba(255,209,102,.35); }
 
-    .stepbox{
-      margin-top:12px; border-radius:14px; border:1px solid var(--border);
-      background: rgba(0,0,0,.18); padding:12px;
-    }
-    .step-title{font-size:13px; color:var(--muted); margin:0 0 10px}
-    .step-title b{color:var(--text)}
-    .hidden{display:none !important}
-
     .explain{
-      margin-top:12px; border-radius:14px; border:1px solid rgba(43,213,118,.30);
+      margin-top:12px;
+      display:none;
+      border-radius:14px;
+      border:1px solid rgba(43,213,118,.30);
       background: linear-gradient(180deg, rgba(43,213,118,.10), rgba(0,0,0,.18));
-      padding:12px; display:none;
+      padding:12px;
     }
-    .explain h3{margin:0 0 8px; font-size:14px}
-    .explain .grid{display:grid; grid-template-columns:1fr; gap:8px; color:var(--muted); font-size:13px; line-height:1.35}
-    .explain b{color:var(--text)}
-    .mini{font-family:var(--mono); font-size:11px; color: rgba(231,238,252,.70); margin-top:8px}
+    .explain h3{ margin:0 0 8px; font-size:14px; }
+    .explain .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      color: var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .explain b{ color: var(--text); }
+    .mini{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(231,238,252,.70);
+      margin-top:8px;
+    }
 
-    .controls{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .sidebar h2{margin:0 0 10px;font-size:15px}
+    .help{color:var(--muted);font-size:13px;line-height:1.35;margin:0 0 12px}
 
-    .sidebar h2{margin:0 0 10px; font-size:15px}
-    .help{margin:0 0 12px; color:var(--muted); font-size:13px; line-height:1.35}
-    .rulebox{border-radius:14px; border:1px solid var(--border); background: rgba(0,0,0,.18); padding:12px; display:flex; flex-direction:column; gap:10px}
-    .rule{display:flex; gap:10px; align-items:flex-start}
-    .dot{width:10px; height:10px; border-radius:3px; margin-top:5px; flex:0 0 auto; border:1px solid var(--border);
-         background: rgba(122,162,255,.22); border-color: rgba(122,162,255,.32);}
+    .rulebox{
+      border-radius:14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .rule{display:flex;gap:10px;align-items:flex-start}
+    .dot{
+      width:10px;height:10px;border-radius:3px;margin-top:5px;flex:0 0 auto;
+      border:1px solid var(--border);
+      background: rgba(122,162,255,.22);
+      border-color: rgba(122,162,255,.32);
+    }
+
     .footer{
-      padding:14px 18px 18px; border-top:1px solid var(--border);
-      display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center;
-      color:var(--muted); font-size:12px;
+      padding:14px 18px 18px;
+      border-top:1px solid var(--border);
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      color: var(--muted);
+      font-size: 12px;
     }
-    .linkish{color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer}
+    .linkish{color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer;}
   </style>
 </head>
 <body>
@@ -148,10 +268,11 @@
       <div>
         <h1>Bill of Rights — Right or No Right?</h1>
         <div class="sub">
-          Step 1: Decide if the government action is <b>Constitutional (Allowed)</b> or <b>Unconstitutional (Violation)</b>.
-          Step 2: Choose the amendment that best governs the scenario. You can’t advance until both steps are correct.
+          Step 1: Decide if the government action is <b>Constitutional</b> (allowed) or <b>Unconstitutional</b> (a rights violation).<br/>
+          Step 2: Identify the amendment. You can’t advance until you get both steps correct.
         </div>
       </div>
+
       <div class="stats">
         <div class="pill">Scenario <b id="qNum">1</b>/<b id="qTotal">0</b></div>
         <div class="pill">Correct Chains <b id="correctCt">0</b></div>
@@ -167,55 +288,92 @@
       <section class="card">
         <div class="scenario">
           <div class="scenario-label">
-            <span class="badge" id="streakBadge">Streak: 0</span>
-            <span class="badge" id="stepBadge">Step: 1 of 2</span>
+            <span class="badge" id="stageBadge">Stage: 1/2</span>
             <span class="badge" id="attemptBadge">Attempt #: 0</span>
+            <span class="badge" id="streakBadge">Streak: 0</span>
           </div>
           <p class="scenario-text" id="scenarioText">Loading…</p>
         </div>
 
-        <div class="stepbox" id="step1Box">
-          <p class="step-title"><b>Step 1:</b> Is this government action constitutional?</p>
-          <div class="row2">
-            <button class="good" id="btnAllowed">Constitutional (Allowed)</button>
-            <button class="bad" id="btnViolation">Unconstitutional (Violation)</button>
-          </div>
-        </div>
-
-        <div class="stepbox hidden" id="step2Box">
-          <p class="step-title"><b>Step 2:</b> Which amendment best applies?</p>
-          <div class="choices" id="choices"></div>
-        </div>
+        <div class="choices grid2" id="stage1Choices"></div>
+        <div class="choices grid3" id="stage2Choices" style="display:none"></div>
 
         <div class="controls">
           <button class="primary" id="btnHint">Hint</button>
-          <button id="btnSkip" title="Teacher tool: skip this scenario">Teacher Skip</button>
+          <button id="btnSkip">Teacher Skip</button>
           <button id="btnRestart">Restart</button>
+          <button class="good" id="btnNext" style="display:none">Next Scenario</button>
         </div>
 
         <div class="feedback" id="feedback">
           <span class="icon warn">!</span>
           <div>
-            <div><b>Directions:</b> Step 1 first, then Step 2.</div>
-            <div style="margin-top:4px">You’ll get the explanation after the full chain is correct.</div>
+            <div><b>Directions:</b> Stage 1 first — Constitutional or Unconstitutional.</div>
+            <div style="margin-top:4px">Then identify the amendment in Stage 2.</div>
           </div>
         </div>
 
         <div class="explain" id="explainBox">
-          <h3 id="explainTitle">Correct</h3>
+          <h3 id="explainTitle">Explanation</h3>
           <div class="grid" id="explainGrid"></div>
           <div class="mini" id="explainMini"></div>
-          <div class="controls" style="margin-top:10px">
-            <button class="good" id="btnNext">Next Scenario</button>
-          </div>
         </div>
       </section>
 
       <aside class="card sidebar">
-        <h2>How to think like OST</h2>
-        <p class="help">Rights are protected, but government can sometimes regulate (time/place/manner, safety). This game forces you to decide: Allowed vs Violation, then name the amendment.</p>
+        <h2>What “Constitutional” usually means</h2>
+        <p class="help">
+          Many rights can have <b>reasonable limits</b> (especially time/place/manner rules) as long as the government
+          is not targeting the viewpoint and isn’t effectively banning the right.
+        </p>
 
         <div class="rulebox">
-          <div class="rule"><span class="dot"></span><div><b>Allowed:</b> regulation is neutral, narrow, and tied to safety/order (e.g., noise limits, permit requirements that aren’t used to shut speech down).</div></div>
-          <div class="rule"><span class="dot"></span><div><b>Violation:</b> government targets a viewpoint, censors criticism, searches without legal basis, forces confession, denies counsel, or uses cruel/excessive punishment.</div></div>
-          <div class="rule"><span class="dot"></span><div><b>S
+          <div class="rule"><span class="dot"></span><div><b>1st:</b> speech/press/religion/assembly/petition — allowed limits if neutral & reasonable</div></div>
+          <div class="rule"><span class="dot"></span><div><b>4th:</b> searches need probable cause/warrants unless a real exception applies</div></div>
+          <div class="rule"><span class="dot"></span><div><b>5th:</b> no forced confession; no second trial for same offense after acquittal</div></div>
+          <div class="rule"><span class="dot"></span><div><b>6th:</b> trial rights (counsel, confrontation, speedy/public, jury, charges)</div></div>
+          <div class="rule"><span class="dot"></span><div><b>8th:</b> no excessive bail; no cruel/unusual punishment</div></div>
+          <div class="rule"><span class="dot"></span><div><b>10th:</b> powers not delegated to federal government are reserved to states/people</div></div>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h2>Teacher Tip</h2>
+        <p class="help">
+          This game builds OST skill: <b>Judgment → Amendment → Explanation</b>. If students struggle, pause after a scenario and
+          have them identify: (1) government action, (2) right involved, (3) limit on government.
+        </p>
+      </aside>
+    </main>
+
+    <div class="footer">
+      <div>Game 2 • no logins • no data saved</div>
+      <div><span class="linkish" id="toggleShuffle">Shuffle: ON</span></div>
+    </div>
+  </div>
+
+  <script>
+    // If anything errors, we show it in the scenario box instead of “Loading…”
+    window.addEventListener("DOMContentLoaded", () => {
+      try { init(); }
+      catch (err) {
+        const box = document.getElementById("scenarioText");
+        box.textContent = "Error loading game. Edit the file and re-paste the full code. Details: " + (err?.message || err);
+        console.error(err);
+      }
+    });
+
+    const AMENDMENTS = [
+      { key:"1", label:"1st" },
+      { key:"2", label:"2nd" },
+      { key:"4", label:"4th" },
+      { key:"5", label:"5th" },
+      { key:"6", label:"6th" },
+      { key:"8", label:"8th" },
+      { key:"10", label:"10th" },
+    ];
+
+    // Stage 1: Constitutional vs Unconstitutional
+    const JUDGMENTS = [
+      { key:"constitutional", label:"Constitutional (Allowed)" },
+      { key:"unconstitutional", label:"Unconstitutional (Violation)"
