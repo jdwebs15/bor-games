@@ -7,7 +7,6 @@
   <style>
     :root{
       --bg:#0b1220;
-      --panel:#111b2e;
       --text:#e7eefc;
       --muted:#a8b4cf;
       --border: rgba(255,255,255,0.10);
@@ -21,7 +20,6 @@
       --warn:#ffd166;
       --accent:#7aa2ff;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
@@ -37,7 +35,6 @@
       justify-content:center;
       padding:22px;
     }
-
     .app{
       width:min(1040px,100%);
       background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
@@ -46,7 +43,6 @@
       border-radius: var(--radius);
       overflow:hidden;
     }
-
     header{
       padding:18px 18px 14px;
       border-bottom:1px solid var(--border);
@@ -56,7 +52,6 @@
       justify-content:space-between;
       flex-wrap:wrap;
     }
-
     h1{margin:0;font-size:20px;letter-spacing:.2px}
     .sub{color:var(--muted);font-size:13px;line-height:1.25;max-width:720px}
 
@@ -268,7 +263,7 @@
       <div>
         <h1>Bill of Rights — Right or No Right?</h1>
         <div class="sub">
-          Step 1: Decide if the government action is <b>Constitutional</b> (allowed) or <b>Unconstitutional</b> (a rights violation).<br/>
+          Step 1: Decide if the government action is <b>Constitutional</b> (Allowed) or <b>Unconstitutional</b> (Violation).<br/>
           Step 2: Identify the amendment. You can’t advance until you get both steps correct.
         </div>
       </div>
@@ -321,27 +316,23 @@
       </section>
 
       <aside class="card sidebar">
-        <h2>What “Constitutional” usually means</h2>
+        <h2>How to think like OST</h2>
         <p class="help">
-          Many rights can have <b>reasonable limits</b> (especially time/place/manner rules) as long as the government
-          is not targeting the viewpoint and isn’t effectively banning the right.
+          Rights are protected, but government can sometimes regulate time/place/manner, safety, and order.
+          This game forces you to decide: Allowed vs Violation, then name the amendment.
         </p>
 
         <div class="rulebox">
-          <div class="rule"><span class="dot"></span><div><b>1st:</b> speech/press/religion/assembly/petition — allowed limits if neutral & reasonable</div></div>
-          <div class="rule"><span class="dot"></span><div><b>4th:</b> searches need probable cause/warrants unless a real exception applies</div></div>
-          <div class="rule"><span class="dot"></span><div><b>5th:</b> no forced confession; no second trial for same offense after acquittal</div></div>
-          <div class="rule"><span class="dot"></span><div><b>6th:</b> trial rights (counsel, confrontation, speedy/public, jury, charges)</div></div>
-          <div class="rule"><span class="dot"></span><div><b>8th:</b> no excessive bail; no cruel/unusual punishment</div></div>
-          <div class="rule"><span class="dot"></span><div><b>10th:</b> powers not delegated to federal government are reserved to states/people</div></div>
+          <div class="rule"><span class="dot"></span><div><b>Allowed:</b> regulation is neutral, narrow, tied to safety/order (e.g., noise limits, permit requirements that aren’t used to shut speech down).</div></div>
+          <div class="rule"><span class="dot"></span><div><b>Violation:</b> government targets a viewpoint, censors criticism, searches without legal basis, forces confession, denies counsel, or uses cruel/excessive punishment.</div></div>
         </div>
 
         <div style="height:12px"></div>
 
         <h2>Teacher Tip</h2>
         <p class="help">
-          This game builds OST skill: <b>Judgment → Amendment → Explanation</b>. If students struggle, pause after a scenario and
-          have them identify: (1) government action, (2) right involved, (3) limit on government.
+          Pause after a scenario and have students name:
+          (1) government action, (2) right involved, (3) limit on government.
         </p>
       </aside>
     </main>
@@ -353,17 +344,28 @@
   </div>
 
   <script>
-    document.getElementById("scenarioText").textContent = "JS is running — initializing...";
-    // If anything errors, we show it in the scenario box instead of “Loading…”
-    window.addEventListener("DOMContentLoaded", () => {
-      try { init(); }
-      catch (err) {
+    /**********************
+     * SAFE INIT (repaired)
+     **********************/
+    function safeInit(){
+      try {
+        init();
+      } catch (err) {
         const box = document.getElementById("scenarioText");
-        box.textContent = "Error loading game. Edit the file and re-paste the full code. Details: " + (err?.message || err);
+        box.textContent = "Error loading game: " + (err?.message || err);
         console.error(err);
       }
-    });
+    }
 
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", safeInit);
+    } else {
+      safeInit();
+    }
+
+    /**********************
+     * DATA + STATE
+     **********************/
     const AMENDMENTS = [
       { key:"1", label:"1st" },
       { key:"2", label:"2nd" },
@@ -374,7 +376,389 @@
       { key:"10", label:"10th" },
     ];
 
-    // Stage 1: Constitutional vs Unconstitutional
     const JUDGMENTS = [
-      { key:"constitutional", label:"Constitutional (Allowed)" },
-      { key:"unconstitutional", label:"Unconstitutional (Violation)"
+      { key:"constitutional", label:"Constitutional (Allowed)", cls:"good" },
+      { key:"unconstitutional", label:"Unconstitutional (Violation)", cls:"bad" },
+    ];
+
+    // Scenario bank: clear cases first (minimize debates)
+    const scenarioBank = [
+      {
+        scenario: "A city requires a permit for a large march downtown to coordinate traffic and public safety, and it approves permits using the same rules for all groups.",
+        judgment: "constitutional",
+        amendment: "1",
+        right: "Freedom of assembly (and speech).",
+        limit: "Government may use neutral time/place/manner rules for safety as long as it isn’t targeting viewpoints or effectively banning the right.",
+        why: "This is a neutral, safety-based permit system applied equally."
+      },
+      {
+        scenario: "A student is suspended for peacefully criticizing school policy, even though the speech does not disrupt learning.",
+        judgment: "unconstitutional",
+        amendment: "1",
+        right: "Freedom of speech.",
+        limit: "Government cannot punish speech simply because it dislikes the message (especially without disruption).",
+        why: "This is retaliation for expression rather than preventing disruption."
+      },
+      {
+        scenario: "A law bans all law-abiding adults from possessing any firearms in their homes for self-defense.",
+        judgment: "unconstitutional",
+        amendment: "2",
+        right: "Right to keep and bear arms.",
+        limit: "Government may regulate firearms, but a total ban on lawful home possession for self-defense raises major constitutional concerns.",
+        why: "This is a sweeping prohibition on lawful possession for self-defense."
+      },
+      {
+        scenario: "Police enter a home and search bedrooms and closets without a warrant and without an emergency situation.",
+        judgment: "unconstitutional",
+        amendment: "4",
+        right: "Protection against unreasonable searches and seizures.",
+        limit: "Government generally needs a warrant based on probable cause to search a home (with limited exceptions).",
+        why: "This is a warrantless home search with no valid exception."
+      },
+      {
+        scenario: "Police obtain a search warrant from a judge based on probable cause and then search the suspect’s home for evidence listed in the warrant.",
+        judgment: "constitutional",
+        amendment: "4",
+        right: "Protection against unreasonable searches and seizures.",
+        limit: "Searches are generally lawful when supported by probable cause and a valid warrant describing what may be searched/seized.",
+        why: "This follows the warrant + probable cause requirement."
+      },
+      {
+        scenario: "After a jury finds a defendant not guilty, prosecutors try to put the same person on trial again for the same offense.",
+        judgment: "unconstitutional",
+        amendment: "5",
+        right: "Protection against double jeopardy.",
+        limit: "Government cannot try someone twice for the same offense after acquittal.",
+        why: "A second prosecution after acquittal violates double jeopardy."
+      },
+      {
+        scenario: "During questioning, police threaten a suspect with serious harm unless he confesses, and he signs a confession to make it stop.",
+        judgment: "unconstitutional",
+        amendment: "5",
+        right: "Protection against self-incrimination (and due process).",
+        limit: "Government cannot compel a person to incriminate themselves through coercion.",
+        why: "The confession is forced rather than voluntary."
+      },
+      {
+        scenario: "A defendant is tried for a serious crime but is not allowed a lawyer even though he cannot afford one.",
+        judgment: "unconstitutional",
+        amendment: "6",
+        right: "Right to counsel.",
+        limit: "Government must provide counsel in serious criminal cases when defendants cannot afford an attorney.",
+        why: "Denial of counsel undermines a fair criminal trial."
+      },
+      {
+        scenario: "At trial, the judge refuses to let the defense question the main witness who accused the defendant.",
+        judgment: "unconstitutional",
+        amendment: "6",
+        right: "Right to confront witnesses.",
+        limit: "Defendants must be able to confront and cross-examine adverse witnesses in criminal trials.",
+        why: "Blocking confrontation prevents testing witness reliability."
+      },
+      {
+        scenario: "A judge sets bail extremely high for a minor nonviolent offense, clearly to keep the accused jailed before trial.",
+        judgment: "unconstitutional",
+        amendment: "8",
+        right: "Protection against excessive bail.",
+        limit: "Bail cannot be excessive relative to the circumstances; it cannot be used as punishment before conviction.",
+        why: "The bail amount is being used to punish rather than ensure court appearance."
+      },
+      {
+        scenario: "The federal government orders states to run local public schools in a specific way even though the Constitution does not delegate that power to the federal government.",
+        judgment: "unconstitutional",
+        amendment: "10",
+        right: "Reserved powers to the states or the people.",
+        limit: "Powers not delegated to the federal government are reserved to the states or the people.",
+        why: "This is a federal command outside a delegated power area."
+      }
+    ];
+
+    let deck = [];
+    let idx = 0;
+
+    let stage = 1;              // 1=judgment, 2=amendment
+    let totalAttempts = 0;
+    let scenarioAttempts = 0;
+    let streak = 0;
+    let correctChains = 0;
+
+    let shuffleOn = true;
+
+    // Timer
+    let sessionStart = new Date();
+    let startTs = Date.now();
+    let timerId = null;
+    let nowId = null;
+
+    const el = (id) => document.getElementById(id);
+
+    function init(){
+      buildDeck();
+      el("qTotal").textContent = String(scenarioBank.length);
+
+      el("startStamp").textContent = fmtDateTime(sessionStart);
+      el("nowStamp").textContent = fmtDateTime(new Date());
+
+      renderButtons();
+      wireUI();
+      startTimers();
+      render();
+    }
+
+    function wireUI(){
+      el("btnHint").onclick = showHint;
+      el("btnSkip").onclick = teacherSkip;
+      el("btnRestart").onclick = restart;
+      el("btnNext").onclick = nextScenario;
+      el("toggleShuffle").onclick = toggleShuffle;
+    }
+
+    function buildDeck(){
+      deck = [...scenarioBank];
+      if(shuffleOn){
+        for(let k = deck.length-1; k>0; k--){
+          const j = Math.floor(Math.random()*(k+1));
+          [deck[k], deck[j]] = [deck[j], deck[k]];
+        }
+      }
+    }
+
+    function renderButtons(){
+      const s1 = el("stage1Choices");
+      s1.innerHTML = "";
+      JUDGMENTS.forEach(opt=>{
+        const b = document.createElement("button");
+        b.className = opt.cls;
+        b.textContent = opt.label;
+        b.onclick = () => answerStage1(opt.key);
+        s1.appendChild(b);
+      });
+
+      const s2 = el("stage2Choices");
+      s2.innerHTML = "";
+      AMENDMENTS.forEach(a=>{
+        const b = document.createElement("button");
+        b.className = "primary";
+        b.textContent = a.label;
+        b.onclick = () => answerStage2(a.key);
+        s2.appendChild(b);
+      });
+    }
+
+    function render(){
+      const card = deck[idx];
+
+      stage = 1;
+      scenarioAttempts = 0;
+
+      el("scenarioText").textContent = card.scenario;
+
+      el("stageBadge").textContent = "Stage: 1/2";
+      el("attemptBadge").textContent = "Attempt #: 0";
+      el("streakBadge").textContent = `Streak: ${streak}`;
+
+      el("stage1Choices").style.display = "grid";
+      el("stage2Choices").style.display = "none";
+      el("btnNext").style.display = "none";
+      el("explainBox").style.display = "none";
+
+      setFeedback("warn","Directions","Stage 1: Decide if the government action is Constitutional (Allowed) or Unconstitutional (Violation).");
+      updateStats();
+    }
+
+    function updateStats(){
+      el("qNum").textContent = String(idx+1);
+      el("correctCt").textContent = String(correctChains);
+      el("attemptCt").textContent = String(totalAttempts);
+      el("attemptThis").textContent = String(scenarioAttempts);
+      el("attemptBadge").textContent = `Attempt #: ${scenarioAttempts}`;
+      el("streakBadge").textContent = `Streak: ${streak}`;
+    }
+
+    function answerStage1(choice){
+      const card = deck[idx];
+      totalAttempts++;
+      scenarioAttempts++;
+      updateStats();
+
+      if(choice === card.judgment){
+        stage = 2;
+        el("stageBadge").textContent = "Stage: 2/2";
+        el("stage1Choices").style.display = "none";
+        el("stage2Choices").style.display = "grid";
+        setFeedback("good","Stage 1 Correct","Now Stage 2: Which amendment best applies?");
+      } else {
+        streak = 0;
+        setFeedback("bad","Try again","Ask: Is this a neutral safety/order rule (allowed), or is government punishing/banning a right (violation)?");
+      }
+      updateStats();
+    }
+
+    function answerStage2(choice){
+      const card = deck[idx];
+      totalAttempts++;
+      scenarioAttempts++;
+      updateStats();
+
+      if(choice === card.amendment){
+        correctChains++;
+        streak++;
+        setFeedback("good","Correct Chain!","You got both steps correct. Read the explanation, then click Next.");
+        showExplanation(card);
+        el("btnNext").style.display = "inline-block";
+      } else {
+        streak = 0;
+        setFeedback("bad","Not that amendment","Identify the RIGHT involved, then match the amendment that limits government in this situation.");
+      }
+      updateStats();
+    }
+
+    function showExplanation(card){
+      el("explainBox").style.display = "block";
+      el("explainTitle").textContent = `Explanation: ${card.amendment}${suffix(card.amendment)} Amendment`;
+      el("explainGrid").innerHTML = `
+        <div><b>Judgment:</b> ${card.judgment === "constitutional" ? "Constitutional (Allowed)" : "Unconstitutional (Violation)"}</div>
+        <div><b>Right Protected:</b> ${escapeHtml(card.right)}</div>
+        <div><b>Limit on Government:</b> ${escapeHtml(card.limit)}</div>
+        <div><b>Why this applies:</b> ${escapeHtml(card.why)}</div>
+      `;
+      el("explainMini").textContent = "OST habit: Allowed vs violation → name the right → state the limit on government.";
+    }
+
+    function showHint(){
+      const card = deck[idx];
+      const t = card.scenario.toLowerCase();
+
+      let hint = "Hint: Identify the government action first. Then identify the right involved.";
+      if(t.includes("permit") || t.includes("march") || t.includes("protest") || t.includes("speech") || t.includes("religion")) hint = "Hint: Speech/press/religion/assembly/petition = 1st Amendment logic.";
+      if(t.includes("firearms") || t.includes("gun")) hint = "Hint: Firearms rules = 2nd Amendment logic.";
+      if(t.includes("warrant") || t.includes("search") || t.includes("enter") || t.includes("home")) hint = "Hint: Warrant/probable cause/search = 4th Amendment logic.";
+      if(t.includes("confess") || t.includes("not guilty") || t.includes("twice")) hint = "Hint: Forced confession or second trial = 5th Amendment logic.";
+      if(t.includes("lawyer") || t.includes("trial") || t.includes("witness") || t.includes("jury")) hint = "Hint: Trial rights = 6th Amendment logic.";
+      if(t.includes("bail") || t.includes("punishment") || t.includes("prison")) hint = "Hint: Excessive bail / cruel punishment = 8th Amendment logic.";
+      if(t.includes("states") || t.includes("not delegate") || t.includes("reserved") || t.includes("federal")) hint = "Hint: Reserved powers = 10th Amendment logic.";
+
+      setFeedback("warn","Hint",hint);
+    }
+
+    function nextScenario(){
+      if(idx < deck.length - 1){
+        idx++;
+        render();
+      } else {
+        finish();
+      }
+    }
+
+    function teacherSkip(){
+      if(idx < deck.length - 1){
+        idx++;
+        render();
+      } else {
+        finish();
+      }
+    }
+
+    function finish(){
+      el("stage1Choices").style.display = "none";
+      el("stage2Choices").style.display = "none";
+      el("btnNext").style.display = "none";
+      el("btnHint").disabled = true;
+
+      const elapsed = fmtTime(Date.now() - startTs);
+      setFeedback("good","Session Complete",`Correct chains: ${correctChains} • Attempts: ${totalAttempts} • Time: ${elapsed}. Click Restart to replay.`);
+
+      el("scenarioText").textContent = "Finish! Great work — replay for higher accuracy and fewer attempts.";
+      el("explainBox").style.display = "block";
+      el("explainTitle").textContent = "Next step";
+      el("explainGrid").innerHTML = `
+        <div><b>Goal:</b> 2 strong runs to build fluency (fewer attempts).</div>
+        <div><b>Next game:</b> Game 3 will ask you to “Fix the Violation.”</div>
+      `;
+      el("explainMini").textContent = "Teacher note: add more scenarios in scenarioBank.";
+    }
+
+    function restart(){
+      idx = 0;
+      totalAttempts = 0;
+      scenarioAttempts = 0;
+      streak = 0;
+      correctChains = 0;
+
+      sessionStart = new Date();
+      startTs = Date.now();
+      el("startStamp").textContent = fmtDateTime(sessionStart);
+
+      el("btnHint").disabled = false;
+
+      buildDeck();
+      render();
+    }
+
+    function toggleShuffle(){
+      shuffleOn = !shuffleOn;
+      el("toggleShuffle").textContent = `Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
+      restart();
+    }
+
+    function setFeedback(kind,title,msg){
+      const box = el("feedback");
+      box.innerHTML = "";
+
+      const icon = document.createElement("span");
+      icon.className = `icon ${kind}`;
+      icon.textContent = kind === "good" ? "✓" : kind === "bad" ? "✕" : "!";
+
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `<div><b>${escapeHtml(title)}</b></div><div style="margin-top:4px">${escapeHtml(msg)}</div>`;
+
+      box.appendChild(icon);
+      box.appendChild(wrap);
+    }
+
+    function startTimers(){
+      if(timerId) clearInterval(timerId);
+      timerId = setInterval(()=> el("timeEl").textContent = fmtTime(Date.now() - startTs), 500);
+
+      if(nowId) clearInterval(nowId);
+      nowId = setInterval(()=> el("nowStamp").textContent = fmtDateTime(new Date()), 1000);
+    }
+
+    function fmtTime(ms){
+      const s = Math.floor(ms/1000);
+      const m = Math.floor(s/60);
+      const r = s % 60;
+      return `${m}:${String(r).padStart(2,"0")}`;
+    }
+
+    function fmtDateTime(d){
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      let hh = d.getHours();
+      const ampm = hh >= 12 ? "PM" : "AM";
+      hh = hh % 12; if(hh===0) hh = 12;
+      const mi = String(d.getMinutes()).padStart(2,"0");
+      const ss = String(d.getSeconds()).padStart(2,"0");
+      return `${mm}/${dd}/${yyyy} ${hh}:${mi}:${ss} ${ampm}`;
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function suffix(n){
+      if(n==="1") return "st";
+      if(n==="2") return "nd";
+      if(n==="3") return "rd";
+      return "th";
+    }
+  </script>
+</body>
+</html>
+
