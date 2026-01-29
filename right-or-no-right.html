@@ -1,764 +1,923 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Bill of Rights — Right or No Right?</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Game 2 — Right or No Right? (Sub-Rights + 14th)</title>
   <style>
     :root{
       --bg:#0b1220;
-      --text:#e7eefc;
-      --muted:#a8b4cf;
-      --border: rgba(255,255,255,0.10);
-      --shadow: 0 18px 55px rgba(0,0,0,.35);
-      --radius: 18px;
-      --radius2: 14px;
-      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      --good:#2bd576;
-      --bad:#ff5c7a;
-      --warn:#ffd166;
-      --accent:#7aa2ff;
+      --card:#111a2e;
+      --ink:#eaf0ff;
+      --muted:#a9b4d0;
+      --accent:#7dd3fc;
+      --good:#34d399;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --line:rgba(255,255,255,.12);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: var(--sans);
-      background: radial-gradient(900px 500px at 15% 15%, rgba(122,162,255,.18), transparent 60%),
-                  radial-gradient(900px 500px at 85% 25%, rgba(43,213,118,.14), transparent 60%),
-                  radial-gradient(900px 500px at 60% 85%, rgba(255,92,122,.12), transparent 60%),
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 30% 10%, rgba(125,211,252,.18), transparent 60%),
+                  radial-gradient(1000px 700px at 70% 20%, rgba(52,211,153,.14), transparent 55%),
+                  radial-gradient(900px 700px at 60% 80%, rgba(251,113,133,.10), transparent 55%),
                   var(--bg);
-      color: var(--text);
+      color:var(--ink);
       min-height:100vh;
       display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:22px;
-    }
-    .app{
-      width:min(1040px,100%);
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--border);
-      box-shadow: var(--shadow);
-      border-radius: var(--radius);
-      overflow:hidden;
+      flex-direction:column;
     }
     header{
-      padding:18px 18px 14px;
-      border-bottom:1px solid var(--border);
-      display:flex;
-      gap:14px;
-      align-items:flex-start;
-      justify-content:space-between;
-      flex-wrap:wrap;
+      padding:16px 18px;
+      border-bottom:1px solid var(--line);
+      background: rgba(0,0,0,.15);
+      backdrop-filter: blur(8px);
+      position:sticky;
+      top:0;
+      z-index:10;
     }
-    h1{margin:0;font-size:20px;letter-spacing:.2px}
-    .sub{color:var(--muted);font-size:13px;line-height:1.25;max-width:720px}
-
-    .stats{
+    .nav{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .pill{
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.18);
-      border-radius:999px;
-      padding:8px 10px;
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      gap:6px;
       align-items:center;
-      white-space:nowrap;
+      justify-content:space-between;
+      max-width:1100px;
+      margin:0 auto;
     }
-    .pill b{color:var(--text);font-weight:700}
-
-    main{
-      padding:18px;
-      display:grid;
-      grid-template-columns: 1.08fr .92fr;
-      gap:14px;
-    }
-    @media (max-width:900px){ main{grid-template-columns:1fr} }
-
-    .card{
-      background: rgba(0,0,0,.18);
-      border:1px solid var(--border);
-      border-radius: var(--radius2);
-      padding:14px;
-    }
-
-    .scenario{
-      background: linear-gradient(180deg, rgba(122,162,255,.10), rgba(0,0,0,.18));
-      border:1px solid rgba(122,162,255,.22);
-      border-radius: var(--radius2);
-      padding:16px;
-      min-height:170px;
+    .nav .left{
       display:flex;
-      flex-direction:column;
       gap:10px;
-      position:relative;
-      overflow:hidden;
-    }
-    .scenario::after{
-      content:"";
-      position:absolute;
-      inset:-60px -80px auto auto;
-      width:240px;height:240px;
-      background: radial-gradient(circle, rgba(122,162,255,.22), transparent 60%);
-      transform: rotate(18deg);
-    }
-    .scenario-label{
-      font-family:var(--mono);
-      font-size:11px;
-      color: rgba(231,238,252,.75);
-      letter-spacing:.6px;
-      text-transform:uppercase;
-      display:flex;
-      gap:8px;
+      align-items:center;
       flex-wrap:wrap;
-      position:relative;
-      z-index:1;
     }
     .badge{
-      font-family:var(--mono);
-      font-size:11px;
-      padding:4px 8px;
+      padding:6px 10px;
+      border:1px solid var(--line);
       border-radius:999px;
-      border:1px solid var(--border);
       color:var(--muted);
-      background: rgba(0,0,0,.18);
-      white-space:nowrap;
+      font-size:12px;
     }
-    .scenario-text{
-      font-size:17px;
-      line-height:1.35;
-      margin:0;
-      position:relative;
-      z-index:1;
+    a.navlink{
+      color:var(--ink);
+      text-decoration:none;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-weight:600;
+      font-size:13px;
+      opacity:.9;
     }
-
-    .choices{
+    a.navlink:hover{opacity:1;border-color:rgba(125,211,252,.45)}
+    main{
+      width:100%;
+      max-width:1100px;
+      margin:18px auto 28px;
+      padding:0 16px 24px;
+      flex:1;
+    }
+    .grid{
       display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:16px;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background: rgba(17,26,46,.92);
+      border:1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding:16px;
+    }
+    h1{
+      margin:0 0 10px;
+      font-size:22px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      color:var(--muted);
+      margin:0 0 12px;
+      line-height:1.4;
+      font-size:14px;
+    }
+    .metaRow{
+      display:flex;
       gap:10px;
-      margin-top:12px;
+      flex-wrap:wrap;
+      margin-top:10px;
     }
-    .choices.grid2{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-    .choices.grid3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
-    @media (max-width:540px){
-      .choices.grid3{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
-
-    button{
-      appearance:none;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.20);
-      color: var(--text);
-      padding: 12px 10px;
+    .stat{
+      border:1px solid var(--line);
       border-radius: 14px;
-      font-size: 14px;
-      cursor:pointer;
-      transition: transform .05s ease, background .15s ease, border-color .15s ease;
-      user-select:none;
+      padding:10px 12px;
+      min-width:150px;
+      flex:1;
     }
-    button:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
-    button:active{ transform: translateY(1px); }
-    button.primary{ border-color: rgba(122,162,255,.35); background: rgba(122,162,255,.12); }
-    button.good{ border-color: rgba(43,213,118,.40); background: rgba(43,213,118,.14); }
-    button.bad{ border-color: rgba(255,92,122,.35); background: rgba(255,92,122,.12); }
-    button:disabled{opacity:.55;cursor:not-allowed;transform:none}
-
+    .stat .k{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:4px;
+    }
+    .stat .v{
+      font-size:16px;
+      font-weight:800;
+    }
+    .prompt{
+      border:1px dashed rgba(255,255,255,.22);
+      border-radius: 14px;
+      padding:14px;
+      margin-top:12px;
+      line-height:1.5;
+      font-size:15px;
+      background: rgba(0,0,0,.18);
+    }
     .controls{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
+      align-items:center;
       margin-top:12px;
     }
-
-    .feedback{
-      margin-top:10px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.18);
-      color: var(--muted);
-      min-height:54px;
-      display:flex;
-      align-items:flex-start;
-      gap:10px;
+    button{
+      cursor:pointer;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      padding:10px 12px;
+      background: rgba(255,255,255,.06);
+      color: var(--ink);
+      font-weight:700;
+      letter-spacing:.2px;
     }
-    .feedback .icon{
-      width:18px;height:18px;border-radius:6px;
-      display:inline-flex;align-items:center;justify-content:center;
-      font-weight:900;font-size:12px;margin-top:2px;flex:0 0 auto;
+    button:hover{border-color: rgba(125,211,252,.45)}
+    button:disabled{
+      opacity:.5;
+      cursor:not-allowed;
     }
-    .icon.good{ background: rgba(43,213,118,.16); color: var(--good); border:1px solid rgba(43,213,118,.35); }
-    .icon.bad{ background: rgba(255,92,122,.16); color: var(--bad); border:1px solid rgba(255,92,122,.35); }
-    .icon.warn{ background: rgba(255,209,102,.16); color: var(--warn); border:1px solid rgba(255,209,102,.35); }
-
-    .explain{
-      margin-top:12px;
-      display:none;
-      border-radius:14px;
-      border:1px solid rgba(43,213,118,.30);
-      background: linear-gradient(180deg, rgba(43,213,118,.10), rgba(0,0,0,.18));
-      padding:12px;
-    }
-    .explain h3{ margin:0 0 8px; font-size:14px; }
-    .explain .grid{
+    .choiceGrid{
       display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-      color: var(--muted);
-      font-size:13px;
-      line-height:1.35;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top:12px;
     }
-    .explain b{ color: var(--text); }
-    .mini{
-      font-family:var(--mono);
-      font-size:11px;
-      color: rgba(231,238,252,.70);
-      margin-top:8px;
-    }
-
-    .sidebar h2{margin:0 0 10px;font-size:15px}
-    .help{color:var(--muted);font-size:13px;line-height:1.35;margin:0 0 12px}
-
-    .rulebox{
-      border-radius:14px;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.18);
+    .choice{
+      text-align:left;
       padding:12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      transition: transform .05s ease;
+    }
+    .choice:hover{border-color: rgba(125,211,252,.45)}
+    .choice:active{transform: scale(.99)}
+    .choice small{color:var(--muted); display:block; margin-top:4px; font-weight:600}
+    .msg{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      color: var(--muted);
+    }
+    .msg.good{border-color: rgba(52,211,153,.45); color: var(--ink)}
+    .msg.bad{border-color: rgba(251,113,133,.55); color: var(--ink)}
+    .explain{
+      margin-top:10px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      padding:12px;
+      background: rgba(0,0,0,.22);
+      line-height:1.45;
+    }
+    .explain h3{
+      margin:0 0 8px;
+      font-size:14px;
+      color: var(--accent);
+      letter-spacing:.2px;
+    }
+    .explain ul{
+      margin:0;
+      padding-left:18px;
+    }
+    .explain li{margin:6px 0}
+    .filters{
       display:flex;
       flex-direction:column;
       gap:10px;
     }
-    .rule{display:flex;gap:10px;align-items:flex-start}
-    .dot{
-      width:10px;height:10px;border-radius:3px;margin-top:5px;flex:0 0 auto;
-      border:1px solid var(--border);
-      background: rgba(122,162,255,.22);
-      border-color: rgba(122,162,255,.32);
+    .filterBox{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding:12px;
+      background: rgba(255,255,255,.04);
     }
-
-    .footer{
-      padding:14px 18px 18px;
-      border-top:1px solid var(--border);
+    .filterBox h2{
+      margin:0 0 8px;
+      font-size:14px;
+      color: var(--accent);
+    }
+    .checkRow{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
-      justify-content:space-between;
       align-items:center;
-      color: var(--muted);
-      font-size: 12px;
     }
-    .linkish{color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer;}
+    label.chk{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      font-size:13px;
+      color: var(--ink);
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.16);
+      user-select:none;
+    }
+    label.chk input{accent-color: var(--accent)}
+    .tiny{
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+      margin-top:8px;
+    }
+    .footerNote{
+      margin-top:12px;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.4;
+    }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div>
-        <h1>Bill of Rights — Right or No Right?</h1>
-        <div class="sub">
-          Step 1: Decide if the government action is <b>Constitutional</b> (Allowed) or <b>Unconstitutional</b> (Violation).<br/>
-          Step 2: Identify the amendment. You can’t advance until you get both steps correct.
-        </div>
+  <header>
+    <div class="nav">
+      <div class="left">
+        <span class="badge">Bill of Rights Games</span>
+        <a class="navlink" href="index.html">Home</a>
+        <a class="navlink" href="right-or-no-right.html">Game 2</a>
+        <a class="navlink" href="fix-the-violation.html">Game 3</a>
+        <a class="navlink" href="amendment-blitz.html">Game 4</a>
       </div>
+      <span class="badge">Strict Mode • Sub-Rights • 14th Added</span>
+    </div>
+  </header>
 
-      <div class="stats">
-        <div class="pill">Scenario <b id="qNum">1</b>/<b id="qTotal">0</b></div>
-        <div class="pill">Correct Chains <b id="correctCt">0</b></div>
-        <div class="pill">Total Attempts <b id="attemptCt">0</b></div>
-        <div class="pill">This Scenario Attempts <b id="attemptThis">0</b></div>
-        <div class="pill">Timer <b id="timeEl">0:00</b></div>
-        <div class="pill">Now <b id="nowStamp">—</b></div>
-        <div class="pill">Started <b id="startStamp">—</b></div>
-      </div>
-    </header>
-
-    <main>
+  <main>
+    <div class="grid">
       <section class="card">
-        <div class="scenario">
-          <div class="scenario-label">
-            <span class="badge" id="stageBadge">Stage: 1/2</span>
-            <span class="badge" id="attemptBadge">Attempt #: 0</span>
-            <span class="badge" id="streakBadge">Streak: 0</span>
+        <h1>Game 2 — Right or No Right?</h1>
+        <p class="sub">
+          Identify the <b>most precise constitutional “sub-right / part”</b> (or choose <b>No Right</b> when nothing in the Bill of Rights/14th applies).
+          <br/>Strict mode: you must answer correctly to move on.
+        </p>
+
+        <div class="metaRow">
+          <div class="stat">
+            <div class="k">Timer</div>
+            <div class="v" id="timer">00:00</div>
           </div>
-          <p class="scenario-text" id="scenarioText">Loading…</p>
+          <div class="stat">
+            <div class="k">Question</div>
+            <div class="v"><span id="qNum">1</span> / <span id="qTotal">0</span></div>
+          </div>
+          <div class="stat">
+            <div class="k">Attempts (this question)</div>
+            <div class="v" id="attemptsQ">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Total Attempts</div>
+            <div class="v" id="attemptsTotal">0</div>
+          </div>
         </div>
 
-        <div class="choices grid2" id="stage1Choices"></div>
-        <div class="choices grid3" id="stage2Choices" style="display:none"></div>
+        <div class="prompt" id="prompt"></div>
+
+        <div class="choiceGrid" id="choices"></div>
+
+        <div class="msg" id="msg">Choose the most precise match.</div>
+
+        <div class="explain" id="explain" style="display:none;">
+          <h3>Post-Correct Explanation</h3>
+          <ul id="explainList"></ul>
+        </div>
 
         <div class="controls">
-          <button class="primary" id="btnHint">Hint</button>
-          <button id="btnSkip">Teacher Skip</button>
-          <button id="btnRestart">Restart</button>
-          <button class="good" id="btnNext" style="display:none">Next Scenario</button>
+          <button id="restartBtn">Restart</button>
+          <button id="skipBtn" title="Teacher use only: skip to the next prompt (does not count as correct)">Teacher Skip</button>
+          <button id="nextBtn" disabled>Next (unlocked after correct)</button>
         </div>
 
-        <div class="feedback" id="feedback">
-          <span class="icon warn">!</span>
-          <div>
-            <div><b>Directions:</b> Stage 1 first — Constitutional or Unconstitutional.</div>
-            <div style="margin-top:4px">Then identify the amendment in Stage 2.</div>
-          </div>
-        </div>
-
-        <div class="explain" id="explainBox">
-          <h3 id="explainTitle">Explanation</h3>
-          <div class="grid" id="explainGrid"></div>
-          <div class="mini" id="explainMini"></div>
+        <div class="footerNote">
+          Tip: Use filters on the right to focus practice (e.g., only 4A/5A/6A, or only 14th).
         </div>
       </section>
 
-      <aside class="card sidebar">
-        <h2>How to think like OST</h2>
-        <p class="help">
-          Rights are protected, but government can sometimes regulate time/place/manner, safety, and order.
-          This game forces you to decide: Allowed vs Violation, then name the amendment.
-        </p>
-
-        <div class="rulebox">
-          <div class="rule"><span class="dot"></span><div><b>Allowed:</b> regulation is neutral, narrow, tied to safety/order (e.g., noise limits, permit requirements that aren’t used to shut speech down).</div></div>
-          <div class="rule"><span class="dot"></span><div><b>Violation:</b> government targets a viewpoint, censors criticism, searches without legal basis, forces confession, denies counsel, or uses cruel/excessive punishment.</div></div>
+      <aside class="card filters">
+        <div class="filterBox">
+          <h2>Filters (Optional)</h2>
+          <div class="checkRow" id="filterRow"></div>
+          <div class="tiny">
+            Filters control which question bank is used when you press <b>Restart</b>.
+          </div>
         </div>
 
-        <div style="height:12px"></div>
+        <div class="filterBox">
+          <h2>Answer Key Precision</h2>
+          <div class="tiny">
+            You’re matching the most precise “part” available:
+            <br/>• <b>1A</b> = Speech / Press / Religion / Assembly / Petition
+            <br/>• <b>4A</b> = Search vs Seizure vs Warrant/Probable Cause
+            <br/>• <b>5A</b> = Self-Incrimination vs Double Jeopardy (+ Due Process where appropriate)
+            <br/>• <b>6A</b> = Speedy / Public / Jury / Charges / Confrontation / Counsel
+            <br/>• <b>8A</b> = Cruel & Unusual / Excessive Bail / Excessive Fines
+            <br/>• <b>10A</b> = Reserved Powers
+            <br/>• <b>14A</b> = Citizenship / Due Process (state) / Equal Protection / Incorporation
+          </div>
+        </div>
 
-        <h2>Teacher Tip</h2>
-        <p class="help">
-          Pause after a scenario and have students name:
-          (1) government action, (2) right involved, (3) limit on government.
-        </p>
+        <div class="filterBox">
+          <h2>Strict Mode</h2>
+          <div class="tiny">
+            Wrong answer → attempt counts → you must try again.
+            <br/>Correct answer → explanation appears → Next unlocks.
+          </div>
+        </div>
       </aside>
-    </main>
-
-    <div class="footer">
-      <div>Game 2 • no logins • no data saved</div>
-      <div><span class="linkish" id="toggleShuffle">Shuffle: ON</span></div>
     </div>
-  </div>
+  </main>
 
   <script>
-    /**********************
-     * SAFE INIT (repaired)
-     **********************/
-    function safeInit(){
-      try {
-        init();
-      } catch (err) {
-        const box = document.getElementById("scenarioText");
-        box.textContent = "Error loading game: " + (err?.message || err);
-        console.error(err);
-      }
+    // -----------------------------
+    // Sub-right taxonomy (answer targets)
+    // -----------------------------
+    const TARGETS = [
+      // 1A
+      { key:"1A-SPEECH", label:"1A — Freedom of Speech", amend:"1A", group:"1A", short:"Speech" },
+      { key:"1A-PRESS", label:"1A — Freedom of the Press", amend:"1A", group:"1A", short:"Press" },
+      { key:"1A-RELIGION", label:"1A — Freedom of Religion (Establishment/Free Exercise)", amend:"1A", group:"1A", short:"Religion" },
+      { key:"1A-ASSEMBLY", label:"1A — Freedom of Assembly", amend:"1A", group:"1A", short:"Assembly" },
+      { key:"1A-PETITION", label:"1A — Right to Petition Government", amend:"1A", group:"1A", short:"Petition" },
+
+      // 4A
+      { key:"4A-SEARCH", label:"4A — Unreasonable Search", amend:"4A", group:"4A", short:"Search" },
+      { key:"4A-SEIZURE", label:"4A — Unreasonable Seizure", amend:"4A", group:"4A", short:"Seizure" },
+      { key:"4A-WARRANT", label:"4A — Warrants / Probable Cause / Particularity", amend:"4A", group:"4A", short:"Warrant/PC" },
+
+      // 5A
+      { key:"5A-SILENCE", label:"5A — Self-Incrimination (Right to Remain Silent)", amend:"5A", group:"5A", short:"Self-Incrimination" },
+      { key:"5A-DOUBLE", label:"5A — Double Jeopardy", amend:"5A", group:"5A", short:"Double Jeopardy" },
+      { key:"5A-DUEPROCESS", label:"5A — Due Process (Federal)", amend:"5A", group:"5A", short:"Due Process (Fed)" },
+
+      // 6A
+      { key:"6A-SPEEDY", label:"6A — Speedy Trial", amend:"6A", group:"6A", short:"Speedy" },
+      { key:"6A-PUBLIC", label:"6A — Public Trial", amend:"6A", group:"6A", short:"Public" },
+      { key:"6A-JURY", label:"6A — Impartial Jury", amend:"6A", group:"6A", short:"Jury" },
+      { key:"6A-CHARGES", label:"6A — Informed of Charges", amend:"6A", group:"6A", short:"Charges" },
+      { key:"6A-CONFRONT", label:"6A — Confrontation (Cross-Examine Witnesses)", amend:"6A", group:"6A", short:"Confrontation" },
+      { key:"6A-COUNSEL", label:"6A — Right to Counsel (Attorney)", amend:"6A", group:"6A", short:"Counsel" },
+
+      // 8A
+      { key:"8A-CRUEL", label:"8A — Cruel & Unusual Punishment", amend:"8A", group:"8A", short:"Cruel & Unusual" },
+      { key:"8A-BAIL", label:"8A — Excessive Bail", amend:"8A", group:"8A", short:"Excessive Bail" },
+      { key:"8A-FINES", label:"8A — Excessive Fines", amend:"8A", group:"8A", short:"Excessive Fines" },
+
+      // 10A
+      { key:"10A-RESERVED", label:"10A — Reserved Powers (States/People)", amend:"10A", group:"10A", short:"Reserved Powers" },
+
+      // 14A
+      { key:"14A-CITIZEN", label:"14A — Citizenship Clause", amend:"14A", group:"14A", short:"Citizenship" },
+      { key:"14A-DP", label:"14A — Due Process (State)", amend:"14A", group:"14A", short:"Due Process (State)" },
+      { key:"14A-EP", label:"14A — Equal Protection", amend:"14A", group:"14A", short:"Equal Protection" },
+      { key:"14A-INC", label:"14A — Incorporation (BoR applies to states)", amend:"14A", group:"14A", short:"Incorporation" },
+
+      // No Right bucket
+      { key:"NONE", label:"No Right (not a constitutional rights issue here)", amend:"NONE", group:"NONE", short:"No Right" },
+    ];
+
+    const FILTERS = [
+      { id:"1A", label:"1A" },
+      { id:"4A", label:"4A" },
+      { id:"5A", label:"5A" },
+      { id:"6A", label:"6A" },
+      { id:"8A", label:"8A" },
+      { id:"10A", label:"10A" },
+      { id:"14A", label:"14A" },
+      { id:"NONE", label:"No Right" }
+    ];
+
+    // -----------------------------
+    // Question bank (Right or No Right)
+    // Each item must point to the MOST PRECISE target key.
+    // Explanation must follow: Right protected / Limit on government / Why it applies
+    // -----------------------------
+    const BANK = [
+      // 1A Speech
+      q("A student is suspended for wearing a shirt criticizing the principal. The school says the message is 'disrespectful.'",
+        "1A-SPEECH",
+        "Freedom to express opinions (speech).",
+        "Government actors (public schools) can’t punish speech just because they dislike the message.",
+        "A public school is a government entity; punishment tied to viewpoint triggers 1A speech analysis."
+      ),
+      q("City council fines a resident for criticizing the mayor at a public meeting.",
+        "1A-SPEECH",
+        "Freedom to speak on public issues.",
+        "Government cannot punish speech based on viewpoint or criticism of officials.",
+        "Speaking at a public meeting is core political speech."
+      ),
+
+      // 1A Press
+      q("A public high school bans the student newspaper because it ran an article about cafeteria problems.",
+        "1A-PRESS",
+        "Freedom of the press to publish news and criticism.",
+        "Government cannot suppress reporting solely because it is embarrassing or critical.",
+        "A school-run paper is still expressive press activity; censorship is a 1A press issue."
+      ),
+      q("A state agency refuses to renew a media outlet’s press credentials because it 'asks hostile questions.'",
+        "1A-PRESS",
+        "Press freedom to gather/report information.",
+        "Government can’t retaliate against media for critical coverage.",
+        "Credentialing tied to favoritism becomes viewpoint-based press discrimination."
+      ),
+
+      // 1A Religion
+      q("A public school requires students to recite a Christian prayer before football games.",
+        "1A-RELIGION",
+        "Freedom of religion (no government establishment; free exercise protections).",
+        "Government may not establish/endorse a religion or coerce participation in religious practice.",
+        "A public school event is state action; mandatory prayer is an Establishment problem."
+      ),
+      q("A city bans all religious head coverings in public buildings, including a courthouse.",
+        "1A-RELIGION",
+        "Free exercise of religion (religious practice).",
+        "Government cannot target religious practice without strong justification and neutrality.",
+        "A blanket ban burdens religious practice; it’s a free exercise issue."
+      ),
+
+      // 1A Assembly
+      q("Police break up a peaceful protest in a public park because it is 'annoying to drivers,' even though it is not blocking traffic.",
+        "1A-ASSEMBLY",
+        "Freedom of assembly—peaceful gathering for expression.",
+        "Government cannot shut down peaceful gatherings without valid, neutral time/place/manner reasons.",
+        "A public park is a traditional public forum; peaceful protest is protected assembly."
+      ),
+      q("A town refuses permits for any gatherings of more than 10 people, but only applies it to protests against the town.",
+        "1A-ASSEMBLY",
+        "Freedom to assemble for political protest.",
+        "Government can’t apply rules selectively to silence certain viewpoints.",
+        "Selective enforcement against protest gatherings triggers assembly/free speech concerns."
+      ),
+
+      // 1A Petition
+      q("A public school bans students from submitting petitions requesting a change to the dress code.",
+        "1A-PETITION",
+        "Right to petition government for changes/redress.",
+        "Government can’t block requests/complaints simply because it dislikes being challenged.",
+        "A public school is a government actor; petitioning is protected civic participation."
+      ),
+      q("A city refuses to accept citizen complaint forms about police conduct and tells residents to 'stop bothering us.'",
+        "1A-PETITION",
+        "Right to petition government for redress of grievances.",
+        "Government can’t shut off the ability to ask for action or complain about official conduct.",
+        "Complaints/petitions are a direct request to government—core petition right."
+      ),
+
+      // 4A Search vs Seizure vs Warrant
+      q("An officer opens a student’s backpack without any specific reason—just a 'random check.'",
+        "4A-SEARCH",
+        "Protection from unreasonable searches.",
+        "Government must have a valid justification before searching private belongings.",
+        "Opening a backpack is a search; random suspicionless searches are a 4A issue."
+      ),
+      q("Police take a person’s phone 'for safekeeping' during a traffic stop and keep it for 3 days without a charge.",
+        "4A-SEIZURE",
+        "Protection from unreasonable seizure of property.",
+        "Government can’t take/hold your property without lawful justification and limits.",
+        "Taking the phone and holding it is a seizure; duration matters."
+      ),
+      q("Police enter a home to look for drugs without a warrant and without consent.",
+        "4A-WARRANT",
+        "Warrant/probable cause protections tied to home entry.",
+        "Government generally needs a warrant supported by probable cause to search a home.",
+        "Home searches are at the core of the 4A warrant requirement."
+      ),
+      q("A warrant says 'search the entire neighborhood for stolen items' with no specific address or items listed.",
+        "4A-WARRANT",
+        "Warrants must be supported by probable cause and be particular.",
+        "Government can’t use general warrants to search broadly without limits.",
+        "The 4A requires particularity (place/things); this is a blanket/general warrant."
+      ),
+
+      // 5A Self-incrimination / Double jeopardy / due process (federal)
+      q("Police interrogate a suspect for hours and threaten jail time unless the suspect confesses.",
+        "5A-SILENCE",
+        "Protection against being compelled to incriminate yourself.",
+        "Government can’t force a confession or punish someone for refusing to confess.",
+        "Coercive interrogation implicates self-incrimination protections."
+      ),
+      q("After being acquitted of burglary, the government charges the same person again for the same burglary because prosecutors 'found new evidence.'",
+        "5A-DOUBLE",
+        "Protection from double jeopardy (tried twice for the same offense).",
+        "Government can’t retry a person after an acquittal for the same offense.",
+        "Same defendant + same offense + acquittal = double jeopardy problem."
+      ),
+      q("A federal agency freezes a person’s bank account permanently without any hearing or process.",
+        "5A-DUEPROCESS",
+        "Due process before the federal government takes liberty/property.",
+        "Government must follow fair procedures before depriving someone of property.",
+        "A federal action taking property without process triggers 5A due process."
+      ),
+
+      // 6A parts
+      q("A defendant sits in jail for 18 months before trial because the court 'is busy,' with no special reason.",
+        "6A-SPEEDY",
+        "Right to a speedy trial.",
+        "Government can’t delay criminal trials unreasonably while holding someone.",
+        "Extended delay without good cause is a speedy trial issue."
+      ),
+      q("A judge closes a criminal trial to the public to avoid 'bad publicity' for the city.",
+        "6A-PUBLIC",
+        "Right to a public trial.",
+        "Government can’t secretly prosecute without strong justification.",
+        "Public access protects fairness; closure needs exceptional reasons."
+      ),
+      q("A prosecutor tries to exclude jurors of a certain race so the jury will be 'more likely to convict.'",
+        "6A-JURY",
+        "Right to an impartial jury.",
+        "Government can’t rig jury selection to bias the outcome.",
+        "Biased jury selection undermines impartial jury protections."
+      ),
+      q("The defendant is brought to court but is never told what crime they are charged with.",
+        "6A-CHARGES",
+        "Right to be informed of the nature and cause of accusations.",
+        "Government must give clear notice of charges so a person can defend themselves.",
+        "No notice of charges blocks defense preparation."
+      ),
+      q("The prosecution uses a written statement from a witness who never appears in court, so the defense can’t cross-examine.",
+        "6A-CONFRONT",
+        "Right to confront adverse witnesses.",
+        "Government can’t rely on testimony without allowing cross-examination (with limited exceptions).",
+        "No chance to question the witness triggers confrontation concerns."
+      ),
+      q("A poor defendant is denied a lawyer and must represent himself in a serious criminal case.",
+        "6A-COUNSEL",
+        "Right to counsel (attorney).",
+        "Government must provide counsel in serious criminal prosecutions (and can’t block access).",
+        "A criminal defendant needs an attorney to ensure a fair trial."
+      ),
+
+      // 8A parts
+      q("A judge sets bail at $1,000,000 for a minor, nonviolent charge solely to keep the person in jail.",
+        "8A-BAIL",
+        "Protection against excessive bail.",
+        "Government can’t set bail higher than necessary to ensure appearance/safety.",
+        "Punitive bail amounts can be unconstitutional."
+      ),
+      q("A city fines a person $50,000 for parking tickets as a revenue tactic, far beyond the offense.",
+        "8A-FINES",
+        "Protection against excessive fines.",
+        "Government can’t impose grossly disproportionate monetary penalties.",
+        "Massive fines compared to the violation implicate excessive fines."
+      ),
+      q("A prison uses torture-like punishment as discipline for rule violations.",
+        "8A-CRUEL",
+        "Protection against cruel and unusual punishment.",
+        "Government can’t impose punishments that are inhumane or grossly disproportionate.",
+        "Prison conditions/punishments are government action subject to 8A limits."
+      ),
+
+      // 10A Reserved powers
+      q("Congress orders every state to run all elections exactly the same way, including local school board elections, even though the Constitution doesn’t grant that specific power.",
+        "10A-RESERVED",
+        "Reserved powers: powers not delegated to the federal government are kept by states/people.",
+        "Federal government can’t take powers it was never given.",
+        "Election administration is often a state function unless constitutional authority applies."
+      ),
+      q("A federal agency creates a new statewide licensing rule for hairdressers without any clear constitutional authorization.",
+        "10A-RESERVED",
+        "States retain police powers for health/safety/welfare unless federal power applies.",
+        "Federal power is limited to enumerated powers.",
+        "Professional licensing is typically a state reserved power issue."
+      ),
+
+      // 14A Citizenship / DP (state) / EP / Incorporation
+      q("A state denies citizenship to a person born in that state because their parents were immigrants.",
+        "14A-CITIZEN",
+        "Citizenship Clause: birthright citizenship for people born in the U.S. (with narrow exceptions).",
+        "States can’t redefine citizenship to exclude people born here under U.S. jurisdiction.",
+        "This is a state attempt to deny citizenship status."
+      ),
+      q("A state suspends a student from a public school for 30 days without any notice or chance to explain what happened.",
+        "14A-DP",
+        "Due process (state): fair procedures before the state deprives someone of liberty/property interests.",
+        "States must provide basic fairness (notice + opportunity to be heard).",
+        "Public schools are state actors; disciplinary exclusion can trigger due process."
+      ),
+      q("A state law allows only men to apply for certain government jobs, even if women are equally qualified.",
+        "14A-EP",
+        "Equal protection: states must treat similarly situated people fairly under the law.",
+        "Government can’t discriminate without adequate justification.",
+        "Sex-based classifications trigger equal protection analysis."
+      ),
+      q("A city (state government) bans criticism of government officials and arrests protestors for 'disrespect.'",
+        "14A-INC",
+        "Incorporation: most Bill of Rights protections apply to states through the 14th.",
+        "States can’t violate incorporated rights like speech/press protections.",
+        "This is a state/local action; the 1A applies via 14A incorporation."
+      ),
+
+      // No Right (practice distinguishing constitutional vs non-constitutional issues)
+      q("A private restaurant refuses to serve a customer because the customer is wearing a rival team’s jersey.",
+        "NONE",
+        "No direct Bill of Rights right is triggered by private action in this scenario.",
+        "The Constitution restricts government action, not most private choices.",
+        "This is a private business decision (state action is missing)."
+      ),
+      q("A teacher assigns homework on a Saturday and students complain it violates their 'rights.'",
+        "NONE",
+        "Not every unfair-feeling rule is a constitutional rights violation.",
+        "Government can set neutral, reasonable rules that don’t target protected rights.",
+        "A homework assignment alone doesn’t match a specific protected right here."
+      ),
+      q("A student claims the 4th Amendment was violated because a friend read their text message on the friend’s phone.",
+        "NONE",
+        "The 4th Amendment regulates government searches/seizures.",
+        "Private people generally aren’t bound by 4A limits.",
+        "This is a private interaction, not government action."
+      ),
+
+      // Mixed precision items to force part-level accuracy
+      q("Police stop a person, handcuff them, and place them in the back of a cruiser 'just to check' even though they have no reason to believe a crime occurred.",
+        "4A-SEIZURE",
+        "Protection from unreasonable seizure of a person.",
+        "Government must have lawful justification to restrain someone’s freedom of movement.",
+        "Handcuffing/detaining is a seizure, even if no search happens."
+      ),
+      q("Police search a car trunk after saying, 'we don’t need any reason; we’re checking everyone tonight.'",
+        "4A-SEARCH",
+        "Protection from unreasonable searches.",
+        "Government can’t search without an adequate justification (and sometimes a warrant/exception).",
+        "Opening a trunk is a search; suspicionless searches raise 4A concerns."
+      ),
+      q("A judge signs a warrant based only on an anonymous rumor and no supporting evidence.",
+        "4A-WARRANT",
+        "Warrants require probable cause supported by facts.",
+        "Government can’t issue warrants based on mere rumor or unsupported suspicion.",
+        "A weak or unsupported affidavit undermines probable cause."
+      ),
+      q("After conviction, a judge adds an extreme punishment not authorized by law to 'make an example.'",
+        "8A-CRUEL",
+        "Punishment must not be cruel/unusual or grossly disproportionate.",
+        "Government cannot impose inhumane or arbitrary punishment.",
+        "Sentencing is government punishment; disproportionality triggers 8A concerns."
+      ),
+    ];
+
+    // Helper builder
+    function q(prompt, answerKey, rightProtected, limitOnGov, whyApplies){
+      return { prompt, answerKey, explain: { rightProtected, limitOnGov, whyApplies } };
     }
 
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", safeInit);
-    } else {
-      safeInit();
-    }
-
-    /**********************
-     * DATA + STATE
-     **********************/
-    const AMENDMENTS = [
-      { key:"1", label:"1st" },
-      { key:"2", label:"2nd" },
-      { key:"4", label:"4th" },
-      { key:"5", label:"5th" },
-      { key:"6", label:"6th" },
-      { key:"8", label:"8th" },
-      { key:"10", label:"10th" },
-    ];
-
-    const JUDGMENTS = [
-      { key:"constitutional", label:"Constitutional (Allowed)", cls:"good" },
-      { key:"unconstitutional", label:"Unconstitutional (Violation)", cls:"bad" },
-    ];
-
-    // Scenario bank: clear cases first (minimize debates)
-    const scenarioBank = [
-      {
-        scenario: "A city requires a permit for a large march downtown to coordinate traffic and public safety, and it approves permits using the same rules for all groups.",
-        judgment: "constitutional",
-        amendment: "1",
-        right: "Freedom of assembly (and speech).",
-        limit: "Government may use neutral time/place/manner rules for safety as long as it isn’t targeting viewpoints or effectively banning the right.",
-        why: "This is a neutral, safety-based permit system applied equally."
-      },
-      {
-        scenario: "A student is suspended for peacefully criticizing school policy, even though the speech does not disrupt learning.",
-        judgment: "unconstitutional",
-        amendment: "1",
-        right: "Freedom of speech.",
-        limit: "Government cannot punish speech simply because it dislikes the message (especially without disruption).",
-        why: "This is retaliation for expression rather than preventing disruption."
-      },
-      {
-        scenario: "A law bans all law-abiding adults from possessing any firearms in their homes for self-defense.",
-        judgment: "unconstitutional",
-        amendment: "2",
-        right: "Right to keep and bear arms.",
-        limit: "Government may regulate firearms, but a total ban on lawful home possession for self-defense raises major constitutional concerns.",
-        why: "This is a sweeping prohibition on lawful possession for self-defense."
-      },
-      {
-        scenario: "Police enter a home and search bedrooms and closets without a warrant and without an emergency situation.",
-        judgment: "unconstitutional",
-        amendment: "4",
-        right: "Protection against unreasonable searches and seizures.",
-        limit: "Government generally needs a warrant based on probable cause to search a home (with limited exceptions).",
-        why: "This is a warrantless home search with no valid exception."
-      },
-      {
-        scenario: "Police obtain a search warrant from a judge based on probable cause and then search the suspect’s home for evidence listed in the warrant.",
-        judgment: "constitutional",
-        amendment: "4",
-        right: "Protection against unreasonable searches and seizures.",
-        limit: "Searches are generally lawful when supported by probable cause and a valid warrant describing what may be searched/seized.",
-        why: "This follows the warrant + probable cause requirement."
-      },
-      {
-        scenario: "After a jury finds a defendant not guilty, prosecutors try to put the same person on trial again for the same offense.",
-        judgment: "unconstitutional",
-        amendment: "5",
-        right: "Protection against double jeopardy.",
-        limit: "Government cannot try someone twice for the same offense after acquittal.",
-        why: "A second prosecution after acquittal violates double jeopardy."
-      },
-      {
-        scenario: "During questioning, police threaten a suspect with serious harm unless he confesses, and he signs a confession to make it stop.",
-        judgment: "unconstitutional",
-        amendment: "5",
-        right: "Protection against self-incrimination (and due process).",
-        limit: "Government cannot compel a person to incriminate themselves through coercion.",
-        why: "The confession is forced rather than voluntary."
-      },
-      {
-        scenario: "A defendant is tried for a serious crime but is not allowed a lawyer even though he cannot afford one.",
-        judgment: "unconstitutional",
-        amendment: "6",
-        right: "Right to counsel.",
-        limit: "Government must provide counsel in serious criminal cases when defendants cannot afford an attorney.",
-        why: "Denial of counsel undermines a fair criminal trial."
-      },
-      {
-        scenario: "At trial, the judge refuses to let the defense question the main witness who accused the defendant.",
-        judgment: "unconstitutional",
-        amendment: "6",
-        right: "Right to confront witnesses.",
-        limit: "Defendants must be able to confront and cross-examine adverse witnesses in criminal trials.",
-        why: "Blocking confrontation prevents testing witness reliability."
-      },
-      {
-        scenario: "A judge sets bail extremely high for a minor nonviolent offense, clearly to keep the accused jailed before trial.",
-        judgment: "unconstitutional",
-        amendment: "8",
-        right: "Protection against excessive bail.",
-        limit: "Bail cannot be excessive relative to the circumstances; it cannot be used as punishment before conviction.",
-        why: "The bail amount is being used to punish rather than ensure court appearance."
-      },
-      {
-        scenario: "The federal government orders states to run local public schools in a specific way even though the Constitution does not delegate that power to the federal government.",
-        judgment: "unconstitutional",
-        amendment: "10",
-        right: "Reserved powers to the states or the people.",
-        limit: "Powers not delegated to the federal government are reserved to the states or the people.",
-        why: "This is a federal command outside a delegated power area."
-      }
-    ];
-
-    let deck = [];
+    // -----------------------------
+    // State
+    // -----------------------------
+    let questions = [];
     let idx = 0;
+    let attemptsThis = 0;
+    let attemptsTotal = 0;
+    let correctThis = false;
 
-    let stage = 1;              // 1=judgment, 2=amendment
-    let totalAttempts = 0;
-    let scenarioAttempts = 0;
-    let streak = 0;
-    let correctChains = 0;
-
-    let shuffleOn = true;
-
-    // Timer
-    let sessionStart = new Date();
-    let startTs = Date.now();
-    let timerId = null;
-    let nowId = null;
+    let timerInt = null;
+    let startTime = null;
 
     const el = (id) => document.getElementById(id);
 
-    function init(){
-      buildDeck();
-      el("qTotal").textContent = String(scenarioBank.length);
+    // UI refs
+    const promptEl = el("prompt");
+    const choicesEl = el("choices");
+    const msgEl = el("msg");
+    const explainEl = el("explain");
+    const explainListEl = el("explainList");
+    const qNumEl = el("qNum");
+    const qTotalEl = el("qTotal");
+    const attemptsQEl = el("attemptsQ");
+    const attemptsTotalEl = el("attemptsTotal");
+    const timerEl = el("timer");
 
-      el("startStamp").textContent = fmtDateTime(sessionStart);
-      el("nowStamp").textContent = fmtDateTime(new Date());
+    const restartBtn = el("restartBtn");
+    const nextBtn = el("nextBtn");
+    const skipBtn = el("skipBtn");
 
-      renderButtons();
-      wireUI();
-      startTimers();
-      render();
-    }
+    // Filters
+    const filterRow = el("filterRow");
+    const filterState = Object.fromEntries(FILTERS.map(f => [f.id, true]));
+    renderFilters();
 
-    function wireUI(){
-      el("btnHint").onclick = showHint;
-      el("btnSkip").onclick = teacherSkip;
-      el("btnRestart").onclick = restart;
-      el("btnNext").onclick = nextScenario;
-      el("toggleShuffle").onclick = toggleShuffle;
-    }
-
-    function buildDeck(){
-      deck = [...scenarioBank];
-      if(shuffleOn){
-        for(let k = deck.length-1; k>0; k--){
-          const j = Math.floor(Math.random()*(k+1));
-          [deck[k], deck[j]] = [deck[j], deck[k]];
-        }
-      }
-    }
-
-    function renderButtons(){
-      const s1 = el("stage1Choices");
-      s1.innerHTML = "";
-      JUDGMENTS.forEach(opt=>{
-        const b = document.createElement("button");
-        b.className = opt.cls;
-        b.textContent = opt.label;
-        b.onclick = () => answerStage1(opt.key);
-        s1.appendChild(b);
-      });
-
-      const s2 = el("stage2Choices");
-      s2.innerHTML = "";
-      AMENDMENTS.forEach(a=>{
-        const b = document.createElement("button");
-        b.className = "primary";
-        b.textContent = a.label;
-        b.onclick = () => answerStage2(a.key);
-        s2.appendChild(b);
+    function renderFilters(){
+      filterRow.innerHTML = "";
+      FILTERS.forEach(f => {
+        const lab = document.createElement("label");
+        lab.className = "chk";
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = filterState[f.id];
+        input.addEventListener("change", () => {
+          filterState[f.id] = input.checked;
+        });
+        const span = document.createElement("span");
+        span.textContent = f.label;
+        lab.appendChild(input);
+        lab.appendChild(span);
+        filterRow.appendChild(lab);
       });
     }
 
-    function render(){
-      const card = deck[idx];
-
-      stage = 1;
-      scenarioAttempts = 0;
-
-      el("scenarioText").textContent = card.scenario;
-
-      el("stageBadge").textContent = "Stage: 1/2";
-      el("attemptBadge").textContent = "Attempt #: 0";
-      el("streakBadge").textContent = `Streak: ${streak}`;
-
-      el("stage1Choices").style.display = "grid";
-      el("stage2Choices").style.display = "none";
-      el("btnNext").style.display = "none";
-      el("explainBox").style.display = "none";
-
-      setFeedback("warn","Directions","Stage 1: Decide if the government action is Constitutional (Allowed) or Unconstitutional (Violation).");
-      updateStats();
+    function startTimer(){
+      if(timerInt) clearInterval(timerInt);
+      startTime = Date.now();
+      timerInt = setInterval(() => {
+        const s = Math.floor((Date.now() - startTime)/1000);
+        const mm = String(Math.floor(s/60)).padStart(2,"0");
+        const ss = String(s%60).padStart(2,"0");
+        timerEl.textContent = `${mm}:${ss}`;
+      }, 250);
     }
 
-    function updateStats(){
-      el("qNum").textContent = String(idx+1);
-      el("correctCt").textContent = String(correctChains);
-      el("attemptCt").textContent = String(totalAttempts);
-      el("attemptThis").textContent = String(scenarioAttempts);
-      el("attemptBadge").textContent = `Attempt #: ${scenarioAttempts}`;
-      el("streakBadge").textContent = `Streak: ${streak}`;
-    }
-
-    function answerStage1(choice){
-      const card = deck[idx];
-      totalAttempts++;
-      scenarioAttempts++;
-      updateStats();
-
-      if(choice === card.judgment){
-        stage = 2;
-        el("stageBadge").textContent = "Stage: 2/2";
-        el("stage1Choices").style.display = "none";
-        el("stage2Choices").style.display = "grid";
-        setFeedback("good","Stage 1 Correct","Now Stage 2: Which amendment best applies?");
-      } else {
-        streak = 0;
-        setFeedback("bad","Try again","Ask: Is this a neutral safety/order rule (allowed), or is government punishing/banning a right (violation)?");
+    function shuffle(arr){
+      const a = arr.slice();
+      for(let i=a.length-1; i>0; i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [a[i], a[j]] = [a[j], a[i]];
       }
-      updateStats();
+      return a;
     }
 
-    function answerStage2(choice){
-      const card = deck[idx];
-      totalAttempts++;
-      scenarioAttempts++;
-      updateStats();
+    function applyFilters(){
+      const enabled = Object.entries(filterState).filter(([,v])=>v).map(([k])=>k);
+      const enabledSet = new Set(enabled);
 
-      if(choice === card.amendment){
-        correctChains++;
-        streak++;
-        setFeedback("good","Correct Chain!","You got both steps correct. Read the explanation, then click Next.");
-        showExplanation(card);
-        el("btnNext").style.display = "inline-block";
-      } else {
-        streak = 0;
-        setFeedback("bad","Not that amendment","Identify the RIGHT involved, then match the amendment that limits government in this situation.");
+      // Keep questions whose answerKey's group is enabled
+      const filtered = BANK.filter(item => {
+        const t = TARGETS.find(x => x.key === item.answerKey);
+        if(!t) return false;
+        return enabledSet.has(t.group);
+      });
+
+      // If everything unchecked (or too strict), fall back to all
+      return filtered.length ? filtered : BANK.slice();
+    }
+
+    function buildChoiceSet(correctKey){
+      // For Game 2: choices are ALL targets within enabled filters (so precision is practiced).
+      // Always include NONE if enabled OR if correctKey is NONE.
+      const enabledGroups = new Set(Object.entries(filterState).filter(([,v])=>v).map(([k])=>k));
+      let pool = TARGETS.filter(t => enabledGroups.has(t.group));
+
+      // If pool empty, allow all
+      if(pool.length === 0) pool = TARGETS.slice();
+
+      // Ensure correct is present
+      if(!pool.some(p=>p.key===correctKey)){
+        const correctT = TARGETS.find(t=>t.key===correctKey);
+        if(correctT) pool.push(correctT);
       }
-      updateStats();
+
+      // We'll show all in a stable order (grouped) to reduce confusion,
+      // but shuffled within group so it’s not memorized by position.
+      // Also: Keep "No Right" at bottom if present.
+      const noRight = pool.find(p=>p.key==="NONE");
+      pool = pool.filter(p=>p.key!=="NONE");
+
+      // Create display list: grouped order
+      const order = ["1A","4A","5A","6A","8A","10A","14A"];
+      const grouped = [];
+      order.forEach(g=>{
+        const items = pool.filter(p=>p.group===g);
+        grouped.push(...shuffle(items));
+      });
+
+      if(noRight) grouped.push(noRight);
+
+      return grouped;
     }
 
-    function showExplanation(card){
-      el("explainBox").style.display = "block";
-      el("explainTitle").textContent = `Explanation: ${card.amendment}${suffix(card.amendment)} Amendment`;
-      el("explainGrid").innerHTML = `
-        <div><b>Judgment:</b> ${card.judgment === "constitutional" ? "Constitutional (Allowed)" : "Unconstitutional (Violation)"}</div>
-        <div><b>Right Protected:</b> ${escapeHtml(card.right)}</div>
-        <div><b>Limit on Government:</b> ${escapeHtml(card.limit)}</div>
-        <div><b>Why this applies:</b> ${escapeHtml(card.why)}</div>
-      `;
-      el("explainMini").textContent = "OST habit: Allowed vs violation → name the right → state the limit on government.";
+    function setMsg(type, text){
+      msgEl.className = "msg" + (type ? " " + type : "");
+      msgEl.textContent = text;
     }
 
-    function showHint(){
-      const card = deck[idx];
-      const t = card.scenario.toLowerCase();
+    function renderQuestion(){
+      if(idx >= questions.length){
+        endScreen();
+        return;
+      }
 
-      let hint = "Hint: Identify the government action first. Then identify the right involved.";
-      if(t.includes("permit") || t.includes("march") || t.includes("protest") || t.includes("speech") || t.includes("religion")) hint = "Hint: Speech/press/religion/assembly/petition = 1st Amendment logic.";
-      if(t.includes("firearms") || t.includes("gun")) hint = "Hint: Firearms rules = 2nd Amendment logic.";
-      if(t.includes("warrant") || t.includes("search") || t.includes("enter") || t.includes("home")) hint = "Hint: Warrant/probable cause/search = 4th Amendment logic.";
-      if(t.includes("confess") || t.includes("not guilty") || t.includes("twice")) hint = "Hint: Forced confession or second trial = 5th Amendment logic.";
-      if(t.includes("lawyer") || t.includes("trial") || t.includes("witness") || t.includes("jury")) hint = "Hint: Trial rights = 6th Amendment logic.";
-      if(t.includes("bail") || t.includes("punishment") || t.includes("prison")) hint = "Hint: Excessive bail / cruel punishment = 8th Amendment logic.";
-      if(t.includes("states") || t.includes("not delegate") || t.includes("reserved") || t.includes("federal")) hint = "Hint: Reserved powers = 10th Amendment logic.";
+      const item = questions[idx];
+      attemptsThis = 0;
+      correctThis = false;
 
-      setFeedback("warn","Hint",hint);
+      qNumEl.textContent = String(idx+1);
+      qTotalEl.textContent = String(questions.length);
+      attemptsQEl.textContent = "0";
+      attemptsTotalEl.textContent = String(attemptsTotal);
+
+      promptEl.textContent = item.prompt;
+      explainEl.style.display = "none";
+      explainListEl.innerHTML = "";
+      nextBtn.disabled = true;
+      setMsg("", "Choose the most precise match.");
+
+      // Build choices
+      const choiceTargets = buildChoiceSet(item.answerKey);
+      choicesEl.innerHTML = "";
+      choiceTargets.forEach(t => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.type = "button";
+        btn.innerHTML = `<div><b>${t.label}</b></div><small>${t.group === "NONE" ? "Use when there is no government rights issue." : "Pick the most precise part."}</small>`;
+        btn.addEventListener("click", () => handleChoice(t.key));
+        choicesEl.appendChild(btn);
+      });
     }
 
-    function nextScenario(){
-      if(idx < deck.length - 1){
-        idx++;
-        render();
+    function handleChoice(chosenKey){
+      const item = questions[idx];
+      if(correctThis) return;
+
+      if(chosenKey === item.answerKey){
+        correctThis = true;
+        setMsg("good", "Correct ✅  Next is unlocked.");
+
+        // Show explanation
+        explainEl.style.display = "block";
+        const t = TARGETS.find(x=>x.key===item.answerKey);
+        const title = t ? t.label : item.answerKey;
+
+        explainListEl.innerHTML = "";
+        addExplain(`<b>Correct sub-right/part:</b> ${title}`);
+        addExplain(`<b>Right protected:</b> ${item.explain.rightProtected}`);
+        addExplain(`<b>Limit on government:</b> ${item.explain.limitOnGov}`);
+        addExplain(`<b>Why it applies:</b> ${item.explain.whyApplies}`);
+
+        nextBtn.disabled = false;
       } else {
-        finish();
+        attemptsThis++;
+        attemptsTotal++;
+        attemptsQEl.textContent = String(attemptsThis);
+        attemptsTotalEl.textContent = String(attemptsTotal);
+
+        // Strict mode feedback
+        const chosen = TARGETS.find(x=>x.key===chosenKey);
+        const chosenLabel = chosen ? chosen.label : "That choice";
+        setMsg("bad", `Not quite ❌  You chose: ${chosenLabel}. Try again (strict mode).`);
       }
     }
 
-    function teacherSkip(){
-      if(idx < deck.length - 1){
-        idx++;
-        render();
-      } else {
-        finish();
-      }
+    function addExplain(html){
+      const li = document.createElement("li");
+      li.innerHTML = html;
+      explainListEl.appendChild(li);
     }
 
-    function finish(){
-      el("stage1Choices").style.display = "none";
-      el("stage2Choices").style.display = "none";
-      el("btnNext").style.display = "none";
-      el("btnHint").disabled = true;
-
-      const elapsed = fmtTime(Date.now() - startTs);
-      setFeedback("good","Session Complete",`Correct chains: ${correctChains} • Attempts: ${totalAttempts} • Time: ${elapsed}. Click Restart to replay.`);
-
-      el("scenarioText").textContent = "Finish! Great work — replay for higher accuracy and fewer attempts.";
-      el("explainBox").style.display = "block";
-      el("explainTitle").textContent = "Next step";
-      el("explainGrid").innerHTML = `
-        <div><b>Goal:</b> 2 strong runs to build fluency (fewer attempts).</div>
-        <div><b>Next game:</b> Game 3 will ask you to “Fix the Violation.”</div>
-      `;
-      el("explainMini").textContent = "Teacher note: add more scenarios in scenarioBank.";
+    function endScreen(){
+      choicesEl.innerHTML = "";
+      promptEl.innerHTML = `<b>Finished!</b> You completed ${questions.length} prompts in <b>${timerEl.textContent}</b>.`;
+      setMsg("good", "Nice. Restart to reshuffle (filters apply on restart).");
+      explainEl.style.display = "none";
+      nextBtn.disabled = true;
     }
 
     function restart(){
+      questions = shuffle(applyFilters());
       idx = 0;
-      totalAttempts = 0;
-      scenarioAttempts = 0;
-      streak = 0;
-      correctChains = 0;
-
-      sessionStart = new Date();
-      startTs = Date.now();
-      el("startStamp").textContent = fmtDateTime(sessionStart);
-
-      el("btnHint").disabled = false;
-
-      buildDeck();
-      render();
+      attemptsThis = 0;
+      attemptsTotal = 0;
+      setMsg("", "Choose the most precise match.");
+      startTimer();
+      renderQuestion();
     }
 
-    function toggleShuffle(){
-      shuffleOn = !shuffleOn;
-      el("toggleShuffle").textContent = `Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
-      restart();
-    }
+    // Controls
+    restartBtn.addEventListener("click", restart);
+    nextBtn.addEventListener("click", () => {
+      if(!correctThis) return;
+      idx++;
+      renderQuestion();
+    });
+    skipBtn.addEventListener("click", () => {
+      // Teacher override (does not award correct; keeps strict mode concept for students)
+      idx++;
+      renderQuestion();
+      setMsg("warn", "Teacher skip used. (No credit awarded.)");
+    });
 
-    function setFeedback(kind,title,msg){
-      const box = el("feedback");
-      box.innerHTML = "";
-
-      const icon = document.createElement("span");
-      icon.className = `icon ${kind}`;
-      icon.textContent = kind === "good" ? "✓" : kind === "bad" ? "✕" : "!";
-
-      const wrap = document.createElement("div");
-      wrap.innerHTML = `<div><b>${escapeHtml(title)}</b></div><div style="margin-top:4px">${escapeHtml(msg)}</div>`;
-
-      box.appendChild(icon);
-      box.appendChild(wrap);
-    }
-
-    function startTimers(){
-      if(timerId) clearInterval(timerId);
-      timerId = setInterval(()=> el("timeEl").textContent = fmtTime(Date.now() - startTs), 500);
-
-      if(nowId) clearInterval(nowId);
-      nowId = setInterval(()=> el("nowStamp").textContent = fmtDateTime(new Date()), 1000);
-    }
-
-    function fmtTime(ms){
-      const s = Math.floor(ms/1000);
-      const m = Math.floor(s/60);
-      const r = s % 60;
-      return `${m}:${String(r).padStart(2,"0")}`;
-    }
-
-    function fmtDateTime(d){
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth()+1).padStart(2,"0");
-      const dd = String(d.getDate()).padStart(2,"0");
-      let hh = d.getHours();
-      const ampm = hh >= 12 ? "PM" : "AM";
-      hh = hh % 12; if(hh===0) hh = 12;
-      const mi = String(d.getMinutes()).padStart(2,"0");
-      const ss = String(d.getSeconds()).padStart(2,"0");
-      return `${mm}/${dd}/${yyyy} ${hh}:${mi}:${ss} ${ampm}`;
-    }
-
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function suffix(n){
-      if(n==="1") return "st";
-      if(n==="2") return "nd";
-      if(n==="3") return "rd";
-      return "th";
-    }
+    // Boot
+    restart();
   </script>
 </body>
 </html>
-
