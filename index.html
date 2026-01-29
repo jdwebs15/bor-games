@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Bill of Rights — Which Amendment Is Being Violated?</title>
+  <title>Bill of Rights + 14th — Which Right Is Being Violated?</title>
   <style>
     :root{
       --bg:#0b1220;
-      --panel:#111b2e;
-      --card:#0f1a2c;
       --text:#e7eefc;
       --muted:#a8b4cf;
       --accent:#7aa2ff;
@@ -62,7 +60,7 @@
       display:flex;
       flex-direction:column;
       gap:6px;
-      max-width: 720px;
+      max-width: 740px;
     }
     h1{
       font-size: 20px;
@@ -98,7 +96,7 @@
     main{
       padding: 18px;
       display:grid;
-      grid-template-columns: 1.08fr .92fr;
+      grid-template-columns: 1.10fr .90fr;
       gap: 14px;
     }
 
@@ -185,10 +183,11 @@
       color: var(--text);
       padding: 12px 10px;
       border-radius: 14px;
-      font-size: 14px;
+      font-size: 13px;
       cursor:pointer;
       transition: transform .05s ease, background .15s ease, border-color .15s ease;
       user-select:none;
+      text-align:left;
     }
     button:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.16); }
     button:active{ transform: translateY(1px); }
@@ -196,7 +195,6 @@
       border-color: rgba(122,162,255,.35);
       background: rgba(122,162,255,.12);
     }
-    button.primary:hover{ background: rgba(122,162,255,.18); }
     button.good{
       border-color: rgba(43,213,118,.40);
       background: rgba(43,213,118,.14);
@@ -288,17 +286,14 @@
       flex-direction:column;
       gap:10px;
     }
-    .rule{
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-    }
+    .rule{display:flex;gap:10px;align-items:flex-start}
     .dot{
       width:10px;height:10px;border-radius:3px;margin-top:5px;flex:0 0 auto;
       border:1px solid var(--border);
       background: rgba(122,162,255,.22);
       border-color: rgba(122,162,255,.32);
     }
+
     .footer{
       padding: 14px 18px 18px;
       border-top:1px solid var(--border);
@@ -310,57 +305,19 @@
       color: var(--muted);
       font-size: 12px;
     }
-    .linkish{
-      color: rgba(231,238,252,.75);
-      text-decoration: underline;
-      cursor:pointer;
-    }
-    .modal{
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.55);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding: 18px;
-    }
-    .modal .box{
-      width: min(860px, 100%);
-      background: #0f172a;
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-    }
-    .modal h3{ margin:0 0 10px; }
-    .modal pre{
-      margin: 10px 0 0;
-      padding: 12px;
-      background: rgba(0,0,0,.20);
-      border:1px solid var(--border);
-      border-radius: 14px;
-      overflow:auto;
-      color: rgba(231,238,252,.9);
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.35;
-      white-space: pre-wrap;
-    }
-    .modal .row{
-      display:flex;
-      gap:10px;
-      justify-content:flex-end;
-      margin-top: 12px;
-      flex-wrap:wrap;
-    }
+    .linkish{ color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer; }
   </style>
 </head>
+
 <body>
   <div class="app">
     <header>
       <div class="title-wrap">
-        <h1>Bill of Rights — Which Amendment Is Being Violated?</h1>
-        <div class="sub">Read the scenario. Choose the amendment that best applies. You can’t advance until you’re correct — then you’ll see the right + government limit explanation (CS 8 / OST).</div>
+        <h1>Bill of Rights + 14th — Which Specific Right Is Being Violated?</h1>
+        <div class="sub">
+          Expanded version: You’re choosing the <b>exact sub-right/part</b> (speech vs press, counsel vs confrontation, etc.)
+          and also key <b>14th Amendment</b> rubric items (citizenship, due process, equal protection, incorporation).
+        </div>
       </div>
 
       <div class="stats">
@@ -392,13 +349,13 @@
           <button class="primary" id="btnHint">Hint</button>
           <button id="btnSkip" title="Teacher tool: skip this scenario">Teacher Skip</button>
           <button id="btnRestart">Restart</button>
-          <button id="btnOpenBank">View/Copy Scenario Bank</button>
+          <button id="btnToggleSet" class="primary">Choices: Expanded</button>
         </div>
 
         <div class="feedback" id="feedback">
           <span class="icon warn">!</span>
           <div>
-            <div><b>Directions:</b> Pick the amendment that applies to this scenario.</div>
+            <div><b>Directions:</b> Pick the most precise right/part that applies.</div>
             <div style="margin-top:4px">You’ll see the explanation only after the correct choice.</div>
           </div>
         </div>
@@ -414,55 +371,30 @@
       </section>
 
       <aside class="card sidebar">
-        <h2>Quick “Tells” (OST-ready)</h2>
-        <p class="help">Students get faster by spotting the government action and the right that is being limited/protected.</p>
+        <h2>Quick “Tells” (sub-right level)</h2>
+        <p class="help">Goal: students identify the exact protection being applied, not just the amendment number.</p>
 
         <div class="rulebox">
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>4th:</b> search/seizure, warrants, probable cause, police grabbing property or data</div>
-          </div>
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>5th:</b> self-incrimination, forced confession, double jeopardy, due process language</div>
-          </div>
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>6th:</b> trial rights — counsel, speedy/public trial, jury, confrontation, charges</div>
-          </div>
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>1st:</b> speech/press/religion/assembly/petition — government punishing expression or belief</div>
-          </div>
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>8th:</b> cruel/unusual punishment, excessive bail/fines</div>
-          </div>
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>10th:</b> power not delegated to federal gov → reserved to states/people</div>
-          </div>
+          <div class="rule"><span class="dot"></span><div><b>1A:</b> Speech vs Press vs Religion vs Assembly vs Petition</div></div>
+          <div class="rule"><span class="dot"></span><div><b>4A:</b> Search vs Seizure vs Warrant/Probable Cause</div></div>
+          <div class="rule"><span class="dot"></span><div><b>5A:</b> Self-incrimination vs Double Jeopardy</div></div>
+          <div class="rule"><span class="dot"></span><div><b>6A:</b> Speedy • Public • Jury • Charges • Confrontation • Counsel</div></div>
+          <div class="rule"><span class="dot"></span><div><b>8A:</b> Cruel/Unusual • Excessive Bail • Excessive Fines</div></div>
+          <div class="rule"><span class="dot"></span><div><b>10A:</b> Reserved Powers / federalism</div></div>
+          <div class="rule"><span class="dot"></span><div><b>14A:</b> Citizenship • Due Process • Equal Protection • Incorporation</div></div>
         </div>
 
         <div style="height:12px"></div>
-
-        <h2>Teacher Notes</h2>
+        <h2>Choice Set Toggle</h2>
         <p class="help">
-          This is Game 1 (Identify amendment from a scenario). We’ll add:
-          <b>Game 2</b> (Right or No Right), <b>Game 3</b> (Fix the Violation), <b>Game 4</b> (Blitz) as separate HTML files in the same repo.
+          Use <b>Choices: Expanded</b> (default) for sub-right mastery.
+          Toggle to <b>Choices: Simple</b> if you want a quicker warm-up (just amendment numbers).
         </p>
-
-        <div class="rulebox">
-          <div class="rule">
-            <span class="dot"></span>
-            <div><b>Strict mode:</b> ON by default. Students cannot advance until correct. Teacher Skip exists for classroom flow (you can remove it later).</div>
-          </div>
-        </div>
       </aside>
     </main>
 
     <div class="footer">
-      <div>Single-file classroom game • runs offline • no student data saved</div>
+      <div>Single-file classroom game • no student data saved</div>
       <div>
         <span class="linkish" id="toggleShuffle">Shuffle: ON</span> ·
         <span class="linkish" id="toggleStrict">Strict: ON</span>
@@ -470,179 +402,280 @@
     </div>
   </div>
 
-  <div class="modal" id="modal">
-    <div class="box">
-      <h3>Scenario Bank (edit in the file)</h3>
-      <div class="sub">Each item has: scenario → correct amendment → explanation used after correct answer.</div>
-      <pre id="bankText"></pre>
-      <div class="row">
-        <button id="btnClose">Close</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     /********************************************************************
-     * SETTINGS
+     * CHOICE SETS
      ********************************************************************/
-    const AMENDMENTS = [
-      { key: "1", label: "1st" },
-      { key: "2", label: "2nd" },
-      { key: "4", label: "4th" },
-      { key: "5", label: "5th" },
-      { key: "6", label: "6th" },
-      { key: "8", label: "8th" },
-      { key: "10", label: "10th" }
+    const SIMPLE = [
+      { key:"1", label:"1st Amendment" },
+      { key:"2", label:"2nd Amendment" },
+      { key:"4", label:"4th Amendment" },
+      { key:"5", label:"5th Amendment" },
+      { key:"6", label:"6th Amendment" },
+      { key:"8", label:"8th Amendment" },
+      { key:"10", label:"10th Amendment" },
+      { key:"14", label:"14th Amendment" },
     ];
 
-    // Strict = must be correct to advance
+    const EXPANDED = [
+      // 1st
+      { key:"1_speech", label:"1A — Speech" },
+      { key:"1_press", label:"1A — Press" },
+      { key:"1_religion", label:"1A — Religion" },
+      { key:"1_assembly", label:"1A — Assembly" },
+      { key:"1_petition", label:"1A — Petition" },
+
+      // 2nd
+      { key:"2_arms", label:"2A — Bear Arms" },
+
+      // 4th
+      { key:"4_search", label:"4A — Unreasonable Search" },
+      { key:"4_seizure", label:"4A — Unreasonable Seizure" },
+      { key:"4_warrant", label:"4A — Warrant / Probable Cause" },
+
+      // 5th
+      { key:"5_self", label:"5A — Self-Incrimination" },
+      { key:"5_dj", label:"5A — Double Jeopardy" },
+
+      // 6th
+      { key:"6_speedy", label:"6A — Speedy Trial" },
+      { key:"6_public", label:"6A — Public Trial" },
+      { key:"6_jury", label:"6A — Impartial Jury" },
+      { key:"6_charges", label:"6A — Informed of Charges" },
+      { key:"6_confront", label:"6A — Confront Witnesses" },
+      { key:"6_counsel", label:"6A — Counsel (Lawyer)" },
+
+      // 8th
+      { key:"8_cruel", label:"8A — Cruel & Unusual" },
+      { key:"8_bail", label:"8A — Excessive Bail" },
+      { key:"8_fines", label:"8A — Excessive Fines" },
+
+      // 10th
+      { key:"10_reserved", label:"10A — Reserved Powers" },
+
+      // 14th rubric
+      { key:"14_cit", label:"14A — Citizenship Clause" },
+      { key:"14_dp", label:"14A — Due Process (states)" },
+      { key:"14_ep", label:"14A — Equal Protection" },
+      { key:"14_incorp", label:"14A — Incorporation Doctrine" },
+    ];
+
+    let useExpandedChoices = true;
     let strictMode = true;
     let shuffleOn = true;
 
     /********************************************************************
-     * SCENARIO BANK (Game 1)
-     * amendment: "1","2","4","5","6","8","10"
+     * SCENARIO BANK
+     * correctKey must match one key in EXPANDED (for precision).
+     * If using SIMPLE mode, we accept any correctKey that starts with "X_"
+     * and map to amendment "X".
      ********************************************************************/
     const scenarioBank = [
+      // 1A SPEECH
       {
-        amendment: "1",
-        scenario: "A public school suspends a student for wearing a T-shirt criticizing the mayor, even though it causes no disruption.",
-        right: "Freedom of speech (expression).",
-        limit: "Government cannot punish speech just because officials dislike the message.",
-        why: "The action targets protected expression without a disruption-based justification."
+        correctKey:"1_speech",
+        scenario:"A public school suspends a student for peacefully criticizing the mayor on a T-shirt, even though it causes no disruption.",
+        right:"Freedom of speech (expression).",
+        limit:"Government cannot punish speech just because officials dislike the message (especially without disruption).",
+        why:"The punishment targets protected expression and viewpoint."
       },
       {
-        amendment: "1",
-        scenario: "A city bans a local newspaper from publishing an article that accuses city officials of corruption.",
-        right: "Freedom of the press.",
-        limit: "Government cannot censor or punish the press for criticizing officials (prior restraint concerns).",
-        why: "The ban is government censorship tied to criticism of public officials."
-      },
-      {
-        amendment: "1",
-        scenario: "A state law requires citizens to register with the government before they can attend a peaceful protest in a public park.",
-        right: "Freedom of assembly (and sometimes petition).",
-        limit: "Government may regulate time/place/manner, but cannot use rules to effectively block peaceful assembly.",
-        why: "The restriction targets public protest/assembly; the key issue is whether it unreasonably burdens the right."
-      },
-      {
-        amendment: "1",
-        scenario: "A public employee is fired because she signed a petition asking the city council to fix unsafe sidewalks.",
-        right: "Right to petition the government (and related speech).",
-        limit: "Government cannot retaliate against citizens for petitioning officials about public issues.",
-        why: "The firing is retaliation for petitioning government for change."
-      },
-      {
-        amendment: "1",
-        scenario: "A county passes a rule that one religion must be taught as the official belief in public school classrooms.",
-        right: "Freedom of religion (Establishment/Free Exercise principles).",
-        limit: "Government cannot establish an official religion or force religious practice through public institutions.",
-        why: "The rule makes government favor and promote a specific religion."
+        correctKey:"1_speech",
+        scenario:"A city threatens fines against citizens who speak at a public meeting in favor of a controversial policy.",
+        right:"Freedom of speech.",
+        limit:"Government may set neutral time/place/manner rules, but cannot punish viewpoints.",
+        why:"Officials are retaliating against a viewpoint expressed in a public forum."
       },
 
+      // 1A PRESS
       {
-        amendment: "2",
-        scenario: "A city bans all law-abiding adults from owning any firearms in their homes for self-defense.",
-        right: "Right to keep and bear arms.",
-        limit: "Government may regulate firearms, but a total ban on lawful possession for self-defense raises major constitutional concerns.",
-        why: "The policy is a broad prohibition on lawful home possession."
+        correctKey:"1_press",
+        scenario:"A mayor orders the local paper to stop publishing stories that criticize city hall or face closure.",
+        right:"Freedom of the press.",
+        limit:"Government cannot censor or punish the press for criticizing officials (prior restraint concerns).",
+        why:"The order is censorship tied to criticism."
       },
 
+      // 1A RELIGION
       {
-        amendment: "4",
-        scenario: "Police enter a person’s home and search it without a warrant and without an emergency situation.",
-        right: "Protection against unreasonable searches and seizures.",
-        limit: "Government generally needs a warrant based on probable cause to search a home (with limited exceptions).",
-        why: "A home search without a warrant or exception is the classic 4th Amendment problem."
-      },
-      {
-        amendment: "4",
-        scenario: "Officers stop a driver and search the trunk even though they have no evidence, consent, or reason to suspect a crime.",
-        right: "Protection against unreasonable searches and seizures.",
-        limit: "Searches usually require probable cause, consent, or another recognized legal basis.",
-        why: "The search lacks probable cause or a legal exception."
-      },
-      {
-        amendment: "4",
-        scenario: "Police seize a student’s phone and scroll through private messages without permission or a warrant.",
-        right: "Protection against unreasonable searches and seizures (privacy in digital data).",
-        limit: "Government often needs a warrant or strong legal justification to search digital contents.",
-        why: "Searching private digital communications is a search; warrant/probable cause issues apply."
+        correctKey:"1_religion",
+        scenario:"A public school requires students to participate in a specific religious prayer at the start of the day.",
+        right:"Freedom of religion (no government establishment/compelled practice).",
+        limit:"Government cannot establish an official religion or force religious observance through public institutions.",
+        why:"The policy compels religious practice in a public school."
       },
 
+      // 1A ASSEMBLY
       {
-        amendment: "5",
-        scenario: "During questioning, police threaten a suspect with harsher punishment unless he confesses, and he is forced to sign a confession.",
-        right: "Protection against self-incrimination (and due process).",
-        limit: "Government cannot compel a person to incriminate themselves through coercion.",
-        why: "The confession is forced/compelled rather than voluntary."
-      },
-      {
-        amendment: "5",
-        scenario: "After a jury finds a defendant not guilty, the prosecutor tries to put the same person on trial again for the same crime.",
-        right: "Protection against double jeopardy.",
-        limit: "Government cannot try someone twice for the same offense after acquittal.",
-        why: "A second prosecution after a not-guilty verdict is double jeopardy."
+        correctKey:"1_assembly",
+        scenario:"A city denies a permit for a peaceful march only because it dislikes the group’s message, not because of safety concerns.",
+        right:"Freedom of assembly.",
+        limit:"Government cannot deny peaceful assembly based on viewpoint; rules must be neutral and applied fairly.",
+        why:"The denial is viewpoint-based."
       },
 
+      // 1A PETITION
       {
-        amendment: "6",
-        scenario: "A defendant is put on trial but is not allowed to have a lawyer, even though he cannot afford one.",
-        right: "Right to counsel.",
-        limit: "Government must provide counsel in serious criminal cases if the defendant cannot afford one.",
-        why: "Denial of counsel undermines a fair trial."
-      },
-      {
-        amendment: "6",
-        scenario: "A person is arrested and waits 18 months for trial even though the case is simple and delays are not justified.",
-        right: "Right to a speedy trial.",
-        limit: "Government must bring criminal cases to trial within a reasonable time.",
-        why: "Unjustified long delays violate the speedy trial guarantee."
-      },
-      {
-        amendment: "6",
-        scenario: "At trial, the judge refuses to let the defense question the main witness who accused the defendant.",
-        right: "Right to confront witnesses (cross-examination).",
-        limit: "Government must allow defendants to confront and question adverse witnesses in criminal trials.",
-        why: "Blocking confrontation prevents testing the reliability of accusations."
-      },
-      {
-        amendment: "6",
-        scenario: "A defendant is never told what crime he is charged with, but the trial proceeds anyway.",
-        right: "Right to be informed of the charges.",
-        limit: "Government must clearly inform defendants of the accusations so they can prepare a defense.",
-        why: "You cannot defend yourself against unknown charges."
+        correctKey:"1_petition",
+        scenario:"A government employee is fired for signing a petition asking the city council to fix unsafe sidewalks.",
+        right:"Right to petition the government (and related speech).",
+        limit:"Government cannot retaliate against citizens for petitioning officials about public issues.",
+        why:"The firing punishes petitioning government for redress."
       },
 
+      // 2A
       {
-        amendment: "8",
-        scenario: "A judge sets bail so high that it is clearly meant to keep the accused in jail even for a minor, nonviolent offense.",
-        right: "Protection against excessive bail.",
-        limit: "Government cannot use bail amounts that are excessive relative to the circumstances.",
-        why: "Bail is being used as punishment rather than to ensure court appearance."
-      },
-      {
-        amendment: "8",
-        scenario: "A prison uses punishments that cause severe, unnecessary physical suffering for rule violations.",
-        right: "Protection against cruel and unusual punishment.",
-        limit: "Government cannot impose punishments that are inhumane or grossly disproportionate.",
-        why: "The punishment is unnecessarily harsh and potentially inhumane."
+        correctKey:"2_arms",
+        scenario:"A city bans all law-abiding adults from owning any firearms in their homes for self-defense.",
+        right:"Right to keep and bear arms.",
+        limit:"Government may regulate firearms, but sweeping bans on lawful home possession raise major constitutional issues.",
+        why:"The policy is an across-the-board ban on lawful possession."
       },
 
+      // 4A SEARCH / WARRANT
       {
-        amendment: "10",
-        scenario: "The federal government orders states to run their local schools in a specific way even though the Constitution does not give the federal government that power.",
-        right: "Reserved powers (states/people).",
-        limit: "Powers not delegated to the federal government are reserved to the states or the people.",
-        why: "Education is primarily a state/local responsibility unless tied to a specific federal power."
+        correctKey:"4_warrant",
+        scenario:"Police enter a home and search it without a warrant and without any emergency.",
+        right:"No unreasonable search; warrants require probable cause.",
+        limit:"Government generally needs a warrant based on probable cause to search a home (absent a real exception).",
+        why:"A home search without a warrant/exception is the classic 4th Amendment violation."
       },
       {
-        amendment: "10",
-        scenario: "A state argues it can handle local policing rules because the Constitution does not give general police power to the federal government.",
-        right: "Reserved powers (states/people).",
-        limit: "States retain broad police powers for health, safety, and welfare unless federal law/constitutional powers apply.",
-        why: "This scenario focuses on state authority where federal power is not delegated."
-      }
+        correctKey:"4_search",
+        scenario:"Officers stop a driver and search the trunk even though they have no evidence, consent, or reason to suspect a crime.",
+        right:"Protection against unreasonable searches.",
+        limit:"Searches generally require probable cause, consent, or a recognized exception.",
+        why:"The search lacks legal justification."
+      },
+      {
+        correctKey:"4_seizure",
+        scenario:"Police take a person’s backpack and keep it for a week without charges or legal justification.",
+        right:"Protection against unreasonable seizures.",
+        limit:"Government needs lawful justification to seize and hold personal property.",
+        why:"Property is being taken/held without legal basis."
+      },
+
+      // 5A
+      {
+        correctKey:"5_self",
+        scenario:"During questioning, police threaten a suspect with harm unless he confesses, and he signs a confession to make it stop.",
+        right:"Protection against compelled self-incrimination (and due process).",
+        limit:"Government cannot compel a person to incriminate themselves through coercion.",
+        why:"The confession is compelled rather than voluntary."
+      },
+      {
+        correctKey:"5_dj",
+        scenario:"After a jury finds a defendant not guilty, the prosecutor tries to put the same person on trial again for the same crime.",
+        right:"Protection against double jeopardy.",
+        limit:"Government cannot try someone twice for the same offense after acquittal.",
+        why:"A second prosecution after a not-guilty verdict is double jeopardy."
+      },
+
+      // 6A
+      {
+        correctKey:"6_counsel",
+        scenario:"A defendant is put on trial for a serious crime but is not allowed to have a lawyer even though he cannot afford one.",
+        right:"Right to counsel.",
+        limit:"Government must provide counsel in serious criminal cases if the defendant cannot afford one.",
+        why:"Denial of counsel undermines a fair trial."
+      },
+      {
+        correctKey:"6_speedy",
+        scenario:"A person is arrested and waits 18 months for trial even though the case is simple and delays are not justified.",
+        right:"Right to a speedy trial.",
+        limit:"Government must bring criminal cases to trial within a reasonable time.",
+        why:"Unjustified long delays violate the speedy trial guarantee."
+      },
+      {
+        correctKey:"6_confront",
+        scenario:"At trial, the judge refuses to let the defense question the main witness who accused the defendant.",
+        right:"Right to confront witnesses (cross-examination).",
+        limit:"Government must allow defendants to confront and question adverse witnesses in criminal trials.",
+        why:"Blocking confrontation prevents testing credibility."
+      },
+      {
+        correctKey:"6_charges",
+        scenario:"A defendant is never told what crime he is charged with, but the trial proceeds anyway.",
+        right:"Right to be informed of the charges.",
+        limit:"Government must clearly inform defendants of accusations so they can prepare a defense.",
+        why:"You cannot defend yourself against unknown charges."
+      },
+      {
+        correctKey:"6_jury",
+        scenario:"A judge refuses a jury trial and decides guilt alone in a case where the defendant has a right to a jury.",
+        right:"Right to an impartial jury.",
+        limit:"Government must provide a jury in qualifying criminal prosecutions.",
+        why:"The defendant is denied the jury protection."
+      },
+      {
+        correctKey:"6_public",
+        scenario:"A judge closes the courtroom to the public with no lawful reason during a criminal trial.",
+        right:"Right to a public trial.",
+        limit:"Trials are generally public to ensure fairness and accountability (with limited exceptions).",
+        why:"Closing the trial without justification violates the public trial protection."
+      },
+
+      // 8A
+      {
+        correctKey:"8_bail",
+        scenario:"A judge sets bail so high that it is clearly meant to keep the accused jailed for a minor, nonviolent offense.",
+        right:"Protection against excessive bail.",
+        limit:"Government cannot use bail amounts that are excessive relative to the circumstances.",
+        why:"Bail is being used as punishment rather than ensuring court appearance."
+      },
+      {
+        correctKey:"8_cruel",
+        scenario:"A prison uses punishments that cause severe, unnecessary physical suffering for minor rule violations.",
+        right:"Protection against cruel and unusual punishment.",
+        limit:"Government cannot impose inhumane or grossly disproportionate punishment.",
+        why:"The punishment is unnecessarily harsh."
+      },
+      {
+        correctKey:"8_fines",
+        scenario:"A court imposes a massive fine far beyond what is reasonable for a minor offense to bankrupt the defendant.",
+        right:"Protection against excessive fines.",
+        limit:"Government cannot impose excessive financial penalties.",
+        why:"The fine is grossly disproportionate."
+      },
+
+      // 10A
+      {
+        correctKey:"10_reserved",
+        scenario:"The federal government orders states to run local schools in a specific way even though the Constitution does not delegate that power.",
+        right:"Reserved powers to states/people.",
+        limit:"Powers not delegated to the federal government are reserved to the states or the people.",
+        why:"The scenario centers on federal overreach into a non-delegated area."
+      },
+
+      // 14A RUBRIC: Citizenship, DP, EP, Incorporation
+      {
+        correctKey:"14_cit",
+        scenario:"A state refuses to recognize a person born in the U.S. as a citizen and denies all legal status because their parents are immigrants.",
+        right:"14th Amendment — Citizenship Clause.",
+        limit:"States must recognize citizenship for persons born or naturalized in the United States.",
+        why:"The scenario is about defining and extending citizenship."
+      },
+      {
+        correctKey:"14_ep",
+        scenario:"A state law allows only one race to vote in local elections, denying others the same right.",
+        right:"14th Amendment — Equal Protection.",
+        limit:"States cannot deny equal protection of the laws to any person.",
+        why:"The law discriminates by treating groups differently under the law."
+      },
+      {
+        correctKey:"14_dp",
+        scenario:"A state takes away a person’s driver’s license without any hearing, notice, or process to challenge it.",
+        right:"14th Amendment — Due Process (state action).",
+        limit:"States must follow fair procedures before depriving people of life, liberty, or property.",
+        why:"The state deprives a liberty/property interest without procedural safeguards."
+      },
+      {
+        correctKey:"14_incorp",
+        scenario:"A state police department searches homes without warrants. A student argues the 4th Amendment should apply to state police too.",
+        right:"14th Amendment — Incorporation Doctrine (applies Bill of Rights to states).",
+        limit:"The 14th Amendment has been used to apply many Bill of Rights protections to the states.",
+        why:"This scenario is about the Bill of Rights being enforced against state governments."
+      },
     ];
 
     /********************************************************************
@@ -673,7 +706,6 @@
     }
 
     function formatDateTime(d){
-      // Local time, readable for students
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth()+1).padStart(2,"0");
       const dd = String(d.getDate()).padStart(2,"0");
@@ -701,6 +733,15 @@
       }
     }
 
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
     function setFeedback(kind, title, msg){
       const box = el("feedback");
       box.innerHTML = "";
@@ -708,7 +749,7 @@
       icon.className = `icon ${kind}`;
       icon.textContent = kind === "good" ? "✓" : kind === "bad" ? "✕" : "!";
       const wrap = document.createElement("div");
-      wrap.innerHTML = `<div><b>${title}</b></div><div style="margin-top:4px">${msg}</div>`;
+      wrap.innerHTML = `<div><b>${escapeHtml(title)}</b></div><div style="margin-top:4px">${escapeHtml(msg)}</div>`;
       box.appendChild(icon);
       box.appendChild(wrap);
     }
@@ -728,127 +769,116 @@
     function hideExplanation(){
       el("explainBox").style.display = "none";
       locked = false;
-      // re-enable choice buttons
       document.querySelectorAll("#choices button").forEach(b=> b.disabled = false);
       el("btnHint").disabled = false;
       el("btnSkip").disabled = false;
     }
 
     function showExplanation(card){
-      const title = `Correct: ${card.amendment}${suffix(card.amendment)} Amendment`;
-      el("explainTitle").textContent = title;
-
+      el("explainTitle").textContent = "Correct";
       const grid = el("explainGrid");
       grid.innerHTML = `
-        <div><b>Right Protected:</b> ${escapeHtml(card.right)}</div>
+        <div><b>Right/Clause:</b> ${escapeHtml(card.right)}</div>
         <div><b>Limit on Government:</b> ${escapeHtml(card.limit)}</div>
         <div><b>Why this applies:</b> ${escapeHtml(card.why)}</div>
       `;
-
-      el("explainMini").textContent = "OST habit: Identify the government action → name the protected right → state the limit on government.";
+      el("explainMini").textContent =
+        "OST habit: Identify the government action → name the precise right/part → state the limit on government.";
 
       el("explainBox").style.display = "block";
       locked = true;
-
-      // Disable choice buttons while explanation showing
       document.querySelectorAll("#choices button").forEach(b=> b.disabled = true);
       el("btnHint").disabled = true;
-      el("btnSkip").disabled = false;
     }
 
-    function suffix(n){
-      if(n === "1") return "st";
-      if(n === "2") return "nd";
-      if(n === "3") return "rd";
-      return "th";
+    function getChoiceSet(){
+      return useExpandedChoices ? EXPANDED : SIMPLE;
     }
 
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    function simpleKeyFromExpandedKey(expKey){
+      // "6_counsel" -> "6", "14_incorp" -> "14"
+      return expKey.split("_")[0];
     }
 
-    function render(){
-      const card = deck[index];
-      el("scenarioText").textContent = card.scenario;
-
-      // reset attempts for this scenario
-      thisScenarioAttempts = 0;
-      hideExplanation();
-
-      setFeedback("warn", "Directions", "Pick the amendment that best applies. You must be correct to move on.");
-      renderChoices();
-      updateStats();
+    function isCorrect(choiceKey, card){
+      if(useExpandedChoices){
+        return choiceKey === card.correctKey;
+      }
+      // SIMPLE: accept the amendment number match
+      return choiceKey === simpleKeyFromExpandedKey(card.correctKey);
     }
 
     function renderChoices(){
       const wrap = el("choices");
       wrap.innerHTML = "";
-      AMENDMENTS.forEach(a=>{
+      const choices = getChoiceSet();
+
+      // Shuffle choices each scenario (for anti-memorization)
+      const pool = [...choices];
+      for(let i = pool.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      pool.forEach(c=>{
         const btn = document.createElement("button");
         btn.className = "primary";
-        btn.textContent = a.label;
-        btn.addEventListener("click", ()=> answer(a.key));
+        btn.textContent = c.label;
+        btn.addEventListener("click", ()=> answer(c.key));
         wrap.appendChild(btn);
       });
     }
 
     function buildHint(card){
-      const t = card.scenario.toLowerCase();
-      if(t.includes("warrant") || t.includes("search") || t.includes("seize") || t.includes("phone")){
-        return "Hint: Look for search/seizure, privacy, warrants, or probable cause (often 4th).";
-      }
-      if(t.includes("confess") || t.includes("forced") || t.includes("remain silent") || t.includes("not guilty")){
-        return "Hint: Look for compelled confession or being tried twice (often 5th).";
-      }
-      if(t.includes("lawyer") || t.includes("trial") || t.includes("witness") || t.includes("jury") || t.includes("charges")){
-        return "Hint: Look for trial rights (counsel, speedy/public, jury, confrontation) (often 6th).";
-      }
-      if(t.includes("newspaper") || t.includes("protest") || t.includes("petition") || t.includes("religion") || t.includes("speech")){
-        return "Hint: Look for speech/press/religion/assembly/petition (often 1st).";
-      }
-      if(t.includes("bail") || t.includes("punish") || t.includes("prison")){
-        return "Hint: Look for excessive bail or cruel/unusual punishment (often 8th).";
-      }
-      if(t.includes("reserved") || t.includes("states") || t.includes("not delegated") || t.includes("federal government orders states")){
-        return "Hint: Look for powers not delegated to the federal government (often 10th).";
-      }
-      return "Hint: Identify the government action first. Then match the right being protected.";
+      const k = card.correctKey;
+      if(k.startsWith("1_")) return "Hint: 1A has 5 freedoms—speech, press, religion, assembly, petition. Which one is it?";
+      if(k.startsWith("2_")) return "Hint: 2A is the right to bear arms.";
+      if(k.startsWith("4_")) return "Hint: 4A = search/seizure/warrant/probable cause. Which part is most precise?";
+      if(k.startsWith("5_")) return "Hint: 5A = self-incrimination or double jeopardy.";
+      if(k.startsWith("6_")) return "Hint: 6A = trial rights (speedy, public, jury, charges, confrontation, counsel).";
+      if(k.startsWith("8_")) return "Hint: 8A = cruel/unusual OR excessive bail/fines.";
+      if(k.startsWith("10_")) return "Hint: 10A = powers not delegated to the federal gov are reserved to states/people.";
+      if(k.startsWith("14_")) return "Hint: 14A = citizenship, due process (states), equal protection, and incorporation.";
+      return "Hint: Identify the government action first, then match the precise protection.";
     }
 
-    function answer(choice){
+    function render(){
+      const card = deck[index];
+      el("scenarioText").textContent = card.scenario;
+      thisScenarioAttempts = 0;
+      hideExplanation();
+      setFeedback("warn","Directions","Pick the most precise right/part that applies. You must be correct to move on.");
+      renderChoices();
+      updateStats();
+    }
+
+    function answer(choiceKey){
       if(locked) return;
 
       totalAttempts++;
       thisScenarioAttempts++;
 
       const card = deck[index];
-      const correct = (choice === card.amendment);
+      const correct = isCorrect(choiceKey, card);
 
       if(correct){
         totalCorrect++;
         streak++;
-        setFeedback("good", "Correct!", `Nice. You got it in ${thisScenarioAttempts} attempt(s). Read the explanation, then click Next.`);
+        setFeedback("good","Correct!",`Nice. You got it in ${thisScenarioAttempts} attempt(s). Read the explanation, then click Next.`);
         updateStats();
         showExplanation(card);
       } else {
         streak = 0;
-        const hint = buildHint(card);
-        setFeedback("bad", "Try again.", `Not that amendment. ${hint}`);
+        setFeedback("bad","Try again.", buildHint(card));
         updateStats();
       }
     }
 
     function next(){
       if(strictMode && el("explainBox").style.display !== "block"){
-        setFeedback("warn", "Not yet.", "You must answer correctly before moving on.");
+        setFeedback("warn","Not yet.","You must answer correctly before moving on.");
         return;
       }
-
       if(index < deck.length - 1){
         index++;
         render();
@@ -863,22 +893,19 @@
       const elapsed = formatTime(Date.now() - startTs);
 
       el("scenarioText").textContent = "Finish! Great work.";
-      setFeedback("good", "Session Complete",
+      setFeedback("good","Session Complete",
         `Score: ${totalCorrect} correct • Attempts: ${totalAttempts} • Accuracy: ${accuracy} • Time: ${elapsed}. Click Restart to play again.`
       );
 
-      // Disable choices
       document.querySelectorAll("#choices button").forEach(b=> b.disabled = true);
       el("btnHint").disabled = true;
 
-      // Show explain box with replay button
-      el("explainTitle").textContent = "What next?";
+      el("explainTitle").textContent = "Next step";
       el("explainGrid").innerHTML = `
-        <div><b>Replay for mastery:</b> aim for high accuracy with fewer attempts.</div>
-        <div><b>Teacher move:</b> assign “2 perfect rounds” (all first-try correct) as a goal.</div>
-        <div><b>Next upgrade:</b> Game 2 adds “Constitutional or Not?” before naming the amendment.</div>
+        <div><b>Mastery goal:</b> get each scenario correct on the first click.</div>
+        <div><b>OST alignment:</b> apply the right/limit to the scenario, not just naming the amendment number.</div>
       `;
-      el("explainMini").textContent = "Teacher note: You can add/remove scenarios in the scenarioBank array.";
+      el("explainMini").textContent = "Teacher note: Add more scenarios in scenarioBank for each sub-right.";
       el("explainBox").style.display = "block";
 
       el("btnNext").textContent = "Play Again";
@@ -906,53 +933,51 @@
 
     function toggleShuffle(){
       shuffleOn = !shuffleOn;
-      el("toggleShuffle").textContent = `Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
+      document.getElementById("toggleShuffle").textContent = `Shuffle: ${shuffleOn ? "ON" : "OFF"}`;
       restart();
     }
 
     function toggleStrict(){
       strictMode = !strictMode;
-      el("toggleStrict").textContent = `Strict: ${strictMode ? "ON" : "OFF"}`;
-      setFeedback("warn", "Mode changed",
+      document.getElementById("toggleStrict").textContent = `Strict: ${strictMode ? "ON" : "OFF"}`;
+      setFeedback("warn","Mode changed",
         strictMode
           ? "Strict mode ON: you must be correct before moving on."
-          : "Practice mode OFF: you can move on even if wrong (not recommended for mastery)."
+          : "Practice mode ON: you can move on even if wrong."
       );
       updateStats();
     }
 
-    function openBank(){
-      el("modal").style.display = "flex";
-      el("bankText").textContent = JSON.stringify(scenarioBank, null, 2);
-    }
-
-    function closeBank(){
-      el("modal").style.display = "none";
+    function toggleChoiceSet(){
+      useExpandedChoices = !useExpandedChoices;
+      document.getElementById("btnToggleSet").textContent = `Choices: ${useExpandedChoices ? "Expanded" : "Simple"}`;
+      setFeedback("warn","Choice set changed",
+        useExpandedChoices
+          ? "Expanded ON: students choose the exact sub-right/part."
+          : "Simple ON: students choose just the amendment number."
+      );
+      restart();
     }
 
     function startTimers(){
-      // running timer
       if(timerId) clearInterval(timerId);
       timerId = setInterval(()=> {
         el("timeEl").textContent = formatTime(Date.now() - startTs);
       }, 500);
 
-      // live date/time stamp
       if(nowId) clearInterval(nowId);
       nowId = setInterval(()=> {
         el("nowStamp").textContent = formatDateTime(new Date());
       }, 1000);
     }
 
-    // Buttons / links
-    el("btnHint").addEventListener("click", ()=>{
+    // wire controls
+    document.getElementById("btnHint").addEventListener("click", ()=>{
       if(locked) return;
-      const card = deck[index];
-      setFeedback("warn", "Hint", buildHint(card));
+      setFeedback("warn","Hint", buildHint(deck[index]));
     });
 
-    el("btnSkip").addEventListener("click", ()=>{
-      // teacher skip always works
+    document.getElementById("btnSkip").addEventListener("click", ()=>{
       if(index < deck.length - 1){
         index++;
         render();
@@ -961,18 +986,11 @@
       }
     });
 
-    el("btnRestart").addEventListener("click", restart);
-
-    el("btnNext").addEventListener("click", ()=> next());
-
-    el("toggleShuffle").addEventListener("click", toggleShuffle);
-    el("toggleStrict").addEventListener("click", toggleStrict);
-
-    el("btnOpenBank").addEventListener("click", openBank);
-    el("btnClose").addEventListener("click", closeBank);
-    el("modal").addEventListener("click", (e)=>{
-      if(e.target === el("modal")) closeBank();
-    });
+    document.getElementById("btnRestart").addEventListener("click", restart);
+    document.getElementById("btnNext").addEventListener("click", ()=> next());
+    document.getElementById("toggleShuffle").addEventListener("click", toggleShuffle);
+    document.getElementById("toggleStrict").addEventListener("click", toggleStrict);
+    document.getElementById("btnToggleSet").addEventListener("click", toggleChoiceSet);
 
     // init
     buildDeck();
