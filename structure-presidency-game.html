@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Game 3 — Electoral College & Presidency (12/22/23/25)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#101a2e; --text:#e7eefc; --muted:#a8b4cf;
+      --accent:#7aa2ff; --good:#2bd576; --bad:#ff5c7a; --warn:#ffd166;
+      --border: rgba(255,255,255,0.10); --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, #152249 0%, var(--bg) 55%);color:var(--text);font-family:var(--sans)}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px 40px}
+    header{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px}
+    .card{background:rgba(16,26,46,.86);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+    .row{display:flex;gap:14px;flex-wrap:wrap}
+    .row > *{flex:1 1 260px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+    input[type="text"]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);outline:none}
+    button{cursor:pointer;border:1px solid var(--border);background:#0a1326;color:var(--text);padding:10px 12px;border-radius:12px;font-weight:600}
+    button:hover{border-color:rgba(122,162,255,.55)}
+    .btn-accent{background:rgba(122,162,255,.18);border-color:rgba(122,162,255,.35)}
+    .btn-good{background:rgba(43,213,118,.16);border-color:rgba(43,213,118,.35)}
+    .btn-bad{background:rgba(255,92,122,.14);border-color:rgba(255,92,122,.35)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+    .bank{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .bank .tag{font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:999px;background:rgba(122,162,255,.12);border:1px solid rgba(122,162,255,.25)}
+    .q{font-size:16px;line-height:1.35;margin:0 0 14px}
+    .choices{display:grid;gap:10px}
+    .choice{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+    .choice:hover{border-color:rgba(255,255,255,.22)}
+    .choice strong{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:8px}
+    .status{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .msg{flex:1 1 360px;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);min-height:44px}
+    .msg.good{color:var(--good);border-color:rgba(43,213,118,.35);background:rgba(43,213,118,.08)}
+    .msg.bad{color:var(--bad);border-color:rgba(255,92,122,.35);background:rgba(255,92,122,.08)}
+    .msg.warn{color:var(--warn);border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.08)}
+    .footer{margin-top:14px;color:var(--muted);font-size:12px}
+    .hr{height:1px;background:var(--border);margin:14px 0}
+    .hidden{display:none !important}
+    .mono{font-family:var(--mono)}
+    textarea{width:100%;min-height:120px;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.35}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a1326;border:1px solid var(--border);
+      color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Game 3 — Electoral College & Presidency (12 / 22 / 23 / 25)</h1>
+        <div class="sub">CS 11 • Trigger-based • Includes the DC “electors” trap • 100% accuracy required</div>
+      </div>
+      <div class="pill" id="pillMeta">Not started</div>
+    </header>
+
+    <div class="row" style="margin-top:14px">
+      <div class="card">
+        <label for="studentName">Student Name (required)</label>
+        <input id="studentName" type="text" placeholder="Type full name…" autocomplete="off" />
+        <div class="status">
+          <button class="btn-accent" id="startBtn">Start / Restart</button>
+          <button id="resetBtn">Clear Progress</button>
+          <div class="footer" id="attemptInfo">Attempts: 0</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="footer">Amendment Bank (always visible):</div>
+        <div class="bank" id="bank"></div>
+
+        <div class="hr"></div>
+
+        <div id="teacherPanel" class="hidden">
+          <div class="pill">Teacher Controls</div>
+          <div class="status" style="margin-top:10px">
+            <button id="toggleHintsBtn">Hints: OFF</button>
+            <div class="footer">Teacher panel: <span class="mono">?teacher=1</span> or <span class="mono">Shift+T</span></div>
+          </div>
+          <div class="hr"></div>
+        </div>
+
+        <div class="pill">Your trigger notes embedded</div>
+        <div class="footer">
+          • 12th: Jefferson–Burr tie → separate ballots<br>
+          • 22nd: FDR four terms → term limits<br>
+          • 23rd: DC population → DC gets <b>electors</b> (not “vote for President” directly)<br>
+          • 25th: JFK assassination → succession/disability clarity
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="q" id="qText">Enter your name and click Start.</p>
+        <div class="choices" id="choices"></div>
+
+        <div class="status">
+          <div class="msg" id="msgBox">Waiting…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button id="skipBtn" class="btn-bad">Skip (counts wrong)</button>
+            <button id="nextBtn" class="btn-accent">Next</button>
+          </div>
+        </div>
+
+        <div class="footer" id="progressText">Progress: 0 / 0</div>
+
+        <div class="hr"></div>
+
+        <div id="submitArea" class="hidden">
+          <div class="pill">Submission (unlocked at 100%)</div>
+          <textarea id="submitBox" readonly></textarea>
+          <div class="status">
+            <button id="copyBtn" class="btn-good">Copy Code</button>
+            <button id="downloadBtn">Download .txt</button>
+            <div class="footer mono" id="hashInfo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+  const nowISO = () => new Date().toISOString();
+  const enc = new TextEncoder();
+  const toB64 = (u8) => btoa(String.fromCharCode(...u8));
+  const fromStr = (s) => enc.encode(s);
+  async function sha256Hex(str){
+    const buf = await crypto.subtle.digest("SHA-256", fromStr(str));
+    const bytes = new Uint8Array(buf);
+    return [...bytes].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  function toast(msg="Copied!"){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 900);
+  }
+
+  const AMENDMENTS = [
+    { key:"12th", label:"12th Amendment", short:"Separate ballots for President & VP (fixes Jefferson–Burr tie issue)" },
+    { key:"22nd", label:"22nd Amendment", short:"Presidential term limits (trigger: FDR four terms)" },
+    { key:"23rd", label:"23rd Amendment", short:"DC gets electoral votes (citizens vote for electors)" },
+    { key:"25th", label:"25th Amendment", short:"Succession & disability procedures (trigger: JFK assassination era gaps)" },
+  ];
+
+  const QUESTIONS = [
+    { prompt:"A tie between Thomas Jefferson and Aaron Burr exposed a flaw in the original Electoral College process. Which amendment created separate balloting for President and Vice President to prevent that kind of tie problem?",
+      answer:"12th", reasoning:"12th Amendment: separate ballots for President and Vice President, created after the Jefferson–Burr tie issue."},
+    { prompt:"Franklin D. Roosevelt served four terms, raising concerns that a president could become too powerful and stay in office too long. Which amendment created presidential term limits?",
+      answer:"22nd", reasoning:"22nd Amendment: limits the number of terms a president can serve; triggered by FDR’s four-term presidency (and fear of executive overreach)."},
+    { prompt:"The District of Columbia’s population grew, but residents had no role in presidential selection. Which amendment gave DC electoral votes so DC citizens could vote for presidential electors?",
+      answer:"23rd", reasoning:"23rd Amendment: DC receives electors. Important: this does NOT mean DC voters ‘vote for President’ directly—everyone votes for electors."},
+    { prompt:"After President Kennedy was assassinated, it became clear there was no detailed constitutional process for presidential disability and replacing both President and Vice President if needed. Which amendment addressed that?",
+      answer:"25th", reasoning:"25th Amendment: clarifies succession and disability; the JFK era highlighted dangerous gaps if both offices were compromised."},
+
+    // trap-avoidance / OST style
+    { prompt:"OST-style trap: Which amendment allowed people living in Washington, D.C., to vote for presidential electors (NOT directly vote for President)?",
+      answer:"23rd", reasoning:"23rd Amendment grants DC electors; citizens vote for electors, not the President directly."},
+    { prompt:"A question says: “An amendment changed election procedures to prevent future tie votes like the Jefferson–Burr tie.” Which amendment is that?",
+      answer:"12th", reasoning:"12th Amendment fixed Electoral College procedure by separating ballots for President and VP."},
+    { prompt:"Concern that a long-serving president could become too powerful after the New Deal era and beyond led to which amendment?",
+      answer:"22nd", reasoning:"22nd Amendment created term limits, commonly tied to FDR’s four terms and fear of a presidency drifting toward dictatorship."},
+    { prompt:"A president is alive but medically unable to perform duties; government needs a clear process for who has power temporarily and how to replace a VP if needed. Which amendment covers that?",
+      answer:"25th", reasoning:"25th Amendment covers disability and succession mechanics."},
+    { prompt:"Which amendment is most directly about Electoral College mechanics (balloting) rather than term limits or succession?",
+      answer:"12th", reasoning:"12th Amendment changes the balloting process for President and Vice President."},
+    { prompt:"Which amendment is most directly about limiting how long any one person can remain President?",
+      answer:"22nd", reasoning:"22nd Amendment: term limits."},
+    { prompt:"Which amendment is most directly about adding electors for a non-state area due to population growth?",
+      answer:"23rd", reasoning:"23rd Amendment: DC gets electoral votes."},
+    { prompt:"Which amendment is most directly about what happens when a president dies, resigns, or is disabled—and how to handle the VP role too?",
+      answer:"25th", reasoning:"25th Amendment clarifies succession/disability and VP replacement procedures."},
+    { prompt:"If a question tries to distract you with “DC can vote for President,” the correct precise phrasing is what?",
+      answer:"23rd", reasoning:"23rd Amendment: DC voters choose presidential electors; the electors vote for President."},
+    { prompt:"A civics teacher says: ‘This amendment is the Jefferson–Burr fix.’ Which one?",
+      answer:"12th", reasoning:"12th Amendment is the Jefferson–Burr tie fix."},
+    { prompt:"A civics teacher says: ‘This amendment is the FDR four-terms response.’ Which one?",
+      answer:"22nd", reasoning:"22nd Amendment is the response to FDR’s four terms."},
+    { prompt:"A civics teacher says: ‘This amendment is the JFK assassination / disability gap fix.’ Which one?",
+      answer:"25th", reasoning:"25th Amendment is the succession/disability fix tied to the JFK era."},
+    { prompt:"Which amendment is most likely tested as a ‘trigger event’ question involving an Electoral College tie?",
+      answer:"12th", reasoning:"12th Amendment’s trigger is the Jefferson–Burr tie and the need for separate balloting."},
+    { prompt:"Which amendment is most likely tested with an ‘executive branch could be empty’ fear if both President and VP were compromised?",
+      answer:"25th", reasoning:"25th Amendment addresses how to handle disability and fill vacancies to avoid leadership voids."},
+    { prompt:"Which amendment changed who gets electors due to DC’s population growth?",
+      answer:"23rd", reasoning:"23rd Amendment gives DC electoral votes."},
+    { prompt:"Which amendment prevents another four-term presidency by limiting terms?",
+      answer:"22nd", reasoning:"22nd Amendment limits presidential terms."},
+    { prompt:"Which amendment changed procedures so the Vice President is not chosen via the same ballot that caused tie problems in 1800?",
+      answer:"12th", reasoning:"12th Amendment created separate ballots for President and Vice President."},
+    { prompt:"A question describes concerns about court packing, expanded executive power, and a long presidency. Which amendment is the structural response that came later?",
+      answer:"22nd", reasoning:"22nd Amendment is the structural check: presidential term limits."}
+  ];
+
+  const state = {
+    studentName:"", teacherMode:false, hintsEnabled:false,
+    qOrder:[], idx:0, attempts:0, correct:0, wrong:0,
+    log:[], startedAt:null, finishedAt:null
+  };
+  const STORAGE_KEY = "cs11_structure_game_v1";
+
+  function load(){ try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) Object.assign(state, JSON.parse(raw)); }catch(e){} }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function clear(){ localStorage.removeItem(STORAGE_KEY); }
+
+  function renderBank(){
+    const bank=$("bank"); bank.innerHTML="";
+    AMENDMENTS.forEach(a=>{
+      const d=document.createElement("div");
+      d.className="tag";
+      d.textContent=`${a.label} — ${a.short}`;
+      bank.appendChild(d);
+    });
+  }
+  function setMsg(text, kind=""){
+    const box=$("msgBox");
+    box.className="msg"+(kind?" "+kind:"");
+    box.innerHTML=text;
+  }
+  function updateMeta(){
+    const total=state.qOrder.length;
+    const attempted=state.correct+state.wrong;
+    const acc=attempted?Math.round((state.correct/attempted)*100):0;
+    $("pillMeta").textContent = state.startedAt
+      ? `${state.studentName||"Unnamed"} • Q ${Math.min(state.idx+1,total)}/${total} • Accuracy ${acc}%`
+      : "Not started";
+    $("attemptInfo").textContent=`Attempts: ${state.attempts}`;
+    $("progressText").textContent=`Progress: ${attempted} attempted • Correct ${state.correct} • Wrong ${state.wrong} • Total ${total}`;
+  }
+  function renderTeacherPanel(){
+    const panel=$("teacherPanel");
+    if(state.teacherMode){
+      panel.classList.remove("hidden");
+      $("toggleHintsBtn").textContent=`Hints: ${state.hintsEnabled?"ON":"OFF"}`;
+    }else panel.classList.add("hidden");
+  }
+  function currentQ(){
+    if(!state.qOrder.length) return null;
+    return QUESTIONS[state.qOrder[state.idx]];
+  }
+  function hideSubmit(){
+    $("submitArea").classList.add("hidden");
+    $("submitBox").value="";
+    $("hashInfo").textContent="";
+  }
+  function renderQuestion(){
+    const q=currentQ();
+    $("choices").innerHTML="";
+    if(!q){
+      $("qText").textContent="Enter your name and click Start.";
+      setMsg("Waiting…");
+      return;
+    }
+    $("qText").textContent=q.prompt;
+
+    const keys=AMENDMENTS.map(a=>a.key);
+    const distractors=shuffle(keys.filter(k=>k!==q.answer)).slice(0,3);
+    const options=shuffle([q.answer,...distractors]);
+    const letters=["A","B","C","D"];
+    options.forEach((key,i)=>{
+      const a=AMENDMENTS.find(x=>x.key===key);
+      const btn=document.createElement("button");
+      btn.className="choice";
+      btn.innerHTML=`<strong>${letters[i]}</strong> ${a.label}`;
+      btn.addEventListener("click",()=>choose(key));
+      $("choices").appendChild(btn);
+    });
+    setMsg("Choose the correct amendment.", "warn");
+    updateMeta();
+    hideSubmit();
+  }
+  function normalizeName(s){ return (s||"").trim().replace(/\s+/g," "); }
+
+  function start(){
+    const name=normalizeName($("studentName").value);
+    if(!name){ setMsg("Please enter your name before starting.", "bad"); return; }
+    state.studentName=name;
+    state.startedAt=nowISO();
+    state.finishedAt=null;
+    state.idx=0; state.correct=0; state.wrong=0; state.log=[];
+    state.qOrder=shuffle([...Array(QUESTIONS.length)].map((_,i)=>i));
+    state.attempts+=1;
+    save();
+    renderTeacherPanel();
+    renderQuestion();
+    updateMeta();
+  }
+
+  function choose(chosenKey){
+    const q=currentQ(); if(!q) return;
+    const isCorrect=chosenKey===q.answer;
+    state.log.push({t:nowISO(), q:q.prompt, chosen:chosenKey, correct:isCorrect, aKey:q.answer});
+    if(isCorrect){
+      state.correct+=1;
+      setMsg(`✅ Correct. <b>Why:</b> ${q.reasoning}`, "good");
+    }else{
+      state.wrong+=1;
+      const correctLabel=AMENDMENTS.find(a=>a.key===q.answer).label;
+      const chosenLabel=AMENDMENTS.find(a=>a.key===chosenKey).label;
+      setMsg(`❌ Incorrect (${chosenLabel}). <b>Correct:</b> ${correctLabel}. <b>Explanation:</b> ${q.reasoning}`, "bad");
+    }
+    save();
+    updateMeta();
+  }
+
+  function next(){
+    if(!state.qOrder.length) return;
+    if(state.idx < state.qOrder.length-1){
+      state.idx+=1; save(); renderQuestion();
+    }else{
+      setMsg("End of questions. If you are not at 100% accuracy, click Restart and try again.", "warn");
+      maybeUnlockSubmit();
+      updateMeta();
+    }
+  }
+
+  function skip(){
+    const q=currentQ(); if(!q) return;
+    const wrongKey=AMENDMENTS.find(a=>a.key!==q.answer).key;
+    choose(wrongKey);
+  }
+
+  async function buildSubmission(){
+    const payload={
+      game:"CS11 Electoral College & Presidency",
+      version:"v1",
+      name:state.studentName,
+      startedAt:state.startedAt,
+      finishedAt:state.finishedAt,
+      attempts:state.attempts,
+      correct:state.correct,
+      wrong:state.wrong,
+      totalQuestions:state.qOrder.length,
+      log:state.log
+    };
+    const json=JSON.stringify(payload);
+    const hash=await sha256Hex(json);
+    const blob=toB64(fromStr(json));
+    const code=`CS11-STRUCT|${hash}|${blob}`;
+    $("submitArea").classList.remove("hidden");
+    $("submitBox").value=code;
+    $("hashInfo").textContent=`SHA-256: ${hash}`;
+    setMsg("✅ Perfect accuracy. Submission unlocked.", "good");
+  }
+
+  function maybeUnlockSubmit(){
+    const attempted=state.correct+state.wrong;
+    if(!attempted) return;
+    const acc=state.correct/attempted;
+    if(acc===1 && attempted>=state.qOrder.length){
+      state.finishedAt=nowISO();
+      save();
+      buildSubmission();
+    }
+  }
+
+  async function copySubmission(){
+    const txt=$("submitBox").value; if(!txt) return;
+    await navigator.clipboard.writeText(txt);
+    toast("Submission code copied!");
+  }
+  function downloadSubmission(){
+    const txt=$("submitBox").value; if(!txt) return;
+    const blob=new Blob([txt],{type:"text/plain"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`CS11-Structure-Submission-${(state.studentName||"student").replace(/\s+/g,"_")}.txt`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function toggleTeacherPanel(force){
+    state.teacherMode = (typeof force==="boolean") ? force : !state.teacherMode;
+    save(); renderTeacherPanel();
+  }
+  function toggleHints(){
+    state.hintsEnabled=!state.hintsEnabled;
+    save(); renderTeacherPanel();
+    setMsg(`Teacher set hints to ${state.hintsEnabled?"ON":"OFF"}. Explanations still appear after incorrect answers.`, "warn");
+  }
+
+  function clearProgress(){
+    clear();
+    state.studentName=""; state.teacherMode=false; state.hintsEnabled=false;
+    state.qOrder=[]; state.idx=0; state.attempts=0; state.correct=0; state.wrong=0;
+    state.log=[]; state.startedAt=null; state.finishedAt=null;
+    $("studentName").value="";
+    renderTeacherPanel(); renderQuestion(); updateMeta(); hideSubmit();
+    setMsg("Progress cleared.", "warn");
+  }
+
+  function init(){
+    renderBank();
+    load();
+    const params=new URLSearchParams(location.search);
+    if(params.get("teacher")==="1") state.teacherMode=true;
+    if(state.studentName) $("studentName").value=state.studentName;
+    renderTeacherPanel();
+    updateMeta();
+    renderQuestion();
+
+    $("startBtn").addEventListener("click", start);
+    $("nextBtn").addEventListener("click", () => { next(); maybeUnlockSubmit(); });
+    $("skipBtn").addEventListener("click", () => { skip(); save(); updateMeta(); });
+    $("resetBtn").addEventListener("click", clearProgress);
+    $("toggleHintsBtn").addEventListener("click", toggleHints);
+    $("copyBtn").addEventListener("click", copySubmission);
+    $("downloadBtn").addEventListener("click", downloadSubmission);
+
+    window.addEventListener("keydown",(e)=>{
+      if(e.shiftKey && e.key.toLowerCase()==="t"){
+        toggleTeacherPanel();
+        setMsg(`Teacher panel ${state.teacherMode?"shown":"hidden"}.`, "warn");
+      }
+    });
+  }
+  init();
+})();
+</script>
+</body>
+</html>
