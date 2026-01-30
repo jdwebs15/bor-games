@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Game 2 — Voting Rights Amendments (15/19/24/26)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#101a2e; --text:#e7eefc; --muted:#a8b4cf;
+      --accent:#7aa2ff; --good:#2bd576; --bad:#ff5c7a; --warn:#ffd166;
+      --border: rgba(255,255,255,0.10); --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius: 18px; --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, #152249 0%, var(--bg) 55%);color:var(--text);font-family:var(--sans)}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px 40px}
+    header{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px}
+    .card{background:rgba(16,26,46,.86);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .row{display:flex;gap:14px;flex-wrap:wrap}
+    .row > *{flex:1 1 260px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+    input[type="text"]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);outline:none}
+    button{cursor:pointer;border:1px solid var(--border);background:#0a1326;color:var(--text);padding:10px 12px;border-radius:12px;font-weight:600}
+    button:hover{border-color:rgba(122,162,255,.55)}
+    .btn-accent{background:rgba(122,162,255,.18);border-color:rgba(122,162,255,.35)}
+    .btn-good{background:rgba(43,213,118,.16);border-color:rgba(43,213,118,.35)}
+    .btn-bad{background:rgba(255,92,122,.14);border-color:rgba(255,92,122,.35)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+    .bank{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .bank .tag{font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:999px;background:rgba(122,162,255,.12);border:1px solid rgba(122,162,255,.25)}
+    .q{font-size:16px;line-height:1.35;margin:0 0 14px}
+    .choices{display:grid;gap:10px}
+    .choice{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+    .choice:hover{border-color:rgba(255,255,255,.22)}
+    .choice strong{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:8px}
+    .status{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .msg{flex:1 1 360px;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);min-height:44px}
+    .msg.good{color:var(--good);border-color:rgba(43,213,118,.35);background:rgba(43,213,118,.08)}
+    .msg.bad{color:var(--bad);border-color:rgba(255,92,122,.35);background:rgba(255,92,122,.08)}
+    .msg.warn{color:var(--warn);border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.08)}
+    .footer{margin-top:14px;color:var(--muted);font-size:12px}
+    .hr{height:1px;background:var(--border);margin:14px 0}
+    .hidden{display:none !important}
+    .mono{font-family:var(--mono)}
+    textarea{width:100%;min-height:120px;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.35}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a1326;border:1px solid var(--border);
+      color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Game 2 — Voting Rights Amendments (15 / 19 / 24 / 26)</h1>
+        <div class="sub">CS 10 • Identify the amendment + trigger • 100% accuracy required for submission</div>
+      </div>
+      <div class="pill" id="pillMeta">Not started</div>
+    </header>
+
+    <div class="row" style="margin-top:14px">
+      <div class="card">
+        <label for="studentName">Student Name (required)</label>
+        <input id="studentName" type="text" placeholder="Type full name…" autocomplete="off" />
+        <div class="status">
+          <button class="btn-accent" id="startBtn">Start / Restart</button>
+          <button id="resetBtn">Clear Progress</button>
+          <div class="footer" id="attemptInfo">Attempts: 0</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="footer">Amendment Bank (always visible):</div>
+        <div class="bank" id="bank"></div>
+
+        <div class="hr"></div>
+
+        <div id="teacherPanel" class="hidden">
+          <div class="pill">Teacher Controls</div>
+          <div class="status" style="margin-top:10px">
+            <button id="toggleHintsBtn">Hints: OFF</button>
+            <div class="footer">Teacher panel: <span class="mono">?teacher=1</span> or <span class="mono">Shift+T</span></div>
+          </div>
+          <div class="hr"></div>
+        </div>
+
+        <div class="pill">Class triggers aligned to your notes</div>
+        <div class="footer">
+          • 19th: WWI homefront → Wilson supports suffrage<br>
+          • 26th: Vietnam draft → “Old enough to fight and die…”<br>
+          • 24th: Jim Crow poll taxes as state barrier<br>
+          • 15th: states deny freedmen voting rights
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="q" id="qText">Enter your name and click Start.</p>
+        <div class="choices" id="choices"></div>
+
+        <div class="status">
+          <div class="msg" id="msgBox">Waiting…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button id="skipBtn" class="btn-bad">Skip (counts wrong)</button>
+            <button id="nextBtn" class="btn-accent">Next</button>
+          </div>
+        </div>
+
+        <div class="footer" id="progressText">Progress: 0 / 0</div>
+
+        <div class="hr"></div>
+
+        <div id="submitArea" class="hidden">
+          <div class="pill">Submission (unlocked at 100%)</div>
+          <textarea id="submitBox" readonly></textarea>
+          <div class="status">
+            <button id="copyBtn" class="btn-good">Copy Code</button>
+            <button id="downloadBtn">Download .txt</button>
+            <div class="footer mono" id="hashInfo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+  const nowISO = () => new Date().toISOString();
+  const enc = new TextEncoder();
+  const toB64 = (u8) => btoa(String.fromCharCode(...u8));
+  const fromStr = (s) => enc.encode(s);
+  async function sha256Hex(str){
+    const buf = await crypto.subtle.digest("SHA-256", fromStr(str));
+    const bytes = new Uint8Array(buf);
+    return [...bytes].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  function toast(msg="Copied!"){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 900);
+  }
+
+  const AMENDMENTS = [
+    { key:"15th", label:"15th Amendment", short:"Voting rights protected (race/previous condition)" },
+    { key:"19th", label:"19th Amendment", short:"Women’s suffrage" },
+    { key:"24th", label:"24th Amendment", short:"No poll tax in federal elections" },
+    { key:"26th", label:"26th Amendment", short:"Vote at 18" },
+  ];
+
+  const QUESTIONS = [
+    { prompt:"Southern states refused to give freed men the right to vote. Which amendment was added to prevent denial of voting rights based on race or previous condition of servitude?",
+      answer:"15th", reasoning:"15th Amendment: states cannot deny the right to vote based on race, color, or previous condition of servitude."},
+    { prompt:"During World War I, women’s major homefront contributions helped shift President Wilson toward supporting women’s voting rights. Which amendment granted women suffrage?",
+      answer:"19th", reasoning:"19th Amendment: voting rights cannot be denied on account of sex."},
+    { prompt:"A state requires a voter to pay a fee before being allowed to cast a ballot. Which amendment was designed to eliminate this barrier (a Jim Crow-era tool) in federal elections?",
+      answer:"24th", reasoning:"24th Amendment: prohibits poll taxes in federal elections; poll taxes were used to suppress poor voters and African Americans."},
+    { prompt:"Eighteen-year-olds could be drafted to fight and die in Vietnam but could not vote for the leaders making those decisions. Which amendment lowered the voting age?",
+      answer:"26th", reasoning:"26th Amendment: voting age set to 18; linked to the Vietnam draft argument: old enough to fight, old enough to vote."},
+    // more for 10+ minutes
+    { prompt:"A state argues voting rules are entirely a state issue and denies Black men the vote because the Constitution did not explicitly forbid it. Which amendment directly forbids that denial based on race?",
+      answer:"15th", reasoning:"15th Amendment places a constitutional limit on state voting rules regarding race/previous condition."},
+    { prompt:"A teacher says, “This amendment is the WWI homefront / Wilson trigger.” Which amendment is that?",
+      answer:"19th", reasoning:"19th Amendment is tied (in your class framing) to WWI homefront contributions changing political support."},
+    { prompt:"A poll tax blocks poor citizens from voting, and it was historically designed to reduce African American voting in the Jim Crow South. Which amendment targets that barrier?",
+      answer:"24th", reasoning:"24th Amendment bans poll taxes in federal elections."},
+    { prompt:"Students chant, “Old enough to fight and die, old enough to vote.” Which amendment matches that slogan?",
+      answer:"26th", reasoning:"26th Amendment lowered the voting age to 18, tied to Vietnam-era draft arguments."},
+    { prompt:"A state denies voting rights to someone specifically because of their race. Which amendment is the direct constitutional fix?",
+      answer:"15th", reasoning:"15th Amendment prohibits racial denial of voting rights."},
+    { prompt:"A state denies voting rights to women as a group. Which amendment prohibits denial based on sex?",
+      answer:"19th", reasoning:"19th Amendment: no denial of voting rights on account of sex."},
+    { prompt:"A state adds a required payment at the polls. Which amendment removes that pay-to-vote barrier (a Jim Crow tactic)?",
+      answer:"24th", reasoning:"24th Amendment prohibits poll taxes in federal elections."},
+    { prompt:"Congress responds to the fact that 18-year-olds serve in the military but cannot vote. Which amendment is passed?",
+      answer:"26th", reasoning:"26th Amendment: vote at 18."},
+    { prompt:"Which amendment is most directly about stopping states from denying freedmen (Black men) the right to vote after the Civil War?",
+      answer:"15th", reasoning:"15th Amendment targets post-Civil War race-based voting denials."},
+    { prompt:"Which amendment is most directly about expanding suffrage to women nationwide?",
+      answer:"19th", reasoning:"19th Amendment grants women suffrage."},
+    { prompt:"Which amendment is most directly about eliminating poll taxes as a voting barrier used in Jim Crow systems?",
+      answer:"24th", reasoning:"24th Amendment bans poll taxes in federal elections."},
+    { prompt:"Which amendment is most directly about lowering the voting age in response to the Vietnam draft issue?",
+      answer:"26th", reasoning:"26th Amendment lowers voting age to 18."},
+    { prompt:"A state denies the vote based on “previous condition of servitude.” Which amendment forbids that?",
+      answer:"15th", reasoning:"15th Amendment explicitly mentions previous condition of servitude."},
+    { prompt:"A civics question tries to trick students into thinking the 24th applies to ‘any voting fee anywhere.’ What’s the correct match used on the OST-style framing?",
+      answer:"24th", reasoning:"24th Amendment: poll tax banned in federal elections; historically used for disenfranchisement under Jim Crow."},
+    { prompt:"A state says women can’t vote because the Constitution doesn’t require it. Which amendment made that denial unconstitutional?",
+      answer:"19th", reasoning:"19th Amendment made sex-based voting denial unconstitutional."},
+    { prompt:"Which amendment is most associated with the slogan connecting military service and voting rights for 18-year-olds?",
+      answer:"26th", reasoning:"26th Amendment: old enough to fight, old enough to vote."},
+    { prompt:"Which amendment’s core purpose (in this game) repeats the Reconstruction issue: states refusing to grant the vote to freedmen?",
+      answer:"15th", reasoning:"15th Amendment repeats the Reconstruction-era state denial of voting rights."},
+    { prompt:"A state creates a payment requirement that disproportionately blocks poor voters. Which amendment addresses poll taxes as that barrier?",
+      answer:"24th", reasoning:"24th Amendment bans poll taxes in federal elections, historically tied to suppressing poor and African American voters."}
+  ];
+
+  const state = {
+    studentName:"", teacherMode:false, hintsEnabled:false,
+    qOrder:[], idx:0, attempts:0, correct:0, wrong:0,
+    log:[], startedAt:null, finishedAt:null
+  };
+  const STORAGE_KEY = "cs10_voting_game_v1";
+
+  function load(){ try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) Object.assign(state, JSON.parse(raw)); }catch(e){} }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function clear(){ localStorage.removeItem(STORAGE_KEY); }
+
+  function renderBank(){
+    const bank=$("bank"); bank.innerHTML="";
+    AMENDMENTS.forEach(a=>{
+      const d=document.createElement("div");
+      d.className="tag";
+      d.textContent=`${a.label} — ${a.short}`;
+      bank.appendChild(d);
+    });
+  }
+  function setMsg(text, kind=""){
+    const box=$("msgBox");
+    box.className="msg"+(kind?" "+kind:"");
+    box.innerHTML=text;
+  }
+  function updateMeta(){
+    const total=state.qOrder.length;
+    const attempted=state.correct+state.wrong;
+    const acc=attempted?Math.round((state.correct/attempted)*100):0;
+    $("pillMeta").textContent = state.startedAt
+      ? `${state.studentName||"Unnamed"} • Q ${Math.min(state.idx+1,total)}/${total} • Accuracy ${acc}%`
+      : "Not started";
+    $("attemptInfo").textContent=`Attempts: ${state.attempts}`;
+    $("progressText").textContent=`Progress: ${attempted} attempted • Correct ${state.correct} • Wrong ${state.wrong} • Total ${total}`;
+  }
+  function renderTeacherPanel(){
+    const panel=$("teacherPanel");
+    if(state.teacherMode){
+      panel.classList.remove("hidden");
+      $("toggleHintsBtn").textContent=`Hints: ${state.hintsEnabled?"ON":"OFF"}`;
+    }else panel.classList.add("hidden");
+  }
+  function currentQ(){
+    if(!state.qOrder.length) return null;
+    return QUESTIONS[state.qOrder[state.idx]];
+  }
+  function hideSubmit(){
+    $("submitArea").classList.add("hidden");
+    $("submitBox").value="";
+    $("hashInfo").textContent="";
+  }
+  function renderQuestion(){
+    const q=currentQ();
+    $("choices").innerHTML="";
+    if(!q){
+      $("qText").textContent="Enter your name and click Start.";
+      setMsg("Waiting…");
+      return;
+    }
+    $("qText").textContent=q.prompt;
+
+    const keys=AMENDMENTS.map(a=>a.key);
+    const distractors=shuffle(keys.filter(k=>k!==q.answer)).slice(0,3);
+    const options=shuffle([q.answer,...distractors]);
+    const letters=["A","B","C","D"];
+    options.forEach((key,i)=>{
+      const a=AMENDMENTS.find(x=>x.key===key);
+      const btn=document.createElement("button");
+      btn.className="choice";
+      btn.innerHTML=`<strong>${letters[i]}</strong> ${a.label}`;
+      btn.addEventListener("click",()=>choose(key));
+      $("choices").appendChild(btn);
+    });
+    setMsg("Choose the correct amendment.", "warn");
+    updateMeta();
+    hideSubmit();
+  }
+  function normalizeName(s){ return (s||"").trim().replace(/\s+/g," "); }
+
+  function start(){
+    const name=normalizeName($("studentName").value);
+    if(!name){ setMsg("Please enter your name before starting.", "bad"); return; }
+    state.studentName=name;
+    state.startedAt=nowISO();
+    state.finishedAt=null;
+    state.idx=0; state.correct=0; state.wrong=0; state.log=[];
+    state.qOrder=shuffle([...Array(QUESTIONS.length)].map((_,i)=>i));
+    state.attempts+=1;
+    save();
+    renderTeacherPanel();
+    renderQuestion();
+    updateMeta();
+  }
+
+  function choose(chosenKey){
+    const q=currentQ(); if(!q) return;
+    const isCorrect=chosenKey===q.answer;
+
+    state.log.push({t:nowISO(), q:q.prompt, chosen:chosenKey, correct:isCorrect, aKey:q.answer});
+    if(isCorrect){
+      state.correct+=1;
+      setMsg(`✅ Correct. <b>Why:</b> ${q.reasoning}`, "good");
+    }else{
+      state.wrong+=1;
+      const correctLabel=AMENDMENTS.find(a=>a.key===q.answer).label;
+      const chosenLabel=AMENDMENTS.find(a=>a.key===chosenKey).label;
+      setMsg(`❌ Incorrect (${chosenLabel}). <b>Correct:</b> ${correctLabel}. <b>Explanation:</b> ${q.reasoning}`, "bad");
+    }
+    save();
+    updateMeta();
+  }
+
+  function next(){
+    if(!state.qOrder.length) return;
+    if(state.idx < state.qOrder.length-1){
+      state.idx+=1; save(); renderQuestion();
+    }else{
+      setMsg("End of questions. If you are not at 100% accuracy, click Restart and try again.", "warn");
+      maybeUnlockSubmit();
+      updateMeta();
+    }
+  }
+
+  function skip(){
+    const q=currentQ(); if(!q) return;
+    const wrongKey=AMENDMENTS.find(a=>a.key!==q.answer).key;
+    choose(wrongKey);
+  }
+
+  async function buildSubmission(){
+    const payload={
+      game:"CS10 Voting Rights Amendments",
+      version:"v1",
+      name:state.studentName,
+      startedAt:state.startedAt,
+      finishedAt:state.finishedAt,
+      attempts:state.attempts,
+      correct:state.correct,
+      wrong:state.wrong,
+      totalQuestions:state.qOrder.length,
+      log:state.log
+    };
+    const json=JSON.stringify(payload);
+    const hash=await sha256Hex(json);
+    const blob=toB64(fromStr(json));
+    const code=`CS10-VOTING|${hash}|${blob}`;
+    $("submitArea").classList.remove("hidden");
+    $("submitBox").value=code;
+    $("hashInfo").textContent=`SHA-256: ${hash}`;
+    setMsg("✅ Perfect accuracy. Submission unlocked.", "good");
+  }
+
+  function maybeUnlockSubmit(){
+    const attempted=state.correct+state.wrong;
+    if(!attempted) return;
+    const acc=state.correct/attempted;
+    if(acc===1 && attempted>=state.qOrder.length){
+      state.finishedAt=nowISO();
+      save();
+      buildSubmission();
+    }
+  }
+
+  async function copySubmission(){
+    const txt=$("submitBox").value; if(!txt) return;
+    await navigator.clipboard.writeText(txt);
+    toast("Submission code copied!");
+  }
+  function downloadSubmission(){
+    const txt=$("submitBox").value; if(!txt) return;
+    const blob=new Blob([txt],{type:"text/plain"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`CS10-Voting-Submission-${(state.studentName||"student").replace(/\s+/g,"_")}.txt`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function toggleTeacherPanel(force){
+    state.teacherMode = (typeof force==="boolean") ? force : !state.teacherMode;
+    save(); renderTeacherPanel();
+  }
+  function toggleHints(){
+    state.hintsEnabled=!state.hintsEnabled;
+    save(); renderTeacherPanel();
+    setMsg(`Teacher set hints to ${state.hintsEnabled?"ON":"OFF"}. Explanations still appear after incorrect answers.`, "warn");
+  }
+
+  function clearProgress(){
+    clear();
+    state.studentName=""; state.teacherMode=false; state.hintsEnabled=false;
+    state.qOrder=[]; state.idx=0; state.attempts=0; state.correct=0; state.wrong=0;
+    state.log=[]; state.startedAt=null; state.finishedAt=null;
+    $("studentName").value="";
+    renderTeacherPanel(); renderQuestion(); updateMeta(); hideSubmit();
+    setMsg("Progress cleared.", "warn");
+  }
+
+  function init(){
+    renderBank();
+    load();
+    const params=new URLSearchParams(location.search);
+    if(params.get("teacher")==="1") state.teacherMode=true;
+    if(state.studentName) $("studentName").value=state.studentName;
+    renderTeacherPanel();
+    updateMeta();
+    renderQuestion();
+
+    $("startBtn").addEventListener("click", start);
+    $("nextBtn").addEventListener("click", () => { next(); maybeUnlockSubmit(); });
+    $("skipBtn").addEventListener("click", () => { skip(); save(); updateMeta(); });
+    $("resetBtn").addEventListener("click", clearProgress);
+    $("toggleHintsBtn").addEventListener("click", toggleHints);
+    $("copyBtn").addEventListener("click", copySubmission);
+    $("downloadBtn").addEventListener("click", downloadSubmission);
+
+    window.addEventListener("keydown",(e)=>{
+      if(e.shiftKey && e.key.toLowerCase()==="t"){
+        toggleTeacherPanel();
+        setMsg(`Teacher panel ${state.teacherMode?"shown":"hidden"}.`, "warn");
+      }
+    });
+  }
+  init();
+})();
+</script>
+</body>
+</html>
