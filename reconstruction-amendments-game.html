@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Game 1 — Reconstruction Amendments (13th–15th)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#101a2e; --text:#e7eefc; --muted:#a8b4cf;
+      --accent:#7aa2ff; --good:#2bd576; --bad:#ff5c7a; --warn:#ffd166;
+      --border: rgba(255,255,255,0.10); --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius: 18px; --radius2: 14px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, #152249 0%, var(--bg) 55%);color:var(--text);font-family:var(--sans)}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px 40px}
+    header{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px;letter-spacing:.3px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px}
+    .card{background:rgba(16,26,46,.86);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .row{display:flex;gap:14px;flex-wrap:wrap}
+    .row > *{flex:1 1 260px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+    input[type="text"]{width:100%;padding:12px 12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);outline:none}
+    button{cursor:pointer;border:1px solid var(--border);background:#0a1326;color:var(--text);padding:10px 12px;border-radius:12px;font-weight:600}
+    button:hover{border-color:rgba(122,162,255,.55)}
+    .btn-accent{background:rgba(122,162,255,.18);border-color:rgba(122,162,255,.35)}
+    .btn-good{background:rgba(43,213,118,.16);border-color:rgba(43,213,118,.35)}
+    .btn-bad{background:rgba(255,92,122,.14);border-color:rgba(255,92,122,.35)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+    .bank{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .bank .tag{font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:999px;background:rgba(122,162,255,.12);border:1px solid rgba(122,162,255,.25)}
+    .q{font-size:16px;line-height:1.35;margin:0 0 14px}
+    .choices{display:grid;grid-template-columns:1fr;gap:10px}
+    .choice{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+    .choice:hover{border-color:rgba(255,255,255,.22)}
+    .choice strong{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:8px}
+    .status{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .msg{flex:1 1 360px;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);min-height:44px}
+    .msg.good{color:var(--good);border-color:rgba(43,213,118,.35);background:rgba(43,213,118,.08)}
+    .msg.bad{color:var(--bad);border-color:rgba(255,92,122,.35);background:rgba(255,92,122,.08)}
+    .msg.warn{color:var(--warn);border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.08)}
+    .small{font-size:12px;color:var(--muted)}
+    .footer{margin-top:14px;color:var(--muted);font-size:12px}
+    .hr{height:1px;background:var(--border);margin:14px 0}
+    .hidden{display:none !important}
+    .mono{font-family:var(--mono)}
+    textarea{width:100%;min-height:120px;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.35}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a1326;border:1px solid var(--border);
+      color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Game 1 — Reconstruction Amendments (13th–15th)</h1>
+        <div class="sub">CS 9 • Identify the amendment + the cause/trigger • 100% accuracy required for submission</div>
+      </div>
+      <div class="pill" id="pillMeta">Not started</div>
+    </header>
+
+    <div class="row" style="margin-top:14px">
+      <div class="card">
+        <label for="studentName">Student Name (required)</label>
+        <input id="studentName" type="text" placeholder="Type full name…" autocomplete="off" />
+        <div class="status">
+          <button class="btn-accent" id="startBtn">Start / Restart</button>
+          <button id="resetBtn">Clear Progress</button>
+          <div class="small" id="attemptInfo">Attempts: 0</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="small">Amendment Bank (always visible):</div>
+        <div class="bank" id="bank"></div>
+
+        <div class="hr"></div>
+
+        <div id="teacherPanel" class="hidden">
+          <div class="pill">Teacher Controls</div>
+          <div class="status" style="margin-top:10px">
+            <button id="toggleHintsBtn">Hints: OFF</button>
+            <div class="small">Hints only show <b>after an incorrect answer</b>.</div>
+          </div>
+          <div class="footer">Teacher panel is hidden by default. Open with <span class="mono">?teacher=1</span> or press <span class="mono">Shift+T</span>.</div>
+          <div class="hr"></div>
+        </div>
+
+        <div class="pill">How it works</div>
+        <div class="footer">
+          • Choose the correct amendment.<br>
+          • If you miss it, you'll get an explanation (only after incorrect).<br>
+          • After correct answers, you'll still see the reasoning.<br>
+          • Get <b>100% accuracy</b> to unlock your submission code.
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="q" id="qText">Enter your name and click Start.</p>
+        <div class="choices" id="choices"></div>
+
+        <div class="status">
+          <div class="msg" id="msgBox">Waiting…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button id="skipBtn" class="btn-bad">Skip (counts wrong)</button>
+            <button id="nextBtn" class="btn-accent">Next</button>
+          </div>
+        </div>
+
+        <div class="footer" id="progressText">Progress: 0 / 0</div>
+
+        <div class="hr"></div>
+
+        <div id="submitArea" class="hidden">
+          <div class="pill">Submission (unlocked at 100%)</div>
+          <div class="footer">Paste this code into Google Classroom (or your LMS). It includes a SHA-256 hash so copied codes are obvious.</div>
+          <textarea id="submitBox" readonly></textarea>
+          <div class="status">
+            <button id="copyBtn" class="btn-good">Copy Code</button>
+            <button id="downloadBtn">Download .txt</button>
+            <div class="small" id="hashInfo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+<script>
+(() => {
+  // ---------- Utilities ----------
+  const $ = (id) => document.getElementById(id);
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+  const nowISO = () => new Date().toISOString();
+  const enc = new TextEncoder();
+  const toB64 = (u8) => btoa(String.fromCharCode(...u8));
+  const fromStr = (s) => enc.encode(s);
+
+  async function sha256Hex(str){
+    const buf = await crypto.subtle.digest("SHA-256", fromStr(str));
+    const bytes = new Uint8Array(buf);
+    return [...bytes].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+
+  function toast(msg="Copied!"){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 900);
+  }
+
+  // ---------- Game Data ----------
+  const AMENDMENTS = [
+    { key:"13th", label:"13th Amendment", short:"Abolishes slavery" },
+    { key:"14th", label:"14th Amendment", short:"Citizenship + Due Process + Equal Protection" },
+    { key:"15th", label:"15th Amendment", short:"Voting rights protected (race/previous condition)" },
+  ];
+
+  // Questions emphasize your causation framing:
+  const QUESTIONS = [
+    {
+      prompt:"After the Civil War, some states could argue slavery was still a state decision because the Constitution did not explicitly ban it nationwide. Which amendment had to be added to remove that 10th-Amendment/state-power loophole?",
+      answer:"13th",
+      reasoning:"The 13th Amendment permanently abolished slavery nationwide—so states could not claim it was their decision under the 10th Amendment."
+    },
+    {
+      prompt:"Southern states used Black Codes and later Jim Crow-style systems to deny basic legal protections and treat African Americans as if they were not full members of society. Which amendment was designed to define citizenship and require due process and equal protection?",
+      answer:"14th",
+      reasoning:"The 14th Amendment defines citizenship and requires states to provide due process and equal protection to all persons."
+    },
+    {
+      prompt:"A state refuses to let formerly enslaved men register to vote because nothing in the Constitution explicitly required states to allow them to vote. Which amendment was added to stop states from denying voting rights based on race or previous condition of servitude?",
+      answer:"15th",
+      reasoning:"The 15th Amendment prohibits denying voting rights based on race, color, or previous condition of servitude."
+    },
+    {
+      prompt:"A state claims it can decide who counts as a citizen and says people born in the U.S. to formerly enslaved parents are not citizens. Which amendment directly rejects that claim?",
+      answer:"14th",
+      reasoning:"The 14th Amendment extends citizenship to persons born or naturalized in the U.S."
+    },
+    {
+      prompt:"After the war, a state ends slavery in name but tries to force freed people into coerced labor arrangements that function like slavery. Which amendment provides the constitutional basis to ban slavery/forced servitude as a legal status?",
+      answer:"13th",
+      reasoning:"The 13th Amendment abolished slavery (and involuntary servitude), removing the legal basis for slavery-like systems."
+    },
+    {
+      prompt:"A state creates different criminal penalties depending on race and denies African Americans fair trials and equal treatment in court. Which amendment was meant to require equal protection and due process from the states?",
+      answer:"14th",
+      reasoning:"The 14th Amendment requires states to provide due process and equal protection of the laws."
+    },
+    {
+      prompt:"A state says, “Voting rules are our business,” and blocks Black men from voting through race-based denials. Which amendment was written to stop that?",
+      answer:"15th",
+      reasoning:"The 15th Amendment limits state power by preventing race-based denial of the right to vote."
+    },
+    {
+      prompt:"A state argues the federal government can’t stop it from maintaining slavery because the Constitution never said the federal government had that power. Which amendment resolved that constitutional gap?",
+      answer:"13th",
+      reasoning:"The 13th Amendment amended the Constitution to make abolition explicit and nationwide."
+    },
+    {
+      prompt:"A state denies African Americans recognition as full persons before the law and refuses to extend basic legal rights of citizens. Which amendment most directly addresses citizenship status?",
+      answer:"14th",
+      reasoning:"The 14th Amendment defines and extends citizenship to all persons born or naturalized in the U.S."
+    },
+    {
+      prompt:"A state says it can deny the vote to Black men because the Constitution doesn’t forbid it. Which amendment directly forbids that denial on racial grounds?",
+      answer:"15th",
+      reasoning:"The 15th Amendment explicitly prohibits denying voting rights on race/previous condition grounds."
+    },
+    // More items for 10+ minutes
+    {
+      prompt:"After the Civil War, states tried to maintain racial hierarchy by creating laws that treated African Americans differently in public life. Which amendment was intended to require equal protection by the states?",
+      answer:"14th",
+      reasoning:"Equal protection is a key guarantee of the 14th Amendment."
+    },
+    {
+      prompt:"A state legislature claims “we never agreed to make voting equal” and refuses to let Black men vote. Which amendment was added to force states to recognize that voting protection?",
+      answer:"15th",
+      reasoning:"The 15th Amendment was added because states were denying Black men voting rights."
+    },
+    {
+      prompt:"A state attempts to re-label slavery as “state-regulated labor status” and insists it’s allowed because of states’ rights. Which amendment blocks that?",
+      answer:"13th",
+      reasoning:"The 13th Amendment removed slavery as a legal option anywhere in the U.S."
+    },
+    {
+      prompt:"A state denies fair legal process to African Americans accused of crimes, using unequal courts. Which amendment’s due process requirement targets this issue?",
+      answer:"14th",
+      reasoning:"The 14th Amendment requires due process from state governments."
+    },
+    {
+      prompt:"A state claims people born in the U.S. are not automatically citizens unless the state approves. Which amendment contradicts that idea?",
+      answer:"14th",
+      reasoning:"Birthright citizenship is set by the 14th Amendment."
+    },
+    {
+      prompt:"A state denies voting rights to Black men based specifically on their previous condition of servitude. Which amendment prohibits that?",
+      answer:"15th",
+      reasoning:"The 15th Amendment includes protection against denial based on previous condition of servitude."
+    },
+    {
+      prompt:"A state says the federal government has no constitutional authority to force it to end slavery. Which amendment directly created that authority by changing the Constitution’s text?",
+      answer:"13th",
+      reasoning:"Amending the Constitution (13th) removed ambiguity and overrode state claims under the 10th."
+    },
+    {
+      prompt:"A state writes laws to treat African Americans as second-class and denies equal legal protections. Which amendment was meant to stop states from doing that?",
+      answer:"14th",
+      reasoning:"The 14th Amendment was designed to prevent states from denying equal protection."
+    },
+    {
+      prompt:"A state argues that voting is entirely a state matter and blocks Black men from the ballot. Which amendment created a constitutional limit on that state power?",
+      answer:"15th",
+      reasoning:"The 15th Amendment limits states by protecting the right to vote from race-based denial."
+    },
+    {
+      prompt:"A state attempts to deny citizenship status to people born in the U.S. to formerly enslaved families. Which amendment is the direct fix?",
+      answer:"14th",
+      reasoning:"The 14th Amendment defines citizenship for those born in the U.S."
+    },
+    {
+      prompt:"After emancipation, states attempt to preserve slavery’s legal status through state law because the Constitution is silent. Which amendment made slavery illegal nationwide?",
+      answer:"13th",
+      reasoning:"The 13th Amendment ended slavery nationwide."
+    },
+    {
+      prompt:"Southern states deny African Americans basic protections under law; federal action is needed to require equal protection by states. Which amendment is the backbone for that requirement?",
+      answer:"14th",
+      reasoning:"Equal protection and due process duties for states come from the 14th Amendment."
+    }
+  ];
+
+  // ---------- State ----------
+  const state = {
+    studentName: "",
+    teacherMode: false,
+    hintsEnabled: false,
+    qOrder: [],
+    idx: 0,
+    attempts: 0,
+    correct: 0,
+    wrong: 0,
+    log: [], // {t, q, chosen, correct, aKey}
+    startedAt: null,
+    finishedAt: null
+  };
+
+  const STORAGE_KEY = "cs9_recon_game_v1";
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const obj = JSON.parse(raw);
+      Object.assign(state, obj);
+    }catch(e){}
+  }
+  function save(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+  function clear(){
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  // ---------- UI ----------
+  function renderBank(){
+    const bank = $("bank");
+    bank.innerHTML = "";
+    AMENDMENTS.forEach(a=>{
+      const d = document.createElement("div");
+      d.className = "tag";
+      d.textContent = `${a.label} — ${a.short}`;
+      bank.appendChild(d);
+    });
+  }
+
+  function setMsg(text, kind=""){
+    const box = $("msgBox");
+    box.className = "msg" + (kind ? " "+kind : "");
+    box.innerHTML = text;
+  }
+
+  function updateMeta(){
+    const total = state.qOrder.length;
+    const attempted = state.correct + state.wrong;
+    const acc = attempted ? Math.round((state.correct/attempted)*100) : 0;
+    $("pillMeta").textContent = state.startedAt
+      ? `${state.studentName || "Unnamed"} • Q ${Math.min(state.idx+1,total)}/${total} • Accuracy ${acc}%`
+      : "Not started";
+    $("attemptInfo").textContent = `Attempts: ${state.attempts}`;
+    $("progressText").textContent = `Progress: ${attempted} attempted • Correct ${state.correct} • Wrong ${state.wrong} • Total ${total}`;
+  }
+
+  function renderTeacherPanel(){
+    const panel = $("teacherPanel");
+    if(state.teacherMode){
+      panel.classList.remove("hidden");
+      $("toggleHintsBtn").textContent = `Hints: ${state.hintsEnabled ? "ON" : "OFF"}`;
+    }else{
+      panel.classList.add("hidden");
+    }
+  }
+
+  function currentQ(){
+    if(!state.qOrder.length) return null;
+    const qIndex = state.qOrder[state.idx];
+    return QUESTIONS[qIndex];
+  }
+
+  function renderQuestion(){
+    const q = currentQ();
+    const choices = $("choices");
+    choices.innerHTML = "";
+    if(!q){
+      $("qText").textContent = "Enter your name and click Start.";
+      setMsg("Waiting…");
+      return;
+    }
+    $("qText").textContent = q.prompt;
+
+    // build 4 options: correct + 3 (if possible) unique distractors from bank
+    const correct = q.answer;
+    const keys = AMENDMENTS.map(a=>a.key);
+    const distractors = shuffle(keys.filter(k=>k!==correct)).slice(0,3);
+    const options = shuffle([correct, ...distractors]);
+
+    const letters = ["A","B","C","D"];
+    options.forEach((key, i)=>{
+      const a = AMENDMENTS.find(x=>x.key===key);
+      const btn = document.createElement("button");
+      btn.className = "choice";
+      btn.innerHTML = `<strong>${letters[i]}</strong> ${a.label}`;
+      btn.addEventListener("click", ()=>choose(key, options));
+      choices.appendChild(btn);
+    });
+
+    // neutral message until action
+    setMsg("Choose the correct amendment.", "warn");
+    updateMeta();
+    hideSubmit();
+  }
+
+  function hideSubmit(){
+    $("submitArea").classList.add("hidden");
+    $("submitBox").value = "";
+    $("hashInfo").textContent = "";
+  }
+
+  function maybeUnlockSubmit(){
+    const attempted = state.correct + state.wrong;
+    if(!attempted) return;
+    const acc = state.correct / attempted;
+    if(acc === 1 && attempted >= state.qOrder.length){
+      state.finishedAt = nowISO();
+      save();
+      buildSubmission();
+    }
+  }
+
+  async function buildSubmission(){
+    const payload = {
+      game: "CS9 Reconstruction Amendments",
+      version: "v1",
+      name: state.studentName,
+      startedAt: state.startedAt,
+      finishedAt: state.finishedAt,
+      attempts: state.attempts,
+      correct: state.correct,
+      wrong: state.wrong,
+      totalQuestions: state.qOrder.length,
+      log: state.log
+    };
+    const json = JSON.stringify(payload);
+    const hash = await sha256Hex(json);
+    const blob = toB64(fromStr(json)); // simple base64
+    const code = `CS9-RECON|${hash}|${blob}`;
+
+    $("submitArea").classList.remove("hidden");
+    $("submitBox").value = code;
+    $("hashInfo").textContent = `SHA-256: ${hash}`;
+    setMsg(`✅ Perfect accuracy. Submission unlocked. Paste your code to turn in.`, "good");
+  }
+
+  function normalizeName(s){
+    return (s||"").trim().replace(/\s+/g," ");
+  }
+
+  function start(){
+    const name = normalizeName($("studentName").value);
+    if(!name){
+      setMsg("Please enter your name before starting.", "bad");
+      return;
+    }
+
+    state.studentName = name;
+    state.startedAt = nowISO();
+    state.finishedAt = null;
+    state.idx = 0;
+    state.correct = 0;
+    state.wrong = 0;
+    state.log = [];
+    state.qOrder = shuffle([...Array(QUESTIONS.length)].map((_,i)=>i));
+    state.attempts += 1;
+
+    save();
+    renderTeacherPanel();
+    renderQuestion();
+    updateMeta();
+  }
+
+  function choose(chosenKey){
+    const q = currentQ();
+    if(!q) return;
+    const isCorrect = chosenKey === q.answer;
+
+    state.log.push({
+      t: nowISO(),
+      q: q.prompt,
+      chosen: chosenKey,
+      correct: isCorrect,
+      aKey: q.answer
+    });
+
+    if(isCorrect){
+      state.correct += 1;
+      // show reasoning after correct
+      setMsg(`✅ Correct. <b>Why:</b> ${q.reasoning}`, "good");
+      // auto-advance after a short delay to keep pace
+      save();
+      updateMeta();
+    }else{
+      state.wrong += 1;
+      // explanation only after incorrect IF hints enabled OR always explain? You asked: hint occurs after incorrect in explanatory format.
+      // We'll ALWAYS explain after incorrect (that’s the "hint after wrong" behavior), but keep it framed as correction.
+      const correctLabel = AMENDMENTS.find(a=>a.key===q.answer).label;
+      const chosenLabel = AMENDMENTS.find(a=>a.key===chosenKey).label;
+      setMsg(`❌ Incorrect (${chosenLabel}). <b>Correct:</b> ${correctLabel}. <b>Explanation:</b> ${q.reasoning}`, "bad");
+      save();
+      updateMeta();
+    }
+
+    // We do NOT advance automatically; student clicks Next (forces them to read).
+  }
+
+  function next(){
+    if(!state.qOrder.length) return;
+    if(state.idx < state.qOrder.length-1){
+      state.idx += 1;
+      save();
+      renderQuestion();
+    }else{
+      // end
+      state.idx = state.qOrder.length-1;
+      save();
+      setMsg("End of questions. If you are not at 100% accuracy, click Restart and try again.", "warn");
+      maybeUnlockSubmit();
+      updateMeta();
+    }
+  }
+
+  function skip(){
+    const q = currentQ();
+    if(!q) return;
+    // Skipping counts wrong and still gives explanation (post-wrong)
+    choose("__SKIP_WRONG__"); // will be wrong
+  }
+
+  // Override choose for skip sentinel
+  const originalChoose = choose;
+  choose = function(chosenKey){
+    const q = currentQ();
+    if(!q) return;
+    let key = chosenKey;
+    if(chosenKey === "__SKIP_WRONG__"){
+      // pick a guaranteed wrong key
+      const wrongKey = AMENDMENTS.find(a=>a.key!==q.answer).key;
+      key = wrongKey;
+    }
+    originalChoose(key);
+  };
+
+  function toggleTeacherPanel(force){
+    state.teacherMode = (typeof force === "boolean") ? force : !state.teacherMode;
+    save();
+    renderTeacherPanel();
+  }
+
+  function toggleHints(){
+    state.hintsEnabled = !state.hintsEnabled;
+    save();
+    renderTeacherPanel();
+    setMsg(`Teacher set hints to ${state.hintsEnabled ? "ON" : "OFF"}. Note: explanations still appear after incorrect answers.`, "warn");
+  }
+
+  function clearProgress(){
+    clear();
+    state.studentName = "";
+    state.teacherMode = false;
+    state.hintsEnabled = false;
+    state.qOrder = [];
+    state.idx = 0;
+    state.attempts = 0;
+    state.correct = 0;
+    state.wrong = 0;
+    state.log = [];
+    state.startedAt = null;
+    state.finishedAt = null;
+
+    $("studentName").value = "";
+    renderTeacherPanel();
+    renderQuestion();
+    updateMeta();
+    hideSubmit();
+    setMsg("Progress cleared.", "warn");
+  }
+
+  async function copySubmission(){
+    const txt = $("submitBox").value;
+    if(!txt) return;
+    await navigator.clipboard.writeText(txt);
+    toast("Submission code copied!");
+  }
+
+  function downloadSubmission(){
+    const txt = $("submitBox").value;
+    if(!txt) return;
+    const blob = new Blob([txt], {type:"text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CS9-Reconstruction-Submission-${(state.studentName||"student").replace(/\s+/g,"_")}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- Init ----------
+  function init(){
+    renderBank();
+    load();
+
+    // teacher mode via query param
+    const params = new URLSearchParams(location.search);
+    if(params.get("teacher")==="1"){
+      state.teacherMode = true;
+    }
+    // restore studentName in box (if any)
+    if(state.studentName) $("studentName").value = state.studentName;
+
+    renderTeacherPanel();
+    updateMeta();
+    if(state.qOrder.length){
+      renderQuestion();
+    }else{
+      renderQuestion();
+    }
+
+    $("startBtn").addEventListener("click", start);
+    $("nextBtn").addEventListener("click", () => { next(); maybeUnlockSubmit(); });
+    $("skipBtn").addEventListener("click", () => { skip(); save(); updateMeta(); });
+    $("resetBtn").addEventListener("click", clearProgress);
+    $("toggleHintsBtn").addEventListener("click", toggleHints);
+    $("copyBtn").addEventListener("click", copySubmission);
+    $("downloadBtn").addEventListener("click", downloadSubmission);
+
+    window.addEventListener("keydown", (e)=>{
+      if(e.shiftKey && e.key.toLowerCase()==="t"){
+        toggleTeacherPanel();
+        setMsg(`Teacher panel ${state.teacherMode ? "shown" : "hidden"}.`, "warn");
+      }
+    });
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
