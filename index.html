@@ -93,6 +93,31 @@
     }
     .pill b{color: var(--text); font-weight:700}
 
+    /* Name pill */
+    .pill.name-pill{
+      gap:8px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill.name-pill:hover{
+      background: rgba(255,255,255,.06);
+      border-color: rgba(255,255,255,.16);
+    }
+    .edit-dot{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:18px;
+      height:18px;
+      border-radius: 6px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: rgba(231,238,252,.8);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1;
+    }
+
     main{
       padding: 18px;
       display:grid;
@@ -306,6 +331,60 @@
       font-size: 12px;
     }
     .linkish{ color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer; }
+
+    /* Name modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index: 9999;
+    }
+    .modal .box{
+      width: min(520px, 100%);
+      background: #0f172a;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .modal h3{ margin:0 0 8px; font-size: 16px; }
+    .modal p{
+      margin:0 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .field{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    input[type="text"]{
+      flex: 1 1 220px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 12px 12px;
+      font-size: 14px;
+      outline:none;
+    }
+    input[type="text"]:focus{
+      border-color: rgba(122,162,255,.35);
+      box-shadow: 0 0 0 3px rgba(122,162,255,.14);
+    }
+    .modal .row{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      margin-top: 12px;
+      flex-wrap:wrap;
+    }
   </style>
 </head>
 
@@ -321,6 +400,11 @@
       </div>
 
       <div class="stats">
+        <!-- NAME PILL (click to edit) -->
+        <div class="pill name-pill" id="namePill" title="Click to enter/edit name">
+          Name <b id="playerName">—</b> <span class="edit-dot">✎</span>
+        </div>
+
         <div class="pill">Scenario <b id="qNum">1</b>/<b id="qTotal">0</b></div>
         <div class="pill">Correct <b id="correctCt">0</b></div>
         <div class="pill">Total Attempts <b id="attemptCt">0</b></div>
@@ -350,6 +434,7 @@
           <button id="btnSkip" title="Teacher tool: skip this scenario">Teacher Skip</button>
           <button id="btnRestart">Restart</button>
           <button id="btnToggleSet" class="primary">Choices: Expanded</button>
+          <button id="btnName" class="primary" title="Enter/Edit Name">Name</button>
         </div>
 
         <div class="feedback" id="feedback">
@@ -390,11 +475,18 @@
           Use <b>Choices: Expanded</b> (default) for sub-right mastery.
           Toggle to <b>Choices: Simple</b> if you want a quicker warm-up (just amendment numbers).
         </p>
+
+        <div class="rulebox">
+          <div class="rule">
+            <span class="dot"></span>
+            <div><b>Name entry:</b> Click the <b>Name</b> pill (top-right) to enter/edit. Saved only on this device (localStorage).</div>
+          </div>
+        </div>
       </aside>
     </main>
 
     <div class="footer">
-      <div>Single-file classroom game • no student data saved</div>
+      <div>Single-file classroom game • name saved only on this device</div>
       <div>
         <span class="linkish" id="toggleShuffle">Shuffle: ON</span> ·
         <span class="linkish" id="toggleStrict">Strict: ON</span>
@@ -402,7 +494,74 @@
     </div>
   </div>
 
+  <!-- NAME MODAL -->
+  <div class="modal" id="nameModal" aria-hidden="true">
+    <div class="box" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+      <h3 id="nameTitle">Enter Your Name</h3>
+      <p>This shows on-screen during your session. It’s saved on <b>this device only</b>.</p>
+      <div class="field">
+        <input id="nameInput" type="text" maxlength="28" placeholder="e.g., Jordan" autocomplete="off" />
+      </div>
+      <div class="row">
+        <button id="btnClearName" title="Remove saved name">Clear</button>
+        <button id="btnCancelName">Cancel</button>
+        <button class="good" id="btnSaveName">Save</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    /********************************************************************
+     * NAME ENTRY (localStorage)
+     ********************************************************************/
+    const NAME_KEY = "bor_player_name_v1";
+
+    function getSavedName(){
+      try{
+        const n = localStorage.getItem(NAME_KEY);
+        return (n && n.trim()) ? n.trim() : "";
+      } catch(e){
+        return "";
+      }
+    }
+
+    function saveName(name){
+      const clean = String(name || "").trim().slice(0,28);
+      try{
+        if(clean){
+          localStorage.setItem(NAME_KEY, clean);
+        } else {
+          localStorage.removeItem(NAME_KEY);
+        }
+      } catch(e){}
+      setNameUI(clean);
+    }
+
+    function setNameUI(name){
+      const show = name ? name : "—";
+      document.getElementById("playerName").textContent = show;
+    }
+
+    function openNameModal(force=false){
+      const modal = document.getElementById("nameModal");
+      const input = document.getElementById("nameInput");
+      input.value = getSavedName();
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden","false");
+      setTimeout(()=> input.focus(), 30);
+
+      // If forced (first load), disable cancel by clicking outside? Keep simple: still allow cancel.
+      if(force){
+        // no-op (kept flexible)
+      }
+    }
+
+    function closeNameModal(){
+      const modal = document.getElementById("nameModal");
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden","true");
+    }
+
     /********************************************************************
      * CHOICE SETS
      ********************************************************************/
@@ -418,26 +577,21 @@
     ];
 
     const EXPANDED = [
-      // 1st
       { key:"1_speech", label:"1A — Speech" },
       { key:"1_press", label:"1A — Press" },
       { key:"1_religion", label:"1A — Religion" },
       { key:"1_assembly", label:"1A — Assembly" },
       { key:"1_petition", label:"1A — Petition" },
 
-      // 2nd
       { key:"2_arms", label:"2A — Bear Arms" },
 
-      // 4th
       { key:"4_search", label:"4A — Unreasonable Search" },
       { key:"4_seizure", label:"4A — Unreasonable Seizure" },
       { key:"4_warrant", label:"4A — Warrant / Probable Cause" },
 
-      // 5th
       { key:"5_self", label:"5A — Self-Incrimination" },
       { key:"5_dj", label:"5A — Double Jeopardy" },
 
-      // 6th
       { key:"6_speedy", label:"6A — Speedy Trial" },
       { key:"6_public", label:"6A — Public Trial" },
       { key:"6_jury", label:"6A — Impartial Jury" },
@@ -445,15 +599,12 @@
       { key:"6_confront", label:"6A — Confront Witnesses" },
       { key:"6_counsel", label:"6A — Counsel (Lawyer)" },
 
-      // 8th
       { key:"8_cruel", label:"8A — Cruel & Unusual" },
       { key:"8_bail", label:"8A — Excessive Bail" },
       { key:"8_fines", label:"8A — Excessive Fines" },
 
-      // 10th
       { key:"10_reserved", label:"10A — Reserved Powers" },
 
-      // 14th rubric
       { key:"14_cit", label:"14A — Citizenship Clause" },
       { key:"14_dp", label:"14A — Due Process (states)" },
       { key:"14_ep", label:"14A — Equal Protection" },
@@ -466,216 +617,34 @@
 
     /********************************************************************
      * SCENARIO BANK
-     * correctKey must match one key in EXPANDED (for precision).
-     * If using SIMPLE mode, we accept any correctKey that starts with "X_"
-     * and map to amendment "X".
      ********************************************************************/
     const scenarioBank = [
-      // 1A SPEECH
-      {
-        correctKey:"1_speech",
-        scenario:"A public school suspends a student for peacefully criticizing the mayor on a T-shirt, even though it causes no disruption.",
-        right:"Freedom of speech (expression).",
-        limit:"Government cannot punish speech just because officials dislike the message (especially without disruption).",
-        why:"The punishment targets protected expression and viewpoint."
-      },
-      {
-        correctKey:"1_speech",
-        scenario:"A city threatens fines against citizens who speak at a public meeting in favor of a controversial policy.",
-        right:"Freedom of speech.",
-        limit:"Government may set neutral time/place/manner rules, but cannot punish viewpoints.",
-        why:"Officials are retaliating against a viewpoint expressed in a public forum."
-      },
-
-      // 1A PRESS
-      {
-        correctKey:"1_press",
-        scenario:"A mayor orders the local paper to stop publishing stories that criticize city hall or face closure.",
-        right:"Freedom of the press.",
-        limit:"Government cannot censor or punish the press for criticizing officials (prior restraint concerns).",
-        why:"The order is censorship tied to criticism."
-      },
-
-      // 1A RELIGION
-      {
-        correctKey:"1_religion",
-        scenario:"A public school requires students to participate in a specific religious prayer at the start of the day.",
-        right:"Freedom of religion (no government establishment/compelled practice).",
-        limit:"Government cannot establish an official religion or force religious observance through public institutions.",
-        why:"The policy compels religious practice in a public school."
-      },
-
-      // 1A ASSEMBLY
-      {
-        correctKey:"1_assembly",
-        scenario:"A city denies a permit for a peaceful march only because it dislikes the group’s message, not because of safety concerns.",
-        right:"Freedom of assembly.",
-        limit:"Government cannot deny peaceful assembly based on viewpoint; rules must be neutral and applied fairly.",
-        why:"The denial is viewpoint-based."
-      },
-
-      // 1A PETITION
-      {
-        correctKey:"1_petition",
-        scenario:"A government employee is fired for signing a petition asking the city council to fix unsafe sidewalks.",
-        right:"Right to petition the government (and related speech).",
-        limit:"Government cannot retaliate against citizens for petitioning officials about public issues.",
-        why:"The firing punishes petitioning government for redress."
-      },
-
-      // 2A
-      {
-        correctKey:"2_arms",
-        scenario:"A city bans all law-abiding adults from owning any firearms in their homes for self-defense.",
-        right:"Right to keep and bear arms.",
-        limit:"Government may regulate firearms, but sweeping bans on lawful home possession raise major constitutional issues.",
-        why:"The policy is an across-the-board ban on lawful possession."
-      },
-
-      // 4A SEARCH / WARRANT
-      {
-        correctKey:"4_warrant",
-        scenario:"Police enter a home and search it without a warrant and without any emergency.",
-        right:"No unreasonable search; warrants require probable cause.",
-        limit:"Government generally needs a warrant based on probable cause to search a home (absent a real exception).",
-        why:"A home search without a warrant/exception is the classic 4th Amendment violation."
-      },
-      {
-        correctKey:"4_search",
-        scenario:"Officers stop a driver and search the trunk even though they have no evidence, consent, or reason to suspect a crime.",
-        right:"Protection against unreasonable searches.",
-        limit:"Searches generally require probable cause, consent, or a recognized exception.",
-        why:"The search lacks legal justification."
-      },
-      {
-        correctKey:"4_seizure",
-        scenario:"Police take a person’s backpack and keep it for a week without charges or legal justification.",
-        right:"Protection against unreasonable seizures.",
-        limit:"Government needs lawful justification to seize and hold personal property.",
-        why:"Property is being taken/held without legal basis."
-      },
-
-      // 5A
-      {
-        correctKey:"5_self",
-        scenario:"During questioning, police threaten a suspect with harm unless he confesses, and he signs a confession to make it stop.",
-        right:"Protection against compelled self-incrimination (and due process).",
-        limit:"Government cannot compel a person to incriminate themselves through coercion.",
-        why:"The confession is compelled rather than voluntary."
-      },
-      {
-        correctKey:"5_dj",
-        scenario:"After a jury finds a defendant not guilty, the prosecutor tries to put the same person on trial again for the same crime.",
-        right:"Protection against double jeopardy.",
-        limit:"Government cannot try someone twice for the same offense after acquittal.",
-        why:"A second prosecution after a not-guilty verdict is double jeopardy."
-      },
-
-      // 6A
-      {
-        correctKey:"6_counsel",
-        scenario:"A defendant is put on trial for a serious crime but is not allowed to have a lawyer even though he cannot afford one.",
-        right:"Right to counsel.",
-        limit:"Government must provide counsel in serious criminal cases if the defendant cannot afford one.",
-        why:"Denial of counsel undermines a fair trial."
-      },
-      {
-        correctKey:"6_speedy",
-        scenario:"A person is arrested and waits 18 months for trial even though the case is simple and delays are not justified.",
-        right:"Right to a speedy trial.",
-        limit:"Government must bring criminal cases to trial within a reasonable time.",
-        why:"Unjustified long delays violate the speedy trial guarantee."
-      },
-      {
-        correctKey:"6_confront",
-        scenario:"At trial, the judge refuses to let the defense question the main witness who accused the defendant.",
-        right:"Right to confront witnesses (cross-examination).",
-        limit:"Government must allow defendants to confront and question adverse witnesses in criminal trials.",
-        why:"Blocking confrontation prevents testing credibility."
-      },
-      {
-        correctKey:"6_charges",
-        scenario:"A defendant is never told what crime he is charged with, but the trial proceeds anyway.",
-        right:"Right to be informed of the charges.",
-        limit:"Government must clearly inform defendants of accusations so they can prepare a defense.",
-        why:"You cannot defend yourself against unknown charges."
-      },
-      {
-        correctKey:"6_jury",
-        scenario:"A judge refuses a jury trial and decides guilt alone in a case where the defendant has a right to a jury.",
-        right:"Right to an impartial jury.",
-        limit:"Government must provide a jury in qualifying criminal prosecutions.",
-        why:"The defendant is denied the jury protection."
-      },
-      {
-        correctKey:"6_public",
-        scenario:"A judge closes the courtroom to the public with no lawful reason during a criminal trial.",
-        right:"Right to a public trial.",
-        limit:"Trials are generally public to ensure fairness and accountability (with limited exceptions).",
-        why:"Closing the trial without justification violates the public trial protection."
-      },
-
-      // 8A
-      {
-        correctKey:"8_bail",
-        scenario:"A judge sets bail so high that it is clearly meant to keep the accused jailed for a minor, nonviolent offense.",
-        right:"Protection against excessive bail.",
-        limit:"Government cannot use bail amounts that are excessive relative to the circumstances.",
-        why:"Bail is being used as punishment rather than ensuring court appearance."
-      },
-      {
-        correctKey:"8_cruel",
-        scenario:"A prison uses punishments that cause severe, unnecessary physical suffering for minor rule violations.",
-        right:"Protection against cruel and unusual punishment.",
-        limit:"Government cannot impose inhumane or grossly disproportionate punishment.",
-        why:"The punishment is unnecessarily harsh."
-      },
-      {
-        correctKey:"8_fines",
-        scenario:"A court imposes a massive fine far beyond what is reasonable for a minor offense to bankrupt the defendant.",
-        right:"Protection against excessive fines.",
-        limit:"Government cannot impose excessive financial penalties.",
-        why:"The fine is grossly disproportionate."
-      },
-
-      // 10A
-      {
-        correctKey:"10_reserved",
-        scenario:"The federal government orders states to run local schools in a specific way even though the Constitution does not delegate that power.",
-        right:"Reserved powers to states/people.",
-        limit:"Powers not delegated to the federal government are reserved to the states or the people.",
-        why:"The scenario centers on federal overreach into a non-delegated area."
-      },
-
-      // 14A RUBRIC: Citizenship, DP, EP, Incorporation
-      {
-        correctKey:"14_cit",
-        scenario:"A state refuses to recognize a person born in the U.S. as a citizen and denies all legal status because their parents are immigrants.",
-        right:"14th Amendment — Citizenship Clause.",
-        limit:"States must recognize citizenship for persons born or naturalized in the United States.",
-        why:"The scenario is about defining and extending citizenship."
-      },
-      {
-        correctKey:"14_ep",
-        scenario:"A state law allows only one race to vote in local elections, denying others the same right.",
-        right:"14th Amendment — Equal Protection.",
-        limit:"States cannot deny equal protection of the laws to any person.",
-        why:"The law discriminates by treating groups differently under the law."
-      },
-      {
-        correctKey:"14_dp",
-        scenario:"A state takes away a person’s driver’s license without any hearing, notice, or process to challenge it.",
-        right:"14th Amendment — Due Process (state action).",
-        limit:"States must follow fair procedures before depriving people of life, liberty, or property.",
-        why:"The state deprives a liberty/property interest without procedural safeguards."
-      },
-      {
-        correctKey:"14_incorp",
-        scenario:"A state police department searches homes without warrants. A student argues the 4th Amendment should apply to state police too.",
-        right:"14th Amendment — Incorporation Doctrine (applies Bill of Rights to states).",
-        limit:"The 14th Amendment has been used to apply many Bill of Rights protections to the states.",
-        why:"This scenario is about the Bill of Rights being enforced against state governments."
-      },
+      { correctKey:"1_speech", scenario:"A public school suspends a student for peacefully criticizing the mayor on a T-shirt, even though it causes no disruption.", right:"Freedom of speech (expression).", limit:"Government cannot punish speech just because officials dislike the message (especially without disruption).", why:"The punishment targets protected expression and viewpoint." },
+      { correctKey:"1_speech", scenario:"A city threatens fines against citizens who speak at a public meeting in favor of a controversial policy.", right:"Freedom of speech.", limit:"Government may set neutral time/place/manner rules, but cannot punish viewpoints.", why:"Officials are retaliating against a viewpoint expressed in a public forum." },
+      { correctKey:"1_press", scenario:"A mayor orders the local paper to stop publishing stories that criticize city hall or face closure.", right:"Freedom of the press.", limit:"Government cannot censor or punish the press for criticizing officials (prior restraint concerns).", why:"The order is censorship tied to criticism." },
+      { correctKey:"1_religion", scenario:"A public school requires students to participate in a specific religious prayer at the start of the day.", right:"Freedom of religion (no government establishment/compelled practice).", limit:"Government cannot establish an official religion or force religious observance through public institutions.", why:"The policy compels religious practice in a public school." },
+      { correctKey:"1_assembly", scenario:"A city denies a permit for a peaceful march only because it dislikes the group’s message, not because of safety concerns.", right:"Freedom of assembly.", limit:"Government cannot deny peaceful assembly based on viewpoint; rules must be neutral and applied fairly.", why:"The denial is viewpoint-based." },
+      { correctKey:"1_petition", scenario:"A government employee is fired for signing a petition asking the city council to fix unsafe sidewalks.", right:"Right to petition the government (and related speech).", limit:"Government cannot retaliate against citizens for petitioning officials about public issues.", why:"The firing punishes petitioning government for redress." },
+      { correctKey:"2_arms", scenario:"A city bans all law-abiding adults from owning any firearms in their homes for self-defense.", right:"Right to keep and bear arms.", limit:"Government may regulate firearms, but sweeping bans on lawful home possession raise major constitutional issues.", why:"The policy is an across-the-board ban on lawful possession." },
+      { correctKey:"4_warrant", scenario:"Police enter a home and search it without a warrant and without any emergency.", right:"No unreasonable search; warrants require probable cause.", limit:"Government generally needs a warrant based on probable cause to search a home (absent a real exception).", why:"A home search without a warrant/exception is the classic 4th Amendment violation." },
+      { correctKey:"4_search", scenario:"Officers stop a driver and search the trunk even though they have no evidence, consent, or reason to suspect a crime.", right:"Protection against unreasonable searches.", limit:"Searches generally require probable cause, consent, or a recognized exception.", why:"The search lacks legal justification." },
+      { correctKey:"4_seizure", scenario:"Police take a person’s backpack and keep it for a week without charges or legal justification.", right:"Protection against unreasonable seizures.", limit:"Government needs lawful justification to seize and hold personal property.", why:"Property is being taken/held without legal basis." },
+      { correctKey:"5_self", scenario:"During questioning, police threaten a suspect with harm unless he confesses, and he signs a confession to make it stop.", right:"Protection against compelled self-incrimination (and due process).", limit:"Government cannot compel a person to incriminate themselves through coercion.", why:"The confession is compelled rather than voluntary." },
+      { correctKey:"5_dj", scenario:"After a jury finds a defendant not guilty, the prosecutor tries to put the same person on trial again for the same crime.", right:"Protection against double jeopardy.", limit:"Government cannot try someone twice for the same offense after acquittal.", why:"A second prosecution after a not-guilty verdict is double jeopardy." },
+      { correctKey:"6_counsel", scenario:"A defendant is put on trial for a serious crime but is not allowed to have a lawyer even though he cannot afford one.", right:"Right to counsel.", limit:"Government must provide counsel in serious criminal cases if the defendant cannot afford one.", why:"Denial of counsel undermines a fair trial." },
+      { correctKey:"6_speedy", scenario:"A person is arrested and waits 18 months for trial even though the case is simple and delays are not justified.", right:"Right to a speedy trial.", limit:"Government must bring criminal cases to trial within a reasonable time.", why:"Unjustified long delays violate the speedy trial guarantee." },
+      { correctKey:"6_confront", scenario:"At trial, the judge refuses to let the defense question the main witness who accused the defendant.", right:"Right to confront witnesses (cross-examination).", limit:"Government must allow defendants to confront and question adverse witnesses in criminal trials.", why:"Blocking confrontation prevents testing credibility." },
+      { correctKey:"6_charges", scenario:"A defendant is never told what crime he is charged with, but the trial proceeds anyway.", right:"Right to be informed of the charges.", limit:"Government must clearly inform defendants of accusations so they can prepare a defense.", why:"You cannot defend yourself against unknown charges." },
+      { correctKey:"6_jury", scenario:"A judge refuses a jury trial and decides guilt alone in a case where the defendant has a right to a jury.", right:"Right to an impartial jury.", limit:"Government must provide a jury in qualifying criminal prosecutions.", why:"The defendant is denied the jury protection." },
+      { correctKey:"6_public", scenario:"A judge closes the courtroom to the public with no lawful reason during a criminal trial.", right:"Right to a public trial.", limit:"Trials are generally public to ensure fairness and accountability (with limited exceptions).", why:"Closing the trial without justification violates the public trial protection." },
+      { correctKey:"8_bail", scenario:"A judge sets bail so high that it is clearly meant to keep the accused jailed for a minor, nonviolent offense.", right:"Protection against excessive bail.", limit:"Government cannot use bail amounts that are excessive relative to the circumstances.", why:"Bail is being used as punishment rather than ensuring court appearance." },
+      { correctKey:"8_cruel", scenario:"A prison uses punishments that cause severe, unnecessary physical suffering for minor rule violations.", right:"Protection against cruel and unusual punishment.", limit:"Government cannot impose inhumane or grossly disproportionate punishment.", why:"The punishment is unnecessarily harsh." },
+      { correctKey:"8_fines", scenario:"A court imposes a massive fine far beyond what is reasonable for a minor offense to bankrupt the defendant.", right:"Protection against excessive fines.", limit:"Government cannot impose excessive financial penalties.", why:"The fine is grossly disproportionate." },
+      { correctKey:"10_reserved", scenario:"The federal government orders states to run local schools in a specific way even though the Constitution does not delegate that power.", right:"Reserved powers to states/people.", limit:"Powers not delegated to the federal government are reserved to the states or the people.", why:"The scenario centers on federal overreach into a non-delegated area." },
+      { correctKey:"14_cit", scenario:"A state refuses to recognize a person born in the U.S. as a citizen and denies all legal status because their parents are immigrants.", right:"14th Amendment — Citizenship Clause.", limit:"States must recognize citizenship for persons born or naturalized in the United States.", why:"The scenario is about defining and extending citizenship." },
+      { correctKey:"14_ep", scenario:"A state law allows only one race to vote in local elections, denying others the same right.", right:"14th Amendment — Equal Protection.", limit:"States cannot deny equal protection of the laws to any person.", why:"The law discriminates by treating groups differently under the law." },
+      { correctKey:"14_dp", scenario:"A state takes away a person’s driver’s license without any hearing, notice, or process to challenge it.", right:"14th Amendment — Due Process (state action).", limit:"States must follow fair procedures before depriving people of life, liberty, or property.", why:"The state deprives a liberty/property interest without procedural safeguards." },
+      { correctKey:"14_incorp", scenario:"A state police department searches homes without warrants. A student argues the 4th Amendment should apply to state police too.", right:"14th Amendment — Incorporation Doctrine (applies Bill of Rights to states).", limit:"The 14th Amendment has been used to apply many Bill of Rights protections to the states.", why:"This scenario is about the Bill of Rights being enforced against state governments." },
     ];
 
     /********************************************************************
@@ -683,11 +652,9 @@
      ********************************************************************/
     let deck = [];
     let index = 0;
-
     let totalAttempts = 0;
     let totalCorrect = 0;
     let streak = 0;
-
     let thisScenarioAttempts = 0;
     let locked = false;
 
@@ -796,7 +763,6 @@
     }
 
     function simpleKeyFromExpandedKey(expKey){
-      // "6_counsel" -> "6", "14_incorp" -> "14"
       return expKey.split("_")[0];
     }
 
@@ -804,7 +770,6 @@
       if(useExpandedChoices){
         return choiceKey === card.correctKey;
       }
-      // SIMPLE: accept the amendment number match
       return choiceKey === simpleKeyFromExpandedKey(card.correctKey);
     }
 
@@ -813,7 +778,6 @@
       wrap.innerHTML = "";
       const choices = getChoiceSet();
 
-      // Shuffle choices each scenario (for anti-memorization)
       const pool = [...choices];
       for(let i = pool.length - 1; i > 0; i--){
         const j = Math.floor(Math.random() * (i + 1));
@@ -891,10 +855,11 @@
       hideExplanation();
       const accuracy = computeAccuracy();
       const elapsed = formatTime(Date.now() - startTs);
+      const name = getSavedName() || "—";
 
       el("scenarioText").textContent = "Finish! Great work.";
       setFeedback("good","Session Complete",
-        `Score: ${totalCorrect} correct • Attempts: ${totalAttempts} • Accuracy: ${accuracy} • Time: ${elapsed}. Click Restart to play again.`
+        `Name: ${name} • Score: ${totalCorrect} correct • Attempts: ${totalAttempts} • Accuracy: ${accuracy} • Time: ${elapsed}. Click Restart to play again.`
       );
 
       document.querySelectorAll("#choices button").forEach(b=> b.disabled = true);
@@ -904,6 +869,7 @@
       el("explainGrid").innerHTML = `
         <div><b>Mastery goal:</b> get each scenario correct on the first click.</div>
         <div><b>OST alignment:</b> apply the right/limit to the scenario, not just naming the amendment number.</div>
+        <div><b>Name on screen:</b> helps students “own” their attempt.</div>
       `;
       el("explainMini").textContent = "Teacher note: Add more scenarios in scenarioBank for each sub-right.";
       el("explainBox").style.display = "block";
@@ -971,7 +937,9 @@
       }, 1000);
     }
 
-    // wire controls
+    /********************************************************************
+     * WIRE CONTROLS
+     ********************************************************************/
     document.getElementById("btnHint").addEventListener("click", ()=>{
       if(locked) return;
       setFeedback("warn","Hint", buildHint(deck[index]));
@@ -992,11 +960,58 @@
     document.getElementById("toggleStrict").addEventListener("click", toggleStrict);
     document.getElementById("btnToggleSet").addEventListener("click", toggleChoiceSet);
 
-    // init
+    // Name open buttons
+    document.getElementById("namePill").addEventListener("click", ()=> openNameModal(false));
+    document.getElementById("btnName").addEventListener("click", ()=> openNameModal(false));
+
+    // Name modal actions
+    document.getElementById("btnSaveName").addEventListener("click", ()=>{
+      const v = document.getElementById("nameInput").value;
+      saveName(v);
+      closeNameModal();
+    });
+    document.getElementById("btnCancelName").addEventListener("click", closeNameModal);
+    document.getElementById("btnClearName").addEventListener("click", ()=>{
+      saveName("");
+      closeNameModal();
+    });
+
+    // Close modal by clicking backdrop
+    document.getElementById("nameModal").addEventListener("click", (e)=>{
+      if(e.target.id === "nameModal") closeNameModal();
+    });
+
+    // Enter key saves; Esc closes
+    document.addEventListener("keydown", (e)=>{
+      const modalOpen = document.getElementById("nameModal").style.display === "flex";
+      if(!modalOpen) return;
+      if(e.key === "Escape"){
+        closeNameModal();
+      }
+      if(e.key === "Enter"){
+        e.preventDefault();
+        const v = document.getElementById("nameInput").value;
+        saveName(v);
+        closeNameModal();
+      }
+    });
+
+    /********************************************************************
+     * INIT
+     ********************************************************************/
     buildDeck();
     el("qTotal").textContent = String(scenarioBank.length);
     el("startStamp").textContent = formatDateTime(sessionStart);
     el("nowStamp").textContent = formatDateTime(new Date());
+
+    // Load saved name (and optionally prompt if empty)
+    const initialName = getSavedName();
+    setNameUI(initialName);
+    if(!initialName){
+      // gentle prompt on first load
+      openNameModal(true);
+    }
+
     render();
     startTimers();
   </script>
