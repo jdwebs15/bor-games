@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Game 4 — Comprehensive Amendments Review (CS 9–11)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --text:#e7eefc; --muted:#a8b4cf; --accent:#7aa2ff;
+      --good:#2bd576; --bad:#ff5c7a; --warn:#ffd166;
+      --border: rgba(255,255,255,0.10); --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 700px at 20% 0%, #152249 0%, var(--bg) 55%);color:var(--text);font-family:var(--sans)}
+    .wrap{max-width:980px;margin:24px auto;padding:0 16px 40px}
+    header{display:flex;gap:14px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+    h1{margin:0;font-size:20px}
+    .sub{color:var(--muted);font-size:13px;margin-top:6px}
+    .card{background:rgba(16,26,46,.86);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+    .row{display:flex;gap:14px;flex-wrap:wrap}
+    .row > *{flex:1 1 260px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+    input[type="text"]{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);outline:none}
+    button{cursor:pointer;border:1px solid var(--border);background:#0a1326;color:var(--text);padding:10px 12px;border-radius:12px;font-weight:600}
+    button:hover{border-color:rgba(122,162,255,.55)}
+    .btn-accent{background:rgba(122,162,255,.18);border-color:rgba(122,162,255,.35)}
+    .btn-good{background:rgba(43,213,118,.16);border-color:rgba(43,213,118,.35)}
+    .btn-bad{background:rgba(255,92,122,.14);border-color:rgba(255,92,122,.35)}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:12px;color:var(--muted)}
+    .bank{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .bank .tag{font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:999px;background:rgba(122,162,255,.12);border:1px solid rgba(122,162,255,.25)}
+    .q{font-size:16px;line-height:1.35;margin:0 0 14px}
+    .choices{display:grid;gap:10px}
+    .choice{padding:12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--border)}
+    .choice:hover{border-color:rgba(255,255,255,.22)}
+    .choice strong{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:8px}
+    .status{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .msg{flex:1 1 360px;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);min-height:44px}
+    .msg.good{color:var(--good);border-color:rgba(43,213,118,.35);background:rgba(43,213,118,.08)}
+    .msg.bad{color:var(--bad);border-color:rgba(255,92,122,.35);background:rgba(255,92,122,.08)}
+    .msg.warn{color:var(--warn);border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.08)}
+    .footer{margin-top:14px;color:var(--muted);font-size:12px}
+    .hr{height:1px;background:var(--border);margin:14px 0}
+    .hidden{display:none !important}
+    .mono{font-family:var(--mono)}
+    textarea{width:100%;min-height:120px;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0a1326;color:var(--text);font-family:var(--mono);font-size:12px;line-height:1.35}
+    .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#0a1326;border:1px solid var(--border);
+      color:var(--text);padding:10px 12px;border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Game 4 — Comprehensive Amendments Review (CS 9–11)</h1>
+        <div class="sub">Mixed: 12/13/14/15/19/22/23/24/25/26 • 100% accuracy required</div>
+      </div>
+      <div class="pill" id="pillMeta">Not started</div>
+    </header>
+
+    <div class="row" style="margin-top:14px">
+      <div class="card">
+        <label for="studentName">Student Name (required)</label>
+        <input id="studentName" type="text" placeholder="Type full name…" autocomplete="off" />
+        <div class="status">
+          <button class="btn-accent" id="startBtn">Start / Restart</button>
+          <button id="resetBtn">Clear Progress</button>
+          <div class="footer" id="attemptInfo">Attempts: 0</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="footer">Amendment Bank (always visible):</div>
+        <div class="bank" id="bank"></div>
+
+        <div class="hr"></div>
+
+        <div id="teacherPanel" class="hidden">
+          <div class="pill">Teacher Controls</div>
+          <div class="status" style="margin-top:10px">
+            <button id="toggleHintsBtn">Hints: OFF</button>
+            <div class="footer">Teacher panel: <span class="mono">?teacher=1</span> or <span class="mono">Shift+T</span></div>
+          </div>
+          <div class="hr"></div>
+        </div>
+
+        <div class="pill">Reminder: DC trap</div>
+        <div class="footer">
+          23rd Amendment = DC gets <b>electors</b>. People vote for electors, not the President directly.
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="q" id="qText">Enter your name and click Start.</p>
+        <div class="choices" id="choices"></div>
+
+        <div class="status">
+          <div class="msg" id="msgBox">Waiting…</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <button id="skipBtn" class="btn-bad">Skip (counts wrong)</button>
+            <button id="nextBtn" class="btn-accent">Next</button>
+          </div>
+        </div>
+
+        <div class="footer" id="progressText">Progress: 0 / 0</div>
+
+        <div class="hr"></div>
+
+        <div id="submitArea" class="hidden">
+          <div class="pill">Submission (unlocked at 100%)</div>
+          <textarea id="submitBox" readonly></textarea>
+          <div class="status">
+            <button id="copyBtn" class="btn-good">Copy Code</button>
+            <button id="downloadBtn">Download .txt</button>
+            <div class="footer mono" id="hashInfo"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const shuffle = (arr) => {
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  };
+  const nowISO = () => new Date().toISOString();
+  const enc = new TextEncoder();
+  const toB64 = (u8) => btoa(String.fromCharCode(...u8));
+  const fromStr = (s) => enc.encode(s);
+  async function sha256Hex(str){
+    const buf = await crypto.subtle.digest("SHA-256", fromStr(str));
+    const bytes = new Uint8Array(buf);
+    return [...bytes].map(b=>b.toString(16).padStart(2,"0")).join("");
+  }
+  function toast(msg="Copied!"){
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(()=>t.classList.remove("show"), 900);
+  }
+
+  const AMENDMENTS = [
+    { key:"12th", label:"12th Amendment", short:"Separate ballots for President & VP (Jefferson–Burr tie)" },
+    { key:"13th", label:"13th Amendment", short:"Abolishes slavery nationwide" },
+    { key:"14th", label:"14th Amendment", short:"Citizenship + Due Process + Equal Protection" },
+    { key:"15th", label:"15th Amendment", short:"Voting rights protected (race/previous condition)" },
+    { key:"19th", label:"19th Amendment", short:"Women’s suffrage (WWI homefront support shift)" },
+    { key:"22nd", label:"22nd Amendment", short:"Presidential term limits (FDR four terms)" },
+    { key:"23rd", label:"23rd Amendment", short:"DC gets electoral votes (vote for electors)" },
+    { key:"24th", label:"24th Amendment", short:"No poll tax in federal elections (Jim Crow barrier)" },
+    { key:"25th", label:"25th Amendment", short:"Succession & disability procedures (JFK era gaps)" },
+    { key:"26th", label:"26th Amendment", short:"Vote at 18 (Vietnam draft trigger)" },
+  ];
+
+  const QUESTIONS = [
+    // CS9
+    { prompt:"States could argue slavery remained a state decision because the Constitution did not explicitly ban it nationwide. Which amendment closed that 10th-Amendment/state-power loophole?",
+      answer:"13th", reasoning:"13th Amendment abolished slavery nationwide—states could no longer claim it was their decision under the 10th Amendment."},
+    { prompt:"Southern states denied citizenship and basic legal protection to African Americans after the Civil War. Which amendment defines citizenship and requires due process/equal protection from states?",
+      answer:"14th", reasoning:"14th Amendment defines citizenship and requires states to provide due process and equal protection."},
+    { prompt:"Southern states denied Black men voting rights because nothing in the Constitution required them to allow it. Which amendment prevents denial of voting rights based on race/previous condition of servitude?",
+      answer:"15th", reasoning:"15th Amendment prohibits denying voting rights based on race, color, or previous condition of servitude."},
+
+    // CS10
+    { prompt:"WWI homefront contributions helped shift political support (including Wilson’s) toward women’s suffrage. Which amendment granted women the right to vote?",
+      answer:"19th", reasoning:"19th Amendment prohibits denial of voting rights on account of sex."},
+    { prompt:"Poll taxes were used as Jim Crow barriers to reduce African American voting and block poor voters. Which amendment addressed this barrier in federal elections?",
+      answer:"24th", reasoning:"24th Amendment bans poll taxes in federal elections; historically used to suppress African American and poor voters."},
+    { prompt:"“Old enough to fight and die, old enough to vote” became a major argument during the Vietnam era. Which amendment lowered the voting age to 18?",
+      answer:"26th", reasoning:"26th Amendment sets voting age at 18, tied to the Vietnam draft argument."},
+
+    // CS11
+    { prompt:"A tie between Jefferson and Burr exposed a flaw in the Electoral College process. Which amendment created separate ballots for President and Vice President?",
+      answer:"12th", reasoning:"12th Amendment separates balloting for President and Vice President to prevent tie problems like 1800."},
+    { prompt:"Concern after FDR’s four terms that a president could stay in office too long led to which amendment?",
+      answer:"22nd", reasoning:"22nd Amendment creates presidential term limits."},
+    { prompt:"OST trap: Which amendment allowed Washington, D.C. residents to vote for presidential electors (NOT directly vote for President)?",
+      answer:"23rd", reasoning:"23rd Amendment gives DC electoral votes; citizens vote for electors, not the President directly."},
+    { prompt:"The JFK assassination era highlighted that there was no clear process for presidential disability and replacing both President and VP if necessary. Which amendment addressed this?",
+      answer:"25th", reasoning:"25th Amendment clarifies succession and disability, and procedures for filling vacancies."},
+
+    // More mixed items for 10+ minutes
+    { prompt:"A state denies a U.S.-born person citizenship status. Which amendment contradicts that state claim?",
+      answer:"14th", reasoning:"14th Amendment provides birthright citizenship for those born in the U.S."},
+    { prompt:"A question says: ‘This amendment is the Jefferson–Burr tie fix.’ Which one?",
+      answer:"12th", reasoning:"12th Amendment fixed Electoral College procedures by separating ballots."},
+    { prompt:"A state denies the vote based on “previous condition of servitude.” Which amendment forbids that?",
+      answer:"15th", reasoning:"15th Amendment explicitly includes previous condition of servitude."},
+    { prompt:"A state adds a payment requirement at the polls. Which amendment targets this Jim Crow-style barrier in federal elections?",
+      answer:"24th", reasoning:"24th Amendment bans poll taxes in federal elections."},
+    { prompt:"A president is alive but cannot perform duties; a clear temporary transfer of power is needed. Which amendment covers disability procedures?",
+      answer:"25th", reasoning:"25th Amendment covers disability and succession."},
+    { prompt:"Which amendment is most directly about limiting how long a president can serve?",
+      answer:"22nd", reasoning:"22nd Amendment sets presidential term limits."},
+    { prompt:"Which amendment is most directly about abolishing slavery nationwide (not leaving it to state choice)?",
+      answer:"13th", reasoning:"13th Amendment abolished slavery nationwide."},
+    { prompt:"Which amendment is most directly about expanding suffrage to women?",
+      answer:"19th", reasoning:"19th Amendment grants women suffrage."},
+    { prompt:"Which amendment is most directly about lowering the voting age to 18?",
+      answer:"26th", reasoning:"26th Amendment lowers the voting age to 18."},
+    { prompt:"Which amendment is most directly about giving DC electoral votes because of population growth?",
+      answer:"23rd", reasoning:"23rd Amendment grants DC electors (vote for electors, not directly for President)."},
+    { prompt:"Southern states denied equal legal protection under the law after the Civil War. Which amendment targets equal protection by states?",
+      answer:"14th", reasoning:"Equal protection comes from the 14th Amendment."},
+    { prompt:"Which amendment is the one you should pick when the question is about separate balloting for President vs. Vice President?",
+      answer:"12th", reasoning:"12th Amendment creates separate ballots for President and Vice President."},
+    { prompt:"Which amendment best matches the WWI homefront trigger in your class notes?",
+      answer:"19th", reasoning:"19th Amendment is tied (in your class framing) to WWI homefront contributions shifting support for suffrage."},
+    { prompt:"Which amendment best matches the Vietnam draft trigger in your class notes?",
+      answer:"26th", reasoning:"26th Amendment is tied to Vietnam-era draft arguments for voting at 18."}
+  ];
+
+  const state = {
+    studentName:"", teacherMode:false, hintsEnabled:false,
+    qOrder:[], idx:0, attempts:0, correct:0, wrong:0,
+    log:[], startedAt:null, finishedAt:null
+  };
+  const STORAGE_KEY = "cs9_11_comprehensive_game_v1";
+
+  function load(){ try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw) Object.assign(state, JSON.parse(raw)); }catch(e){} }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  function clear(){ localStorage.removeItem(STORAGE_KEY); }
+
+  function renderBank(){
+    const bank=$("bank"); bank.innerHTML="";
+    AMENDMENTS.forEach(a=>{
+      const d=document.createElement("div");
+      d.className="tag";
+      d.textContent=`${a.label} — ${a.short}`;
+      bank.appendChild(d);
+    });
+  }
+  function setMsg(text, kind=""){
+    const box=$("msgBox");
+    box.className="msg"+(kind?" "+kind:"");
+    box.innerHTML=text;
+  }
+  function updateMeta(){
+    const total=state.qOrder.length;
+    const attempted=state.correct+state.wrong;
+    const acc=attempted?Math.round((state.correct/attempted)*100):0;
+    $("pillMeta").textContent = state.startedAt
+      ? `${state.studentName||"Unnamed"} • Q ${Math.min(state.idx+1,total)}/${total} • Accuracy ${acc}%`
+      : "Not started";
+    $("attemptInfo").textContent=`Attempts: ${state.attempts}`;
+    $("progressText").textContent=`Progress: ${attempted} attempted • Correct ${state.correct} • Wrong ${state.wrong} • Total ${total}`;
+  }
+  function renderTeacherPanel(){
+    const panel=$("teacherPanel");
+    if(state.teacherMode){
+      panel.classList.remove("hidden");
+      $("toggleHintsBtn").textContent=`Hints: ${state.hintsEnabled?"ON":"OFF"}`;
+    }else panel.classList.add("hidden");
+  }
+  function currentQ(){
+    if(!state.qOrder.length) return null;
+    return QUESTIONS[state.qOrder[state.idx]];
+  }
+  function hideSubmit(){
+    $("submitArea").classList.add("hidden");
+    $("submitBox").value="";
+    $("hashInfo").textContent="";
+  }
+  function renderQuestion(){
+    const q=currentQ();
+    $("choices").innerHTML="";
+    if(!q){
+      $("qText").textContent="Enter your name and click Start.";
+      setMsg("Waiting…");
+      return;
+    }
+    $("qText").textContent=q.prompt;
+
+    // 4 options: correct + 3 distractors from entire bank
+    const keys=AMENDMENTS.map(a=>a.key);
+    const distractors=shuffle(keys.filter(k=>k!==q.answer)).slice(0,3);
+    const options=shuffle([q.answer,...distractors]);
+    const letters=["A","B","C","D"];
+    options.forEach((key,i)=>{
+      const a=AMENDMENTS.find(x=>x.key===key);
+      const btn=document.createElement("button");
+      btn.className="choice";
+      btn.innerHTML=`<strong>${letters[i]}</strong> ${a.label}`;
+      btn.addEventListener("click",()=>choose(key));
+      $("choices").appendChild(btn);
+    });
+    setMsg("Choose the correct amendment.", "warn");
+    updateMeta();
+    hideSubmit();
+  }
+  function normalizeName(s){ return (s||"").trim().replace(/\s+/g," "); }
+
+  function start(){
+    const name=normalizeName($("studentName").value);
+    if(!name){ setMsg("Please enter your name before starting.", "bad"); return; }
+    state.studentName=name;
+    state.startedAt=nowISO();
+    state.finishedAt=null;
+    state.idx=0; state.correct=0; state.wrong=0; state.log=[];
+    state.qOrder=shuffle([...Array(QUESTIONS.length)].map((_,i)=>i));
+    state.attempts+=1;
+    save();
+    renderTeacherPanel();
+    renderQuestion();
+    updateMeta();
+  }
+
+  function choose(chosenKey){
+    const q=currentQ(); if(!q) return;
+    const isCorrect=chosenKey===q.answer;
+    state.log.push({t:nowISO(), q:q.prompt, chosen:chosenKey, correct:isCorrect, aKey:q.answer});
+    if(isCorrect){
+      state.correct+=1;
+      setMsg(`✅ Correct. <b>Why:</b> ${q.reasoning}`, "good");
+    }else{
+      state.wrong+=1;
+      const correctLabel=AMENDMENTS.find(a=>a.key===q.answer).label;
+      const chosenLabel=AMENDMENTS.find(a=>a.key===chosenKey).label;
+      setMsg(`❌ Incorrect (${chosenLabel}). <b>Correct:</b> ${correctLabel}. <b>Explanation:</b> ${q.reasoning}`, "bad");
+    }
+    save();
+    updateMeta();
+  }
+
+  function next(){
+    if(!state.qOrder.length) return;
+    if(state.idx < state.qOrder.length-1){
+      state.idx+=1; save(); renderQuestion();
+    }else{
+      setMsg("End of questions. If you are not at 100% accuracy, click Restart and try again.", "warn");
+      maybeUnlockSubmit();
+      updateMeta();
+    }
+  }
+
+  function skip(){
+    const q=currentQ(); if(!q) return;
+    const wrongKey=AMENDMENTS.find(a=>a.key!==q.answer).key;
+    choose(wrongKey);
+  }
+
+  async function buildSubmission(){
+    const payload={
+      game:"CS9–11 Comprehensive Amendments Review",
+      version:"v1",
+      name:state.studentName,
+      startedAt:state.startedAt,
+      finishedAt:state.finishedAt,
+      attempts:state.attempts,
+      correct:state.correct,
+      wrong:state.wrong,
+      totalQuestions:state.qOrder.length,
+      log:state.log
+    };
+    const json=JSON.stringify(payload);
+    const hash=await sha256Hex(json);
+    const blob=toB64(fromStr(json));
+    const code=`CS9-11-MIX|${hash}|${blob}`;
+    $("submitArea").classList.remove("hidden");
+    $("submitBox").value=code;
+    $("hashInfo").textContent=`SHA-256: ${hash}`;
+    setMsg("✅ Perfect accuracy. Submission unlocked.", "good");
+  }
+
+  function maybeUnlockSubmit(){
+    const attempted=state.correct+state.wrong;
+    if(!attempted) return;
+    const acc=state.correct/attempted;
+    if(acc===1 && attempted>=state.qOrder.length){
+      state.finishedAt=nowISO();
+      save();
+      buildSubmission();
+    }
+  }
+
+  async function copySubmission(){
+    const txt=$("submitBox").value; if(!txt) return;
+    await navigator.clipboard.writeText(txt);
+    toast("Submission code copied!");
+  }
+  function downloadSubmission(){
+    const txt=$("submitBox").value; if(!txt) return;
+    const blob=new Blob([txt],{type:"text/plain"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`CS9-11-Mixed-Submission-${(state.studentName||"student").replace(/\s+/g,"_")}.txt`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function toggleTeacherPanel(force){
+    state.teacherMode = (typeof force==="boolean") ? force : !state.teacherMode;
+    save(); renderTeacherPanel();
+  }
+  function toggleHints(){
+    state.hintsEnabled=!state.hintsEnabled;
+    save(); renderTeacherPanel();
+    setMsg(`Teacher set hints to ${state.hintsEnabled?"ON":"OFF"}. Explanations still appear after incorrect answers.`, "warn");
+  }
+
+  function clearProgress(){
+    clear();
+    state.studentName=""; state.teacherMode=false; state.hintsEnabled=false;
+    state.qOrder=[]; state.idx=0; state.attempts=0; state.correct=0; state.wrong=0;
+    state.log=[]; state.startedAt=null; state.finishedAt=null;
+    $("studentName").value="";
+    renderTeacherPanel(); renderQuestion(); updateMeta(); hideSubmit();
+    setMsg("Progress cleared.", "warn");
+  }
+
+  function init(){
+    renderBank();
+    load();
+    const params=new URLSearchParams(location.search);
+    if(params.get("teacher")==="1") state.teacherMode=true;
+    if(state.studentName) $("studentName").value=state.studentName;
+    renderTeacherPanel();
+    updateMeta();
+    renderQuestion();
+
+    $("startBtn").addEventListener("click", start);
+    $("nextBtn").addEventListener("click", () => { next(); maybeUnlockSubmit(); });
+    $("skipBtn").addEventListener("click", () => { skip(); save(); updateMeta(); });
+    $("resetBtn").addEventListener("click", clearProgress);
+    $("toggleHintsBtn").addEventListener("click", toggleHints);
+    $("copyBtn").addEventListener("click", copySubmission);
+    $("downloadBtn").addEventListener("click", downloadSubmission);
+
+    window.addEventListener("keydown",(e)=>{
+      if(e.shiftKey && e.key.toLowerCase()==="t"){
+        toggleTeacherPanel();
+        setMsg(`Teacher panel ${state.teacherMode?"shown":"hidden"}.`, "warn");
+      }
+    });
+  }
+  init();
+})();
+</script>
+</body>
+</html>
