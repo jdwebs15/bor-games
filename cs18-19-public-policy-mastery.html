@@ -375,10 +375,7 @@
     const s = sec%60;
     return `${pad2(m)}:${pad2(s)}`;
   };
-  const nowStamp = () => {
-    const d = new Date();
-    return d.toLocaleString();
-  };
+  const nowStamp = () => new Date().toLocaleString();
   const shuffle = (arr) => {
     const a = arr.slice();
     for(let i=a.length-1;i>0;i--){
@@ -388,129 +385,157 @@
     return a;
   };
 
-  // ---------- Bank ----------
+  // ---------- Game Title ----------
   const GAME_TITLE = "CS18–19 — Public Policy (Mastery)";
 
-  // Each question is a single prompt with ONE best answer from a shared option list.
-  // Hints explain the alignment to CS18/CS19 content elaboration.
+  // ---------- Bank ----------
+  // Added "type" to control which option pool is used per question:
+  // type: "entity" | "relationship" | "method"
   const bank = [
-    // ---------------- CS18: Entities / Levels / Branches + collaboration/conflict ----------------
-    { q:"(CS18) The President asks an agency to advise on foreign policy and oversee U.S. embassies abroad. Which option best matches?", 
+    // ---------------- CS18: Entities ----------------
+    { type:"entity",
+      q:"(CS18) The President asks an agency to advise on foreign policy and oversee U.S. embassies abroad. Which option best matches?",
       a:"Federal Executive — Department of State",
       h:"Department of State is a federal executive agency that advises the President on foreign policy and directs embassy activities." },
 
-    { q:"(CS18) Lawmakers want a nonpartisan analysis of how a proposed bill will affect the budget deficit and the economy. Which option best matches?",
+    { type:"entity",
+      q:"(CS18) Lawmakers want a nonpartisan analysis of how a proposed bill will affect the budget deficit and the economy. Which option best matches?",
       a:"Federal Legislative — Congressional Budget Office (CBO)",
       h:"The CBO supports Congress (legislative) by providing economic and budget analyses." },
 
-    { q:"(CS18) Ohio representatives need help drafting the actual language of a bill and comparing policy options. Which option best matches?",
+    { type:"entity",
+      q:"(CS18) Ohio representatives need help drafting the actual language of a bill and comparing policy options. Which option best matches?",
       a:"State Legislative — Ohio Legislative Service Commission (LSC)",
       h:"Ohio’s LSC assists the state legislature by drafting legislation and providing research/support." },
 
-    { q:"(CS18) After a felony conviction, a judge applies state sentencing guidelines to decide the penalty. Which option best matches?",
+    { type:"entity",
+      q:"(CS18) After a felony conviction, a judge applies state sentencing guidelines to decide the penalty. Which option best matches?",
       a:"State Judicial — Ohio Courts of Common Pleas",
       h:"Ohio Courts of Common Pleas are state trial courts that apply law (including sentencing guidelines) in criminal cases." },
 
-    { q:"(CS18) A county commission votes to approve a tax abatement to attract a new manufacturing plant. Which option best matches?",
+    { type:"entity",
+      q:"(CS18) A county commission votes to approve a tax abatement to attract a new manufacturing plant. Which option best matches?",
       a:"Local Legislative/Executive — County Commission tax abatements",
       h:"County commissions (local level) can determine and grant tax abatements—local legislative/executive public policy action." },
 
-    { q:"(CS18) The Department of State negotiates a diplomatic agreement, but the Senate refuses to approve it. Which option best matches the relationship?",
-      a:"Collaboration vs Conflict — Conflict (Executive vs Legislative)",
+    // ---------------- CS18: Collaboration / Conflict ----------------
+    { type:"relationship",
+      q:"(CS18) The Department of State negotiates a diplomatic agreement, but the Senate refuses to approve it. Which option best matches the relationship?",
+      a:"Conflict (Executive vs Legislative)",
       h:"Executive branch may negotiate; legislative branch (Senate) can approve/deny treaties—this can create conflict." },
 
-    { q:"(CS18) Congress asks the CBO for analysis, then rewrites its bill based on the data before voting. Which option best matches the relationship?",
-      a:"Collaboration vs Conflict — Collaboration (Legislative uses analysis)",
+    { type:"relationship",
+      q:"(CS18) Congress asks the CBO for analysis, then rewrites its bill based on the data before voting. Which option best matches the relationship?",
+      a:"Collaboration (Legislative uses analysis)",
       h:"Using CBO analysis to revise a bill is an example of collaboration within the legislative policymaking process." },
 
-    { q:"(CS18) Ohio lawmakers pass a sentencing law; later, an Ohio Court of Common Pleas must apply it in a specific case. Which relationship best matches?",
-      a:"Collaboration vs Conflict — Collaboration (Legislative sets policy; Judicial applies)",
+    { type:"relationship",
+      q:"(CS18) Ohio lawmakers pass a sentencing law; later, an Ohio Court of Common Pleas must apply it in a specific case. Which relationship best matches?",
+      a:"Collaboration (Legislative sets policy; Judicial applies)",
       h:"Legislature makes laws; courts apply them in cases. That’s typically collaboration within a constitutional system." },
 
-    { q:"(CS18) A state law offers tax credits, but a county commission rejects a requested abatement, so the project stalls. Which relationship best matches?",
-      a:"Collaboration vs Conflict — Conflict (State vs Local disagreement)",
+    { type:"relationship",
+      q:"(CS18) A state law offers tax credits, but a county commission rejects a requested abatement, so the project stalls. Which relationship best matches?",
+      a:"Conflict (State vs Local disagreement)",
       h:"Different levels (state vs local) can disagree about policy tools like abatements; that creates conflict across levels." },
 
-    { q:"(CS18) A county commission grants abatements to boost jobs, but state legislators criticize it as unfair and try to restrict it by statute. Which relationship best matches?",
-      a:"Collaboration vs Conflict — Conflict (Local vs State)",
+    { type:"relationship",
+      q:"(CS18) A county commission grants abatements to boost jobs, but state legislators criticize it as unfair and try to restrict it by statute. Which relationship best matches?",
+      a:"Conflict (Local vs State)",
       h:"Local economic policy can conflict with state legislative priorities; state can attempt to limit local authority." },
 
-    { q:"(CS18) The President relies on State Department expertise; Congress relies on CBO projections while debating funding for embassy security. Which relationship best matches?",
-      a:"Collaboration vs Conflict — Collaboration (Multiple branches/levels addressing one issue)",
+    { type:"relationship",
+      q:"(CS18) The President relies on State Department expertise; Congress relies on CBO projections while debating funding for embassy security. Which relationship best matches?",
+      a:"Collaboration (Multiple branches/levels addressing one issue)",
       h:"Complex public policy often involves multiple branches/entities contributing expertise and analysis—collaboration." },
 
-    { q:"(CS18) A judge must follow sentencing guidelines set by state law, even though the judge personally disagrees with the policy. Which relationship best matches?",
-      a:"Collaboration vs Conflict — Collaboration (Judicial applies enacted policy)",
+    { type:"relationship",
+      q:"(CS18) A judge must follow sentencing guidelines set by state law, even though the judge personally disagrees with the policy. Which relationship best matches?",
+      a:"Collaboration (Judicial applies enacted policy)",
       h:"Courts apply laws as written; disagreement doesn’t change the constitutional role—policy is still applied through the judicial process." },
 
-    // ---------------- CS19: Methods individuals/organizations use to influence public policy ----------------
-    { q:"(CS19) A teachers’ union meets with state legislators to urge support for a school funding bill. Which method best matches?",
+    // ---------------- CS19: Methods ----------------
+    { type:"method",
+      q:"(CS19) A teachers’ union meets with state legislators to urge support for a school funding bill. Which method best matches?",
       a:"Lobby members of a legislature",
       h:"Directly persuading legislators is lobbying." },
 
-    { q:"(CS19) A parent group writes dozens of messages to the mayor and city council about traffic safety near a school. Which method best matches?",
+    { type:"method",
+      q:"(CS19) A parent group writes dozens of messages to the mayor and city council about traffic safety near a school. Which method best matches?",
       a:"Conduct letter-writing campaigns",
       h:"Coordinated messages to officials to influence decisions = letter-writing campaign." },
 
-    { q:"(CS19) A business association testifies during a committee hearing about how a proposed regulation would affect small businesses. Which method best matches?",
+    { type:"method",
+      q:"(CS19) A business association testifies during a committee hearing about how a proposed regulation would affect small businesses. Which method best matches?",
       a:"Provide testimony before legislative committees",
       h:"Speaking at hearings to influence lawmakers is testimony before committees." },
 
-    { q:"(CS19) Residents speak during a city’s open microphone period about zoning changes. Which method best matches?",
+    { type:"method",
+      q:"(CS19) Residents speak during a city’s open microphone period about zoning changes. Which method best matches?",
       a:"Offer comments during public meetings",
       h:"Public meetings often invite citizen comment—this is a direct method of engagement." },
 
-    { q:"(CS19) A civil liberties group files a written argument for a court to consider in a major case. Which method best matches?",
+    { type:"method",
+      q:"(CS19) A civil liberties group files a written argument for a court to consider in a major case. Which method best matches?",
       a:"Prepare briefs to present during judicial proceedings",
       h:"Briefs (often amicus briefs) are written arguments submitted to courts." },
 
-    { q:"(CS19) An organization helps write a draft bill and delivers it to a lawmaker to introduce. Which method best matches?",
+    { type:"method",
+      q:"(CS19) An organization helps write a draft bill and delivers it to a lawmaker to introduce. Which method best matches?",
       a:"Propose laws to legislators",
       h:"Providing a draft proposal and asking a legislator to introduce it = proposing laws to legislators." },
 
-    { q:"(CS19) A neighborhood coalition works for a candidate who promises to support stricter building codes. Which method best matches?",
+    { type:"method",
+      q:"(CS19) A neighborhood coalition works for a candidate who promises to support stricter building codes. Which method best matches?",
       a:"Campaign for candidates who will support their positions once in office",
       h:"Working to elect supportive officials is campaigning for candidates aligned to their position." },
 
-    { q:"(CS19) A health nonprofit submits research to a state agency about the expected impact of a new rule on hospitals. Which method best matches?",
+    { type:"method",
+      q:"(CS19) A health nonprofit submits research to a state agency about the expected impact of a new rule on hospitals. Which method best matches?",
       a:"Provide information to executive branch officials on impacts of potential rules/regulations",
       h:"Agencies in the executive branch write/implement rules; groups can provide data during that process." },
 
-    { q:"(CS19) Community members march outside the courthouse and state capitol to draw attention to sentencing reform. Which method best matches?",
+    { type:"method",
+      q:"(CS19) Community members march outside the courthouse and state capitol to draw attention to sentencing reform. Which method best matches?",
       a:"Hold public demonstrations",
       h:"Public demonstrations are organized public actions to influence opinion and policy." },
 
-    { q:"(CS19) A student group wants a federal change, so they focus their messages on members of Congress rather than the Ohio legislature. What’s the key idea?",
+    { type:"method",
+      q:"(CS19) A student group wants a federal change, so they focus their messages on members of Congress rather than the Ohio legislature. What’s the key idea?",
       a:"Know the proper level/branch to engage at each stage of policymaking",
       h:"To influence policy effectively, groups must target the right level (federal/state/local) and branch (legislative/executive/judicial)." },
 
-    { q:"(CS19) A company submits a detailed comment during a federal agency’s public comment window on a proposed regulation. Which method best matches?",
+    { type:"method",
+      q:"(CS19) A company submits a detailed comment during a federal agency’s public comment window on a proposed regulation. Which method best matches?",
       a:"Provide information to executive branch officials on impacts of potential rules/regulations",
       h:"Regulations are typically created/implemented by executive agencies; public comments provide input on impacts." },
 
-    { q:"(CS19) A veterans’ organization asks to speak at a legislative hearing and presents data, then follows up with legislators’ offices afterward. Which method best matches best overall?",
+    { type:"method",
+      q:"(CS19) A veterans’ organization asks to speak at a legislative hearing and presents data, then follows up with legislators’ offices afterward. Which method best matches best overall?",
       a:"Provide testimony before legislative committees",
       h:"The most direct named method in the scenario is testimony before committees (even if they also lobby afterward)." }
   ];
 
-  const options = [
-    // CS18: Entities
+  // ---------- Option Pools (NO scrolling) ----------
+  const ENTITY_OPTIONS = [
     "Federal Executive — Department of State",
     "Federal Legislative — Congressional Budget Office (CBO)",
     "State Legislative — Ohio Legislative Service Commission (LSC)",
     "State Judicial — Ohio Courts of Common Pleas",
-    "Local Legislative/Executive — County Commission tax abatements",
+    "Local Legislative/Executive — County Commission tax abatements"
+  ];
 
-    // CS18: Collaboration/Conflict
-    "Collaboration vs Conflict — Collaboration (Multiple branches/levels addressing one issue)",
-    "Collaboration vs Conflict — Collaboration (Legislative uses analysis)",
-    "Collaboration vs Conflict — Collaboration (Judicial applies enacted policy)",
-    "Collaboration vs Conflict — Collaboration (Legislative sets policy; Judicial applies)",
-    "Collaboration vs Conflict — Conflict (Executive vs Legislative)",
-    "Collaboration vs Conflict — Conflict (Local vs State)",
-    "Collaboration vs Conflict — Conflict (State vs Local disagreement)",
+  const REL_OPTIONS = [
+    "Collaboration (Multiple branches/levels addressing one issue)",
+    "Collaboration (Legislative uses analysis)",
+    "Collaboration (Judicial applies enacted policy)",
+    "Collaboration (Legislative sets policy; Judicial applies)",
+    "Conflict (Executive vs Legislative)",
+    "Conflict (Local vs State)",
+    "Conflict (State vs Local disagreement)"
+  ];
 
-    // CS19: Methods
+  const METHOD_OPTIONS = [
     "Campaign for candidates who will support their positions once in office",
     "Provide information to executive branch officials on impacts of potential rules/regulations",
     "Lobby members of a legislature",
@@ -522,6 +547,20 @@
     "Hold public demonstrations",
     "Know the proper level/branch to engage at each stage of policymaking"
   ];
+
+  function poolForType(type){
+    if(type === "entity") return ENTITY_OPTIONS;
+    if(type === "relationship") return REL_OPTIONS;
+    return METHOD_OPTIONS; // "method"
+  }
+
+  // Build 4-choice set: correct + 3 distractors from same pool
+  function getChoiceSet(q){
+    const pool = poolForType(q.type);
+    const distractors = pool.filter(x => x !== q.a);
+    const picked = shuffle(distractors).slice(0, 3);
+    return shuffle([q.a, ...picked]);
+  }
 
   // ---------- State ----------
   let questions = shuffle(bank);
@@ -586,7 +625,6 @@
     const acc = attempts ? Math.round((correct/attempts)*100) : 0;
     elAcc.textContent = `${acc}%`;
 
-    // unlock Finish only at 100% and at least 1 attempt
     const mastery = attempts > 0 && acc === 100;
     elFinish.disabled = !mastery;
     if(mastery){
@@ -625,9 +663,9 @@
 
     setFeedback("warn", "Choose the best answer.");
 
-    // shuffle choices each question
-    const shuffledOptions = shuffle(options);
-    for(const opt of shuffledOptions){
+    // ✅ Only 4 choices per question now
+    const choiceSet = getChoiceSet(q);
+    for(const opt of choiceSet){
       const b = document.createElement('button');
       b.type = "button";
       b.className = "btn";
@@ -672,20 +710,17 @@
   function nextQuestion(){
     if(!answeredThisQuestion) return;
     idx = (idx + 1) % questions.length;
-    // re-enable choices for next question
     enableChoiceButtons();
     renderQuestion();
   }
 
   function finish(){
-    // only if mastery
     const acc = attempts ? Math.round((correct/attempts)*100) : 0;
     if(!(attempts>0 && acc===100)){
       setFeedback("warn", "You must reach 100% accuracy to unlock the Submit Code.");
       return;
     }
 
-    // stop timer for "end" snapshot but keep clock running
     const endStamp = nowStamp();
     elEndStamp.textContent = "End: " + endStamp;
 
@@ -709,11 +744,9 @@ INSTRUCTIONS: Screenshot this box OR copy/paste into your assignment submission.
   }
 
   function resetAll(){
-    // stop timer
     if(timerId) clearInterval(timerId);
     timerId = null;
 
-    // reset state
     questions = shuffle(bank);
     idx = 0;
     correct = 0;
@@ -726,7 +759,6 @@ INSTRUCTIONS: Screenshot this box OR copy/paste into your assignment submission.
     answeredThisQuestion = false;
     locked = false;
 
-    // reset UI
     elStartStamp.textContent = "--";
     elElapsed.textContent = "00:00";
     elScoreLine.textContent = "0 / 0";
@@ -738,9 +770,7 @@ INSTRUCTIONS: Screenshot this box OR copy/paste into your assignment submission.
     elNext.disabled = true;
     elFinish.disabled = true;
 
-    // allow choices again
     enableChoiceButtons();
-
     renderQuestion();
   }
 
@@ -761,10 +791,10 @@ INSTRUCTIONS: Screenshot this box OR copy/paste into your assignment submission.
   elReset.addEventListener('click', resetAll);
   elCopy.addEventListener('click', copySubmit);
 
-  // Start timestamp is set on first answer, not on page load (prevents idle-start cheating).
   renderQuestion();
   updateStats();
 })();
 </script>
+
 </body>
 </html>
