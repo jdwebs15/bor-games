@@ -68,6 +68,7 @@ hr{border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0}
   <!-- GAME -->
   <div class="card hidden" id="game">
     <div class="topbar">
+      <div class="stat">Started: <span id="startedTop">—</span></div>
       <div class="stat">Time: <span id="time">0</span>s</div>
       <div class="stat">Attempts: <span id="attempts">0</span></div>
       <div class="stat">Accuracy: <span id="accuracy">0%</span></div>
@@ -87,17 +88,11 @@ hr{border:none;border-top:1px solid rgba(255,255,255,.08);margin:14px 0}
   <div class="card hidden" id="end">
     <h2>Completed!</h2>
     <p><b>Name:</b> <span id="finalName"></span></p>
-
-    <!-- ✅ INSERT #1 (TIMESTAMP DISPLAY LINE) -->
     <p><b>Started:</b> <span id="finalTimestamp"></span></p>
-
     <p><b>Time:</b> <span id="finalTime"></span>s</p>
     <p><b>Attempts:</b> <span id="finalAttempts"></span></p>
     <p><b>Accuracy:</b> <span id="finalAccuracy"></span></p>
-
-    <!-- ✅ INSERT #2 (RECEIPT DISPLAY LINE) -->
     <p><b>Receipt:</b> <span class="mono" id="receipt"></span></p>
-
     <p class="footer">Take a screenshot and submit.</p>
   </div>
 
@@ -114,20 +109,20 @@ function toggleHints(){
 }
 
 /* =========================
-   ✅ INSERT #3 (TIMESTAMP STORAGE)
-   We store an actual Date object so it’s reliable on every device.
+   ✅ DATE/TIME STAMP (REAL)
 ========================= */
-let startTime = null;            // Date object
-let startTimestampDisplay = "";  // what we show on screen
+let startTime = null;           // Date object for receipt
+let startStampText = "";        // display string
 
-function setStartTimestamp(){
+function setStartStamp(){
   startTime = new Date();
-  startTimestampDisplay = startTime.toLocaleString();
+  // Example display: 2/3/2026, 8:17:42 AM (device-local)
+  startStampText = startTime.toLocaleString();
 }
 
 /* =========================
-   ✅ INSERT #4 (RECEIPT GENERATOR)
-   Receipt is readable and ties to name + start time + performance.
+   ✅ RECEIPT (Readable)
+   Example: Weber020326-081742-20Q-94A
 ========================= */
 function generateReceipt(){
   const nameClean = (nameValue || "").replace(/\s+/g,""); // remove spaces
@@ -137,20 +132,17 @@ function generateReceipt(){
   const dd = String(dt.getDate()).padStart(2,"0");
   const yy = String(dt.getFullYear()).slice(2);
 
-  // 24-hour time; consistent and unambiguous
   const hh = String(dt.getHours()).padStart(2,"0");
   const min = String(dt.getMinutes()).padStart(2,"0");
   const ss = String(dt.getSeconds()).padStart(2,"0");
 
   const accuracyPct = attempts ? Math.round((correct/attempts)*100) : 0;
 
-  // Example: Weber020326-081742-20Q-94A
   return `${nameClean}${mm}${dd}${yy}-${hh}${min}${ss}-${correct}Q-${accuracyPct}A`;
 }
 
 /* =========================
    Question Bank (20)
-   Next-step MCQ, 4 options
 ========================= */
 const questions = [
   {
@@ -172,76 +164,76 @@ const questions = [
     choices:["Propose appropriate solutions","Weigh costs and benefits","Devise an action plan","Research the issue"],
     a:0,
     explain:"Debate helps clarify pros/cons and perspectives; next you should propose solutions clearly (what exactly should change).",
-    hint:"Think: debate clarifies options—now you have to state the option you want."
+    hint:"Debate clarifies options—now state the option you want."
   },
   {
     q:"Your group proposes two solutions to reduce vaping at school: (1) increased counseling supports, (2) stricter enforcement and penalties. What is the BEST next step?",
     choices:["Examine possible consequences of each proposed solution","Identify the issue","Launch the action plan immediately","Run for school board office"],
     a:0,
-    explain:"After proposing solutions, you should examine consequences—intended and unintended—before deciding which approach is best.",
-    hint:"You have options on the table; now you need to predict what happens if each is used."
+    explain:"After proposing solutions, examine consequences—intended and unintended—before deciding which approach is best.",
+    hint:"You have options on the table; now predict what happens under each."
   },
   {
     q:"Your group predicts consequences of each solution for vaping, including effects on discipline, student trust, and costs. What is the BEST next step?",
     choices:["Weigh costs and benefits of each approach","Debate viewpoints","Research the issue","Propose solutions"],
     a:0,
-    explain:"Once consequences are considered, the next step is weighing costs and benefits to choose the most effective and realistic approach.",
-    hint:"After consequences, the process becomes a comparison of trade-offs."
+    explain:"After consequences, weigh costs and benefits to choose the most effective and realistic approach.",
+    hint:"After consequences comes comparing trade-offs."
   },
   {
     q:"After weighing costs and benefits, your group chooses a plan: counseling supports plus targeted enforcement. What is the BEST next step?",
     choices:["Devise an action plan (who does what, when, and how)","Debate viewpoints","Collect more sources even if unnecessary","Switch to a different issue"],
     a:0,
-    explain:"Once a solution is selected, you implement by devising an action plan with roles, timeline, and specific steps.",
-    hint:"You’ve chosen the solution—now you need a concrete plan to carry it out."
+    explain:"Once a solution is selected, implementation begins by devising an action plan with roles, timeline, and steps.",
+    hint:"You chose the solution—now you need execution steps."
   },
   {
-    q:"Your action plan includes writing to the school board, presenting data, and proposing a budget line for counseling supports. What is the MOST important immediate step before presenting publicly?",
+    q:"Your action plan includes writing to the school board, presenting data, and proposing a budget line for counseling supports. What is MOST important before presenting publicly?",
     choices:["Identify the issue again","Check that your sources are credible and relevant","Ignore opposing views to stay focused","Skip consequences because you already chose a plan"],
     a:1,
-    explain:"Before presenting, you should verify credibility and relevance of sources so your plan is persuasive and defensible.",
-    hint:"Think: what makes your plan trustworthy to decision-makers?"
+    explain:"Before presenting, verify source credibility and relevance so your plan is persuasive and defensible.",
+    hint:"What makes your plan trustworthy to decision-makers?"
   },
   {
     q:"A group wants the city to add a sidewalk near a busy road. They have not defined the exact problem (where, who is affected, and what evidence exists). What should they do FIRST?",
     choices:["Identify the issue clearly (define the problem)","Devise an action plan","Weigh costs and benefits","Examine consequences"],
     a:0,
-    explain:"Civic engagement begins with identifying the issue—defining it clearly so later research and solutions are focused and relevant.",
-    hint:"You can’t research or plan well without a clearly defined problem."
+    explain:"Civic engagement begins with identifying the issue—defining it clearly so later research and solutions are focused.",
+    hint:"You can’t research or plan well without a clear problem definition."
   },
   {
-    q:"Students identify that the problem is “no safe walking route from the apartments to the middle school.” What is the BEST next step?",
+    q:"Students identify the problem is “no safe walking route from the apartments to the middle school.” What is the BEST next step?",
     choices:["Research (traffic data, maps, injuries, budgets)","Propose solutions immediately","Implement a protest right away","Vote in an election"],
     a:0,
-    explain:"After identifying the issue, research is needed to understand scope, causes, stakeholders, and constraints (like cost and jurisdiction).",
+    explain:"After identifying the issue, research is needed to understand scope, causes, stakeholders, and constraints.",
     hint:"Before solutions, gather facts and credible information."
   },
   {
     q:"A group researches the sidewalk issue and learns the road is maintained by the county, not the city. What is the BEST next step?",
     choices:["Debate viewpoints and set priorities with the correct decision-makers in mind","Ignore the new information and proceed","Switch to a completely unrelated issue","Assume the city can fix it anyway"],
     a:0,
-    explain:"Research can change who has authority. Next, the group should debate and refine strategy based on the correct government level and stakeholders.",
-    hint:"Use the research to adjust the approach—who can actually act?"
+    explain:"Research can change who has authority. Next, debate and refine strategy based on the correct government level and stakeholders.",
+    hint:"Use the research to adjust who you target and what you prioritize."
   },
   {
     q:"After debating, the group agrees on a solution: request a county-funded sidewalk project with a safer crosswalk. What is the BEST next step?",
     choices:["Propose the solution clearly in writing and speech","Go straight to implementation without details","Re-identify the issue","Stop because agreement is enough"],
     a:0,
-    explain:"Once the group agrees on a direction, it should propose the solution clearly (what, where, and why) before moving to consequences and trade-offs.",
-    hint:"Agreement should produce a clear proposal that can be evaluated."
+    explain:"Once the group agrees on a direction, propose the solution clearly (what, where, and why) before moving to consequences and trade-offs.",
+    hint:"Agreement should produce a clear proposal."
   },
   {
     q:"A proposal is written to the county engineer. What is the BEST next step before asking for a vote or funding?",
     choices:["Examine consequences (traffic, safety, cost, timeline)","Skip to implementation","Attack opponents personally","Avoid discussing costs"],
     a:0,
-    explain:"Decision-makers need consequences and trade-offs to evaluate feasibility and impact before approving or funding a solution.",
-    hint:"Before approval, show you’ve thought through what happens next."
+    explain:"Decision-makers need consequences and trade-offs to evaluate feasibility and impact before approval or funding.",
+    hint:"Show you’ve thought through what happens next."
   },
   {
-    q:"Your group is examining consequences of a new recycling program at school. What should you focus on MOST to do this well?",
+    q:"Your group is examining consequences of a new recycling program at school. What should you focus on MOST?",
     choices:["Only the best-case outcome","Both intended and unintended outcomes","Only whether it sounds popular","Only what your group already believes"],
     a:1,
-    explain:"Examining consequences means considering both intended benefits and unintended problems (cost, compliance, contamination, staffing).",
+    explain:"Examining consequences means considering intended benefits and unintended problems (cost, compliance, staffing).",
     hint:"Consequences include positives and negatives—planned and unplanned."
   },
   {
@@ -249,14 +241,14 @@ const questions = [
     choices:["Weigh costs and benefits of each approach","Identify the issue again","Debate only one side","Stop because you already did research"],
     a:0,
     explain:"Weighing costs and benefits helps select the most effective and realistic solution among alternatives.",
-    hint:"You’ve predicted outcomes—now compare trade-offs."
+    hint:"You predicted outcomes—now compare trade-offs."
   },
   {
     q:"The group chooses the recycling plan that costs less but may recycle fewer items. What should happen NEXT?",
     choices:["Devise an action plan (bins, training, schedule, roles)","Restart research from the beginning","Avoid compromise to keep purity","Refuse to consider feasibility"],
     a:0,
     explain:"Once a plan is chosen, implementation requires a concrete action plan: tasks, timeline, resources, and responsibility.",
-    hint:"Picking a solution isn’t the end—planning execution is next."
+    hint:"Picking a solution isn’t the end—execution planning is next."
   },
   {
     q:"Your action plan is written, but your group has not considered any pushback (students who won’t participate, staff workload). What is the BEST step to strengthen the plan?",
@@ -284,14 +276,14 @@ const questions = [
     choices:["Examine consequences of each solution","Run candidates for office","Skip consequences and choose randomly","Only publicize the option you like"],
     a:0,
     explain:"Examining consequences helps predict effects on participation, budgets, nutrition, and feasibility before choosing a plan.",
-    hint:"Two solutions exist—now evaluate what each one leads to."
+    hint:"Two solutions exist—now evaluate what each leads to."
   },
   {
     q:"After examining consequences and weighing costs/benefits, the group selects a “healthier with small cost increase” plan. What is the BEST next step to IMPLEMENT it?",
     choices:["Devise an action plan (presentation, stakeholders, timeline)","Re-identify the issue","Only keep debating forever","Stop at selecting a plan"],
     a:0,
     explain:"Implementation requires a structured action plan: who to contact, what to present, deadlines, and follow-through steps.",
-    hint:"Selection becomes change only through a plan of action."
+    hint:"Selection becomes change only through action steps."
   }
 ];
 
@@ -304,7 +296,7 @@ let correct = 0;
 let time = 0;
 let timer = null;
 
-let locked = false; // prevents extra clicks after correct
+let locked = false;
 let nameValue = "";
 
 /* =========================
@@ -315,8 +307,9 @@ function startGame(){
   if(!nm) return alert("Enter name");
   nameValue = nm;
 
-  // ✅ INSERT #5 (SET TIMESTAMP AT START)
-  setStartTimestamp();
+  // ✅ set date/time stamp at the exact moment game begins
+  setStartStamp();
+  document.getElementById("startedTop").textContent = startStampText;
 
   document.getElementById("start").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
@@ -339,7 +332,7 @@ function loadQ(){
 
   const q = questions[index];
   document.getElementById("qnum").textContent = `Question ${index+1}/20`;
-  document.getElementById("question").innerHTML = q.q;
+  document.getElementById("question").textContent = q.q;
 
   const holder = document.getElementById("choices");
   holder.innerHTML = "";
@@ -378,8 +371,6 @@ function check(choice){
     document.getElementById("nextBtn").classList.remove("hidden");
   } else {
     fb.innerHTML = `<div class="incorrect"><b>Incorrect.</b> Try again.</div>`;
-
-    // Hint appears ONLY after incorrect, and ONLY if teacher toggles on
     if(hintsOn){
       fb.innerHTML += `<div class="hint"><b>Hint:</b> ${q.hint}</div>`;
     }
@@ -401,7 +392,6 @@ function updateStats(){
    Next / End
 ========================= */
 function nextQuestion(){
-  // If not locked (not correct yet), do nothing
   if(!locked) return;
 
   index++;
@@ -419,13 +409,12 @@ function endGame(){
   document.getElementById("end").classList.remove("hidden");
 
   document.getElementById("finalName").textContent = nameValue;
+  document.getElementById("finalTimestamp").textContent = startStampText;
   document.getElementById("finalTime").textContent = time;
   document.getElementById("finalAttempts").textContent = attempts;
   document.getElementById("finalAccuracy").textContent =
     (attempts ? Math.round((correct/attempts)*100) : 0) + "%";
 
-  // ✅ INSERT #6 (WRITE TIMESTAMP + RECEIPT TO END SCREEN)
-  document.getElementById("finalTimestamp").textContent = startTimestampDisplay;
   document.getElementById("receipt").textContent = generateReceipt();
 }
 </script>
