@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Government & Economy — Fiscal vs Monetary Policy</title>
+
+<style>
+:root{
+--bg:#0b1220;
+--text:#e7eefc;
+--muted:#a8b4cf;
+--accent:#7aa2ff;
+--good:#2bd576;
+--bad:#ff5c7a;
+--warn:#ffd166;
+--border:rgba(255,255,255,.1);
+--shadow:0 18px 55px rgba(0,0,0,.35);
+--radius:18px;
+--mono:ui-monospace,Menlo,Consolas,monospace;
+--sans:system-ui,Segoe UI,Roboto,Helvetica;
+}
+
+*{box-sizing:border-box}
+body{
+margin:0;
+background:linear-gradient(180deg,#0b1220,#0f1a33);
+color:var(--text);
+font-family:var(--sans);
+}
+
+.app{
+max-width:980px;
+margin:auto;
+padding:22px;
+}
+
+.card{
+background:#121a32;
+border-radius:var(--radius);
+box-shadow:var(--shadow);
+padding:22px;
+border:1px solid var(--border);
+}
+
+h1{text-align:center;margin-top:0}
+
+.top{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+}
+
+input{
+padding:10px;
+border-radius:10px;
+border:1px solid var(--border);
+background:#0b1220;
+color:var(--text);
+}
+
+.stats span{margin-right:14px;font-family:var(--mono)}
+
+.question{
+font-size:1.2rem;
+margin:18px 0;
+min-height:70px;
+}
+
+.choices{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+}
+
+button{
+padding:14px;
+border-radius:12px;
+border:none;
+background:#1b2550;
+color:var(--text);
+font-size:1rem;
+cursor:pointer;
+}
+
+button:hover{background:#24316a}
+
+.feedback{
+margin-top:14px;
+min-height:60px;
+padding:12px;
+border-radius:12px;
+display:none;
+}
+
+.good{background:rgba(43,213,118,.15);border:1px solid var(--good)}
+.bad{background:rgba(255,92,122,.15);border:1px solid var(--bad)}
+
+.nextBtn{
+margin-top:14px;
+display:none;
+background:var(--accent);
+color:#000;
+font-weight:bold;
+}
+
+.footer{
+text-align:center;
+margin-top:14px;
+color:var(--muted);
+font-size:.85rem;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+<div class="card">
+
+<h1>Government & Economy<br>Fiscal vs Monetary Policy</h1>
+
+<div class="top">
+<input id="studentName" placeholder="Enter Name"/>
+<div class="stats">
+<span id="timer">Time: 0s</span>
+<span id="attempts">Attempts: 0</span>
+<span id="correct">Correct: 0</span>
+<span id="accuracy">Accuracy: 0%</span>
+</div>
+</div>
+
+<div class="question" id="questionBox"></div>
+
+<div class="choices">
+<button onclick="checkAnswer('Fiscal Policy')">Fiscal Policy</button>
+<button onclick="checkAnswer('Monetary Policy')">Monetary Policy</button>
+</div>
+
+<div id="feedback" class="feedback"></div>
+<button id="nextBtn" class="nextBtn" onclick="nextQuestion()">Next</button>
+
+<div class="footer">
+Must reach 100% accuracy for completion
+</div>
+
+</div>
+</div>
+
+<script>
+let questions=[
+{
+q:"Government increases spending on infrastructure to stimulate the economy.",
+a:"Fiscal Policy",
+e:"Fiscal policy involves government decisions about spending and taxes."
+},
+{
+q:"Federal Reserve buys government bonds to increase the money supply.",
+a:"Monetary Policy",
+e:"Buying bonds injects money into the economy."
+},
+{
+q:"Congress lowers taxes to encourage consumer spending.",
+a:"Fiscal Policy",
+e:"Tax policy is part of fiscal policy."
+},
+{
+q:"Federal Reserve raises interest rates to slow economic growth.",
+a:"Monetary Policy",
+e:"Higher interest rates reduce borrowing and spending."
+},
+{
+q:"Government increases taxes to cool an overheating economy.",
+a:"Fiscal Policy",
+e:"Taxes are controlled through fiscal policy."
+},
+{
+q:"Federal Reserve lowers the reserve requirement for banks.",
+a:"Monetary Policy",
+e:"Lower reserve requirements allow banks to make more loans."
+},
+{
+q:"Government passes regulations requiring truthful advertising.",
+a:"Fiscal Policy",
+e:"Regulatory actions are tied to fiscal policy and carry economic costs and benefits."
+},
+{
+q:"Federal Reserve sells bonds to reduce the money supply.",
+a:"Monetary Policy",
+e:"Selling bonds pulls money out of circulation."
+},
+{
+q:"Government decreases spending to reduce budget deficits.",
+a:"Fiscal Policy",
+e:"Spending decisions are part of fiscal policy."
+},
+{
+q:"Federal Reserve takes actions that result in lower interest rates.",
+a:"Monetary Policy",
+e:"Lower rates encourage borrowing and growth."
+},
+{
+q:"Government regulations reduce corporate profits but protect consumers.",
+a:"Fiscal Policy",
+e:"Regulations can carry both economic costs and benefits."
+},
+{
+q:"Federal Reserve uses tools to control how much money banks can lend.",
+a:"Monetary Policy",
+e:"This refers to reserve requirements and money supply control."
+}
+];
+
+let index=0;
+let attempts=0;
+let correct=0;
+let startTime=Date.now();
+let timerInterval=setInterval(updateTimer,1000);
+
+function updateTimer(){
+let s=Math.floor((Date.now()-startTime)/1000);
+document.getElementById("timer").textContent="Time: "+s+"s";
+}
+
+function loadQuestion(){
+document.getElementById("questionBox").textContent=questions[index].q;
+document.getElementById("feedback").style.display="none";
+document.getElementById("nextBtn").style.display="none";
+}
+
+function checkAnswer(choice){
+attempts++;
+let fb=document.getElementById("feedback");
+if(choice===questions[index].a){
+correct++;
+fb.className="feedback good";
+fb.innerHTML="<strong>Correct.</strong><br>"+questions[index].e;
+document.getElementById("nextBtn").style.display="block";
+}else{
+fb.className="feedback bad";
+fb.innerHTML="<strong>Incorrect.</strong> Try again.";
+}
+fb.style.display="block";
+updateStats();
+}
+
+function nextQuestion(){
+index++;
+if(index>=questions.length){
+finishGame();
+}else{
+loadQuestion();
+}
+}
+
+function updateStats(){
+document.getElementById("attempts").textContent="Attempts: "+attempts;
+document.getElementById("correct").textContent="Correct: "+correct;
+let acc=Math.round((correct/attempts)*100);
+document.getElementById("accuracy").textContent="Accuracy: "+acc+"%";
+}
+
+function finishGame(){
+let acc=Math.round((correct/attempts)*100);
+if(acc<100){
+alert("You must reach 100% accuracy. Restart and try again.");
+location.reload();
+return;
+}
+let time=Math.floor((Date.now()-startTime)/1000);
+document.querySelector(".card").innerHTML=
+"<h1>Completed</h1>"+
+"<p>Name: "+document.getElementById("studentName").value+"</p>"+
+"<p>Time: "+time+" seconds</p>"+
+"<p>Attempts: "+attempts+"</p>"+
+"<p>Accuracy: 100%</p>"+
+"<p>Screenshot this screen for submission.</p>";
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
