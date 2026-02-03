@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CS1 Game 1 — Political vs Public Policy Pathways</title>
+
+<style>
+:root{
+--bg:#0b1220;
+--text:#e7eefc;
+--muted:#a8b4cf;
+--accent:#7aa2ff;
+--good:#2bd576;
+--bad:#ff5c7a;
+--warn:#ffd166;
+--border:rgba(255,255,255,0.12);
+--radius:18px;
+--shadow:0 18px 55px rgba(0,0,0,.35);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+}
+body{margin:0;background:linear-gradient(180deg,#0b1220,#0e1530);color:var(--text);}
+.container{max-width:980px;margin:auto;padding:24px;}
+.card{background:#121a33;border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);}
+h1,h2{text-align:center}
+.btn{background:#1b2a55;color:white;border:1px solid var(--border);padding:14px;border-radius:14px;cursor:pointer;width:100%;margin:8px 0;font-size:1rem;}
+.btn:hover{background:#243a77}
+.correct{background:rgba(43,213,118,.15);border:1px solid var(--good)}
+.incorrect{background:rgba(255,92,122,.15);border:1px solid var(--bad)}
+.topbar{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between}
+.stat{background:#0f1630;padding:10px 14px;border-radius:12px}
+.hidden{display:none}
+.footer{text-align:center;margin-top:10px;color:var(--muted)}
+.toggle{cursor:pointer;color:var(--warn)}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="card" id="start">
+<h1>CS1 — Political vs Public Policy Pathways</h1>
+<p style="text-align:center">Enter your name to begin.</p>
+<input id="studentName" placeholder="Your Name" style="width:100%;padding:12px;border-radius:12px;border:none;margin-bottom:12px;">
+<button class="btn" onclick="startGame()">Start Game</button>
+</div>
+
+<div class="card hidden" id="game">
+
+<div class="topbar">
+<div class="stat">Time: <span id="time">0</span>s</div>
+<div class="stat">Attempts: <span id="attempts">0</span></div>
+<div class="stat">Accuracy: <span id="accuracy">0%</span></div>
+<div class="stat toggle" onclick="toggleHints()">Hints: <span id="hintState">OFF</span></div>
+</div>
+
+<h2 id="qnum"></h2>
+<p id="question"></p>
+
+<div id="choices"></div>
+
+<div id="feedback"></div>
+
+<button class="btn hidden" id="nextBtn" onclick="nextQuestion()">Next</button>
+
+</div>
+
+<div class="card hidden" id="end">
+<h2>Completed!</h2>
+<p>Name: <span id="finalName"></span></p>
+<p>Time: <span id="finalTime"></span>s</p>
+<p>Attempts: <span id="finalAttempts"></span></p>
+<p>Accuracy: <span id="finalAccuracy"></span></p>
+<p class="footer">Take a screenshot and submit.</p>
+</div>
+
+</div>
+
+<script>
+
+let hintsOn=false;
+function toggleHints(){
+hintsOn=!hintsOn;
+document.getElementById("hintState").textContent=hintsOn?"ON":"OFF";
+}
+
+const questions=[
+{q:"A group of citizens works to elect candidates who promise lower property taxes.",a:0,e:"Using elections to gain power is a Political Process."},
+{q:"Congress passes a law raising the federal minimum wage.",a:1,e:"Passing laws is part of the Public Policy Process."},
+{q:"A student organization campaigns to register more voters.",a:0,e:"Voter registration relates to political participation."},
+{q:"The EPA creates new air-quality regulations.",a:1,e:"Regulations are public policy actions."},
+{q:"A mayor runs for re-election on a crime reduction platform.",a:0,e:"Running for office is political."},
+{q:"A court strikes down a state law as unconstitutional.",a:1,e:"Court rulings shape public policy."},
+{q:"A party launches TV ads attacking an opponent.",a:0,e:"Campaign ads are political."},
+{q:"A city council votes on a new zoning ordinance.",a:1,e:"Local laws are public policy."},
+{q:"Citizens organize to support a ballot initiative.",a:0,e:"Ballot initiatives involve political participation."},
+{q:"A state agency enforces workplace safety standards.",a:1,e:"Enforcement is public policy."},
+{q:"Volunteers canvass neighborhoods to support a candidate.",a:0,e:"Canvassing is political."},
+{q:"Congress funds new highway construction.",a:1,e:"Budgeting is public policy."},
+{q:"A party selects its nominee at a convention.",a:0,e:"Party nominations are political."},
+{q:"A governor signs a bill into law.",a:1,e:"Signing laws is public policy."},
+{q:"A group works to increase turnout in local elections.",a:0,e:"Turnout relates to political participation."},
+{q:"A school board changes graduation requirements.",a:1,e:"School policy is public policy."},
+{q:"A candidate holds a town hall meeting.",a:0,e:"Campaign events are political."},
+{q:"Congress holds hearings on gun regulations.",a:1,e:"Hearings influence public policy."},
+{q:"A party creates a platform outlining its beliefs.",a:0,e:"Party platforms are political."},
+{q:"A city increases funding for public transit.",a:1,e:"Spending decisions are public policy."}
+];
+
+let index=0,attempts=0,correct=0,time=0,timer;
+
+function startGame(){
+if(!studentName.value.trim())return alert("Enter name");
+document.getElementById("start").classList.add("hidden");
+document.getElementById("game").classList.remove("hidden");
+timer=setInterval(()=>{time++;document.getElementById("time").textContent=time},1000);
+loadQ();
+}
+
+function loadQ(){
+document.getElementById("feedback").innerHTML="";
+document.getElementById("nextBtn").classList.add("hidden");
+let q=questions[index];
+document.getElementById("qnum").textContent=`Question ${index+1}/20`;
+document.getElementById("question").textContent=q.q;
+document.getElementById("choices").innerHTML="";
+["Political Process","Public Policy Process"].forEach((c,i)=>{
+let b=document.createElement("button");
+b.className="btn";
+b.textContent=c;
+b.onclick=()=>check(i);
+document.getElementById("choices").appendChild(b);
+});
+}
+
+function check(choice){
+attempts++;
+let q=questions[index];
+let fb=document.getElementById("feedback");
+if(choice===q.a){
+correct++;
+fb.innerHTML=`<div class="correct">Correct! ${q.e}</div>`;
+document.getElementById("nextBtn").classList.remove("hidden");
+}else{
+fb.innerHTML=`<div class="incorrect">Incorrect.</div>`;
+}
+updateStats();
+}
+
+function updateStats(){
+document.getElementById("attempts").textContent=attempts;
+document.getElementById("accuracy").textContent=Math.round((correct/attempts)*100)+"%";
+}
+
+function nextQuestion(){
+index++;
+if(index>=questions.length){
+endGame();
+}else loadQ();
+}
+
+function endGame(){
+clearInterval(timer);
+document.getElementById("game").classList.add("hidden");
+document.getElementById("end").classList.remove("hidden");
+finalName.textContent=studentName.value;
+finalTime.textContent=time;
+finalAttempts.textContent=attempts;
+finalAccuracy.textContent=Math.round((correct/attempts)*100)+"%";
+}
+
+</script>
+</body>
+</html>
