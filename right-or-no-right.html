@@ -186,6 +186,7 @@
     }
     .msg.good{border-color: rgba(52,211,153,.45); color: var(--ink)}
     .msg.bad{border-color: rgba(251,113,133,.55); color: var(--ink)}
+    .msg.warn{border-color: rgba(251,191,36,.55); color: var(--ink)}
     .explain{
       margin-top:10px;
       border-radius: 14px;
@@ -252,9 +253,68 @@
       font-size:12px;
       line-height:1.4;
     }
+
+    /* Name modal */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+      z-index:9999;
+    }
+    .modal{
+      width:min(560px, 100%);
+      background: rgba(17,26,46,.98);
+      border:1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding:16px;
+    }
+    .modal h2{margin:0 0 6px; font-size:18px}
+    .modal p{margin:0 0 12px; color:var(--muted); font-size:13px; line-height:1.4}
+    .fieldRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    input[type="text"]{
+      flex:1;
+      min-width: 220px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid var(--line);
+      background: rgba(0,0,0,.22);
+      color: var(--ink);
+      font-weight:700;
+      outline:none;
+    }
+    input[type="text"]:focus{border-color: rgba(125,211,252,.55)}
+    .miniStats{
+      margin-top:10px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
   </style>
 </head>
 <body>
+
+  <!-- Name entry overlay -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2>Enter Your Name</h2>
+      <p>This is required for your screenshot submission. The game will record start and finish timestamps.</p>
+      <div class="fieldRow">
+        <input id="studentName" type="text" placeholder="First + Last name" autocomplete="off" />
+        <button id="beginBtn">Begin</button>
+      </div>
+      <div class="miniStats">
+        <div>Start Time: <span class="mono" id="previewStart">—</span></div>
+        <div>Finish Time: <span class="mono" id="previewFinish">—</span></div>
+      </div>
+      <div class="tiny">Tip: After finishing, take a screenshot of the completion summary.</div>
+    </div>
+  </div>
+
   <header>
     <div class="nav">
       <div class="left">
@@ -279,9 +339,24 @@
 
         <div class="metaRow">
           <div class="stat">
+            <div class="k">Student</div>
+            <div class="v" id="nameDisplay">—</div>
+          </div>
+          <div class="stat">
             <div class="k">Timer</div>
             <div class="v" id="timer">00:00</div>
           </div>
+          <div class="stat">
+            <div class="k">Start</div>
+            <div class="v mono" id="startStamp">—</div>
+          </div>
+          <div class="stat">
+            <div class="k">Finish</div>
+            <div class="v mono" id="finishStamp">—</div>
+          </div>
+        </div>
+
+        <div class="metaRow">
           <div class="stat">
             <div class="k">Question</div>
             <div class="v"><span id="qNum">1</span> / <span id="qTotal">0</span></div>
@@ -314,7 +389,7 @@
         </div>
 
         <div class="footerNote">
-          Tip: Use filters on the right to focus practice (e.g., only 4A/5A/6A, or only 14th).
+          Choices are limited per question to reduce scrolling (Correct + best distractors + No Right when appropriate).
         </div>
       </section>
 
@@ -396,7 +471,7 @@
       { key:"14A-EP", label:"14A — Equal Protection", amend:"14A", group:"14A", short:"Equal Protection" },
       { key:"14A-INC", label:"14A — Incorporation (BoR applies to states)", amend:"14A", group:"14A", short:"Incorporation" },
 
-      // No Right bucket
+      // No Right
       { key:"NONE", label:"No Right (not a constitutional rights issue here)", amend:"NONE", group:"NONE", short:"No Right" },
     ];
 
@@ -412,9 +487,7 @@
     ];
 
     // -----------------------------
-    // Question bank (Right or No Right)
-    // Each item must point to the MOST PRECISE target key.
-    // Explanation must follow: Right protected / Limit on government / Why it applies
+    // Question bank
     // -----------------------------
     const BANK = [
       // 1A Speech
@@ -513,7 +586,7 @@
         "The 4A requires particularity (place/things); this is a blanket/general warrant."
       ),
 
-      // 5A Self-incrimination / Double jeopardy / due process (federal)
+      // 5A
       q("Police interrogate a suspect for hours and threaten jail time unless the suspect confesses.",
         "5A-SILENCE",
         "Protection against being compelled to incriminate yourself.",
@@ -533,7 +606,7 @@
         "A federal action taking property without process triggers 5A due process."
       ),
 
-      // 6A parts
+      // 6A
       q("A defendant sits in jail for 18 months before trial because the court 'is busy,' with no special reason.",
         "6A-SPEEDY",
         "Right to a speedy trial.",
@@ -571,7 +644,7 @@
         "A criminal defendant needs an attorney to ensure a fair trial."
       ),
 
-      // 8A parts
+      // 8A
       q("A judge sets bail at $1,000,000 for a minor, nonviolent charge solely to keep the person in jail.",
         "8A-BAIL",
         "Protection against excessive bail.",
@@ -591,7 +664,7 @@
         "Prison conditions/punishments are government action subject to 8A limits."
       ),
 
-      // 10A Reserved powers
+      // 10A
       q("Congress orders every state to run all elections exactly the same way, including local school board elections, even though the Constitution doesn’t grant that specific power.",
         "10A-RESERVED",
         "Reserved powers: powers not delegated to the federal government are kept by states/people.",
@@ -605,7 +678,7 @@
         "Professional licensing is typically a state reserved power issue."
       ),
 
-      // 14A Citizenship / DP (state) / EP / Incorporation
+      // 14A
       q("A state denies citizenship to a person born in that state because their parents were immigrants.",
         "14A-CITIZEN",
         "Citizenship Clause: birthright citizenship for people born in the U.S. (with narrow exceptions).",
@@ -631,7 +704,7 @@
         "This is a state/local action; the 1A applies via 14A incorporation."
       ),
 
-      // No Right (practice distinguishing constitutional vs non-constitutional issues)
+      // No Right
       q("A private restaurant refuses to serve a customer because the customer is wearing a rival team’s jersey.",
         "NONE",
         "No direct Bill of Rights right is triggered by private action in this scenario.",
@@ -651,7 +724,7 @@
         "This is a private interaction, not government action."
       ),
 
-      // Mixed precision items to force part-level accuracy
+      // Mixed precision
       q("Police stop a person, handcuff them, and place them in the back of a cruiser 'just to check' even though they have no reason to believe a crime occurred.",
         "4A-SEIZURE",
         "Protection from unreasonable seizure of a person.",
@@ -678,7 +751,6 @@
       ),
     ];
 
-    // Helper builder
     function q(prompt, answerKey, rightProtected, limitOnGov, whyApplies){
       return { prompt, answerKey, explain: { rightProtected, limitOnGov, whyApplies } };
     }
@@ -691,9 +763,14 @@
     let attemptsThis = 0;
     let attemptsTotal = 0;
     let correctThis = false;
+    let correctCount = 0;
 
     let timerInt = null;
     let startTime = null;
+
+    let studentName = "";
+    let startISO = null;
+    let finishISO = null;
 
     const el = (id) => document.getElementById(id);
 
@@ -712,6 +789,16 @@
     const restartBtn = el("restartBtn");
     const nextBtn = el("nextBtn");
     const skipBtn = el("skipBtn");
+
+    // Name + stamps
+    const overlay = el("overlay");
+    const nameInput = el("studentName");
+    const beginBtn = el("beginBtn");
+    const nameDisplay = el("nameDisplay");
+    const startStampEl = el("startStamp");
+    const finishStampEl = el("finishStamp");
+    const previewStart = el("previewStart");
+    const previewFinish = el("previewFinish");
 
     // Filters
     const filterRow = el("filterRow");
@@ -737,6 +824,15 @@
       });
     }
 
+    function fmtLocal(iso){
+      if(!iso) return "—";
+      const d = new Date(iso);
+      return d.toLocaleString(undefined, {
+        year:"numeric", month:"2-digit", day:"2-digit",
+        hour:"2-digit", minute:"2-digit", second:"2-digit"
+      });
+    }
+
     function startTimer(){
       if(timerInt) clearInterval(timerInt);
       startTime = Date.now();
@@ -746,6 +842,11 @@
         const ss = String(s%60).padStart(2,"0");
         timerEl.textContent = `${mm}:${ss}`;
       }, 250);
+    }
+
+    function stopTimer(){
+      if(timerInt) clearInterval(timerInt);
+      timerInt = null;
     }
 
     function shuffle(arr){
@@ -761,49 +862,73 @@
       const enabled = Object.entries(filterState).filter(([,v])=>v).map(([k])=>k);
       const enabledSet = new Set(enabled);
 
-      // Keep questions whose answerKey's group is enabled
       const filtered = BANK.filter(item => {
         const t = TARGETS.find(x => x.key === item.answerKey);
         if(!t) return false;
         return enabledSet.has(t.group);
       });
 
-      // If everything unchecked (or too strict), fall back to all
       return filtered.length ? filtered : BANK.slice();
     }
 
+    // ------------------------------------------
+    // CHOICE REDUCTION: 6 buttons per question
+    // Correct + 4 distractors (prefer same group)
+    // + No Right (always included if enabled or if correct is NONE)
+    // ------------------------------------------
+    const MAX_CHOICES = 6;
+
     function buildChoiceSet(correctKey){
-      // For Game 2: choices are ALL targets within enabled filters (so precision is practiced).
-      // Always include NONE if enabled OR if correctKey is NONE.
       const enabledGroups = new Set(Object.entries(filterState).filter(([,v])=>v).map(([k])=>k));
       let pool = TARGETS.filter(t => enabledGroups.has(t.group));
-
-      // If pool empty, allow all
       if(pool.length === 0) pool = TARGETS.slice();
 
-      // Ensure correct is present
-      if(!pool.some(p=>p.key===correctKey)){
-        const correctT = TARGETS.find(t=>t.key===correctKey);
-        if(correctT) pool.push(correctT);
+      const correctT = TARGETS.find(t=>t.key===correctKey);
+      if(correctT && !pool.some(p=>p.key===correctKey)) pool.push(correctT);
+
+      const noneT = TARGETS.find(t=>t.key==="NONE");
+      const noneAllowed = enabledGroups.has("NONE") || correctKey === "NONE";
+
+      const correctGroup = correctT ? correctT.group : null;
+
+      // Prefer distractors from same group to keep precision practice tight
+      let sameGroup = pool.filter(t => t.group === correctGroup && t.key !== correctKey && t.key !== "NONE");
+      let otherGroup = pool.filter(t => t.group !== correctGroup && t.key !== correctKey && t.key !== "NONE");
+
+      sameGroup = shuffle(sameGroup);
+      otherGroup = shuffle(otherGroup);
+
+      const picks = [];
+      if(correctT) picks.push(correctT);
+
+      // Fill with up to 4 distractors (prefer same group first)
+      while(picks.length < 5 && sameGroup.length){
+        picks.push(sameGroup.shift());
+      }
+      while(picks.length < 5 && otherGroup.length){
+        picks.push(otherGroup.shift());
       }
 
-      // We'll show all in a stable order (grouped) to reduce confusion,
-      // but shuffled within group so it’s not memorized by position.
-      // Also: Keep "No Right" at bottom if present.
-      const noRight = pool.find(p=>p.key==="NONE");
-      pool = pool.filter(p=>p.key!=="NONE");
+      // Add No Right as last button (if allowed) and if it isn't already present
+      if(noneAllowed && noneT && !picks.some(x=>x.key==="NONE")){
+        // If we already have 6, drop the last distractor to make room
+        if(picks.length >= MAX_CHOICES) picks.pop();
+        picks.push(noneT);
+      }
 
-      // Create display list: grouped order
-      const order = ["1A","4A","5A","6A","8A","10A","14A"];
-      const grouped = [];
-      order.forEach(g=>{
-        const items = pool.filter(p=>p.group===g);
-        grouped.push(...shuffle(items));
-      });
+      // If still under MAX_CHOICES, optionally add one more distractor (rare)
+      while(picks.length < MAX_CHOICES && otherGroup.length){
+        const t = otherGroup.shift();
+        if(!picks.some(x=>x.key===t.key)) picks.push(t);
+      }
 
-      if(noRight) grouped.push(noRight);
+      // Shuffle display so correct isn't always first, but keep No Right at bottom
+      const nr = picks.find(x=>x.key==="NONE");
+      let rest = picks.filter(x=>x.key!=="NONE");
+      rest = shuffle(rest);
+      if(nr) rest.push(nr);
 
-      return grouped;
+      return rest.slice(0, MAX_CHOICES);
     }
 
     function setMsg(type, text){
@@ -832,7 +957,6 @@
       nextBtn.disabled = true;
       setMsg("", "Choose the most precise match.");
 
-      // Build choices
       const choiceTargets = buildChoiceSet(item.answerKey);
       choicesEl.innerHTML = "";
       choiceTargets.forEach(t => {
@@ -843,6 +967,9 @@
         btn.addEventListener("click", () => handleChoice(t.key));
         choicesEl.appendChild(btn);
       });
+
+      // Scroll back to prompt area (helps on phones)
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     function handleChoice(chosenKey){
@@ -851,9 +978,9 @@
 
       if(chosenKey === item.answerKey){
         correctThis = true;
+        correctCount++;
         setMsg("good", "Correct ✅  Next is unlocked.");
 
-        // Show explanation
         explainEl.style.display = "block";
         const t = TARGETS.find(x=>x.key===item.answerKey);
         const title = t ? t.label : item.answerKey;
@@ -871,7 +998,6 @@
         attemptsQEl.textContent = String(attemptsThis);
         attemptsTotalEl.textContent = String(attemptsTotal);
 
-        // Strict mode feedback
         const chosen = TARGETS.find(x=>x.key===chosenKey);
         const chosenLabel = chosen ? chosen.label : "That choice";
         setMsg("bad", `Not quite ❌  You chose: ${chosenLabel}. Try again (strict mode).`);
@@ -885,18 +1011,52 @@
     }
 
     function endScreen(){
+      finishISO = new Date().toISOString();
+      finishStampEl.textContent = fmtLocal(finishISO);
+      previewFinish.textContent = fmtLocal(finishISO);
+      stopTimer();
+
+      const totalQ = questions.length;
+      const accuracy = attemptsTotal === 0 ? 100 : Math.round((totalQ / attemptsTotal) * 100);
+
       choicesEl.innerHTML = "";
-      promptEl.innerHTML = `<b>Finished!</b> You completed ${questions.length} prompts in <b>${timerEl.textContent}</b>.`;
+      promptEl.innerHTML = `
+        <b>Finished!</b><br/><br/>
+        <div class="mono">
+          Student: <b>${escapeHtml(studentName)}</b><br/>
+          Start: ${fmtLocal(startISO)}<br/>
+          Finish: ${fmtLocal(finishISO)}<br/>
+          Elapsed: <b>${timerEl.textContent}</b><br/>
+          Total Attempts: <b>${attemptsTotal}</b><br/>
+          Questions: <b>${totalQ}</b><br/>
+          Approx. Accuracy: <b>${accuracy}%</b>
+        </div>
+        <div style="margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35">
+          Screenshot this summary for submission.
+        </div>
+      `;
       setMsg("good", "Nice. Restart to reshuffle (filters apply on restart).");
       explainEl.style.display = "none";
       nextBtn.disabled = true;
     }
 
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, (m) => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[m]));
+    }
+
     function restart(){
+      // restart does NOT ask for name again; name stays at top
       questions = shuffle(applyFilters());
       idx = 0;
       attemptsThis = 0;
       attemptsTotal = 0;
+      correctCount = 0;
+      finishISO = null;
+      finishStampEl.textContent = "—";
+      previewFinish.textContent = "—";
+
       setMsg("", "Choose the most precise match.");
       startTimer();
       renderQuestion();
@@ -910,14 +1070,40 @@
       renderQuestion();
     });
     skipBtn.addEventListener("click", () => {
-      // Teacher override (does not award correct; keeps strict mode concept for students)
       idx++;
       renderQuestion();
       setMsg("warn", "Teacher skip used. (No credit awarded.)");
     });
 
-    // Boot
-    restart();
+    // Name overlay flow
+    beginBtn.addEventListener("click", beginGame);
+    nameInput.addEventListener("keydown", (e) => {
+      if(e.key === "Enter") beginGame();
+    });
+
+    function beginGame(){
+      const v = nameInput.value.trim();
+      if(!v){
+        alert("Please enter your name.");
+        nameInput.focus();
+        return;
+      }
+      studentName = v;
+      nameDisplay.textContent = studentName;
+
+      startISO = new Date().toISOString();
+      startStampEl.textContent = fmtLocal(startISO);
+      previewStart.textContent = fmtLocal(startISO);
+
+      overlay.style.display = "none";
+
+      // Start game
+      restart();
+    }
+
+    // Boot: show overlay first
+    overlay.style.display = "flex";
   </script>
 </body>
 </html>
+
