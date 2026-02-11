@@ -146,7 +146,7 @@
       <div class="pill">Attempts: <strong id="attemptCount">0</strong></div>
       <div class="pill">Accuracy: <strong id="accuracy">0</strong>%</div>
       <div class="spacer"></div>
-      <button class="btn secondary" id="nextBtn" disabled>Next</button>
+      <!-- Next removed -->
     </div>
   </div>
 
@@ -170,7 +170,7 @@
     <div class="card">
       <h2 style="margin:0 0 10px 0;font-size:1.08rem;">Rules</h2>
       <ul class="tiny" style="margin:0 0 10px 18px;line-height:1.5;">
-        <li>Wrong answers recycle until mastered.</li>
+        <li>Wrong answers show a hint and you retry immediately.</li>
         <li>No hint before answering; explanation only after wrong (teacher toggled).</li>
         <li>Submission summary appears only at <strong>100% accuracy</strong>.</li>
       </ul>
@@ -194,6 +194,8 @@ const shuffle = (arr) => {
   return a;
 };
 
+const AUTO_ADVANCE_MS = 450;
+
 const Time = (() => {
   const pad = (n) => String(n).padStart(2,'0');
   const fmtClock = (ms) => {
@@ -202,11 +204,11 @@ const Time = (() => {
     const r = s % 60;
     return `${pad(m)}:${pad(r)}`;
   };
-  const fmtStamp = (d=new Date()) => {
-    return d.toLocaleString([], { year:'numeric', month:'2-digit', day:'2-digit',
-      hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  };
-  return { pad, fmtClock, fmtStamp };
+  const fmtStamp = (d=new Date()) => d.toLocaleString([], {
+    year:'numeric', month:'2-digit', day:'2-digit',
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+  return { fmtClock, fmtStamp };
 })();
 
 const Run = {
@@ -269,9 +271,8 @@ const Run = {
   }
 };
 
-// 24 questions
+// QUESTIONS (unchanged)
 const QUESTIONS = [
-  // 15th (repeat tie to CS10)
   { id:"CS10-15-1", prompt:"Which amendment prevents denying voting rights based on race, color, or previous condition of servitude?", choices:["15th","19th","24th","26th"], answer:0,
     explain:"15th: race/color/previous servitude. Trigger: Southern states blocked freed Black men from voting; amendment added explicit constitutional protection."},
   { id:"CS10-15-2", prompt:"Your class trigger for the 15th Amendment is best described as…", choices:[
@@ -282,7 +283,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"15th was a response to Southern resistance to Black male suffrage after the Civil War."},
 
-  // 19th (WWI homefront shifts Wilson)
   { id:"CS10-19-1", prompt:"Which amendment extended voting rights by gender (women’s suffrage)?", choices:["19th","24th","26th","15th"], answer:0,
     explain:"19th Amendment: voting rights cannot be denied on the basis of sex."},
   { id:"CS10-19-2", prompt:"Your class trigger for the 19th Amendment emphasizes…", choices:[
@@ -293,7 +293,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"You teach WWI homefront contributions as a key trigger that shifted political support for women’s suffrage."},
 
-  // 24th (poll taxes; Jim Crow; 10th amendment state power)
   { id:"CS10-24-1", prompt:"Which amendment banned poll taxes in federal elections?", choices:["24th","15th","19th","26th"], answer:0,
     explain:"24th: bans poll taxes (a Jim Crow-era barrier originally designed to suppress Black voters and poor voters)."},
   { id:"CS10-24-2", prompt:"Your class trigger for the 24th Amendment is best described as…", choices:[
@@ -304,7 +303,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"24th responds to poll taxes as a tool of disenfranchisement; your framing ties it to states’ control unless constitutionally limited."},
 
-  // 26th (Vietnam draft)
   { id:"CS10-26-1", prompt:"Which amendment lowered the voting age to 18?", choices:["26th","19th","24th","15th"], answer:0,
     explain:"26th: voting age 18+. Trigger: ‘Old enough to fight and die, old enough to vote’ during Vietnam era."},
   { id:"CS10-26-2", prompt:"Your class trigger for the 26th Amendment emphasizes…", choices:[
@@ -315,7 +313,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"Vietnam-era draft fairness argument: if 18-year-olds can be sent to war, they should vote."},
 
-  // Mix identification
   { id:"CS10-MIX-1", prompt:"Which amendment matches: race/color/previous servitude?", choices:["15th","19th","24th","26th"], answer:0,
     explain:"15th protects voting rights from denial based on race/color/previous servitude."},
   { id:"CS10-MIX-2", prompt:"Which amendment matches: gender?", choices:["19th","15th","24th","26th"], answer:0,
@@ -325,7 +322,6 @@ const QUESTIONS = [
   { id:"CS10-MIX-4", prompt:"Which amendment matches: age (18+)?", choices:["26th","15th","19th","24th"], answer:0,
     explain:"26th: age 18+."},
 
-  // Cause/effect style
   { id:"CS10-CE-1", prompt:"Cause → Amendment: ‘Old enough to fight and die’ argument during Vietnam → ?", choices:["26th","24th","19th","15th"], answer:0,
     explain:"26th lowered voting age to 18."},
   { id:"CS10-CE-2", prompt:"Cause → Amendment: poll taxes used to suppress voting → ?", choices:["24th","19th","26th","15th"], answer:0,
@@ -335,13 +331,11 @@ const QUESTIONS = [
   { id:"CS10-CE-4", prompt:"Cause → Amendment: states denying Black men voting access post–Civil War → ?", choices:["15th","24th","19th","26th"], answer:0,
     explain:"15th protects against race-based denial."},
 
-  // Tricky misdirection (build discrimination skill)
   { id:"CS10-TRICK-1", prompt:"Which amendment is NOT part of the voting-rights expansions listed in CS10?", choices:["22nd","15th","19th","24th"], answer:0,
     explain:"22nd is term limits (presidency), not suffrage expansion."},
   { id:"CS10-TRICK-2", prompt:"Which amendment is NOT about voting rights expansion?", choices:["12th","15th","19th","26th"], answer:0,
     explain:"12th changes Electoral College procedure (president/VP ballots), not voting eligibility."},
 
-  // Additional reinforcement
   { id:"CS10-ADD-1", prompt:"Poll taxes most directly limited voting for which groups?", choices:[
       "Poor voters and African Americans (Jim Crow suppression)",
       "Only wealthy voters",
@@ -370,7 +364,8 @@ const state = {
   teacherMode:false, started:false, studentName:"",
   deck:[], i:0, correct:0, attempts:0,
   missedQueue:[], answeredCorrectly:new Set(),
-  currentChoices:[], selectedIndex:null, currentCorrectIndex:0
+  currentChoices:[], currentCorrectIndex:0,
+  locked:false
 };
 
 function parseTeacherFromURL(){
@@ -389,7 +384,6 @@ function resetUI(){
   $("#prompt").textContent="Enter your name and click Start.";
   $("#choices").innerHTML="";
   $("#feedback").style.display="none";
-  $("#nextBtn").disabled=true;
   $("#submissionBox").style.display="none";
   $("#submissionText").textContent="";
   $("#timeBox").style.display="none";
@@ -405,10 +399,24 @@ function updateHud(){
 }
 function buildDeck(){ state.deck = shuffle(QUESTIONS); }
 
+// Hint generator aligned to your “trigger” framing without giving the answer away
+function buildHint(q){
+  const t = (q.prompt||"").toLowerCase();
+
+  if(t.includes("race") || t.includes("color") || t.includes("servitude")) return "Hint: This is the post–Civil War protection tied to Black male suffrage.";
+  if(t.includes("women") || t.includes("gender") || t.includes("sex")) return "Hint: Think women’s suffrage and the WWI homefront shift.";
+  if(t.includes("poll tax")) return "Hint: This is the Jim Crow-era barrier that required a constitutional limit on states.";
+  if(t.includes("voting age") || t.includes("18")) return "Hint: ‘Old enough to fight and die, old enough to vote’ (Vietnam era).";
+  if(t.includes("cause") && t.includes("vietnam")) return "Hint: Vietnam draft fairness argument.";
+  if(t.includes("cause") && t.includes("poll")) return "Hint: Poll taxes used to suppress voting participation.";
+  if(t.includes("cause") && (t.includes("women") || t.includes("war"))) return "Hint: Women’s WWI contributions shifting support.";
+  if(t.includes("cause") && (t.includes("civil war") || t.includes("black"))) return "Hint: Southern resistance after the Civil War.";
+  return "Hint: Match the trigger—post–Civil War race protection (15th), women’s suffrage (19th), poll taxes (24th), voting age 18+ (26th).";
+}
+
 function renderQuestion(){
   $("#feedback").style.display="none";
-  $("#nextBtn").disabled=true;
-  state.selectedIndex=null;
+  state.locked=false;
 
   const q = state.deck[state.i];
   $("#prompt").textContent = q.prompt;
@@ -424,30 +432,27 @@ function renderQuestion(){
     const div=document.createElement("div");
     div.className="choice";
     div.innerHTML = `<div class="tag">${letters[idx]}</div><div><div style="font-weight:850">${opt.text}</div></div>`;
-    div.addEventListener("click",()=>selectChoice(idx));
+    // click = submit answer (attempt)
+    div.addEventListener("click",()=>grade(idx));
     $("#choices").appendChild(div);
   });
 
   Run.markQuestionShown(state.i, q.id || "CS10");
   updateHud();
 }
-function selectChoice(idx){
-  state.selectedIndex=idx;
-  Array.from($("#choices").children).forEach((n,i)=>{
-    n.classList.remove("correct","wrong");
-    n.style.outline = (i===idx) ? "2px solid rgba(122,162,255,.55)" : "none";
-  });
-  $("#nextBtn").disabled=false;
-}
-function grade(){
+
+function grade(pickedIdx){
+  if(!state.started || state.locked) return;
+  state.locked=true;
+
   const q = state.deck[state.i];
   const letters=["A","B","C","D"];
-  const picked=state.selectedIndex;
+  const picked=pickedIdx;
   const correct=state.currentCorrectIndex;
-  if(picked==null) return;
 
+  // attempt counted ONLY on answer click
   state.attempts++;
-  Array.from($("#choices").children).forEach(n=>n.style.outline="none");
+  updateHud();
 
   const isCorrect = picked===correct;
 
@@ -469,22 +474,37 @@ function grade(){
   });
 
   $("#feedback").style.display="block";
+
   if(isCorrect){
     state.correct++;
     state.answeredCorrectly.add(q.id);
-    $("#fbTitle").textContent="Correct ✅";
-    $("#fbText").textContent="Click Next.";
-    $("#feedback").className="feedback good";
-  } else {
-    state.missedQueue.push(q);
-    $("#fbTitle").textContent="Incorrect ❌";
-    $("#fbText").textContent = state.teacherMode ? `Explanation: ${q.explain}` : "Try again later. Click Next.";
-    $("#feedback").className="feedback bad";
-  }
 
-  updateHud();
-  maybeUnlockSubmission();
+    $("#fbTitle").textContent="Correct ✅";
+    $("#fbText").textContent="Next question…";
+    $("#feedback").className="feedback good";
+
+    updateHud();
+    maybeUnlockSubmission();
+
+    setTimeout(()=>{ next(); }, AUTO_ADVANCE_MS);
+
+  } else {
+    // wrong: hint + stay on same question
+    state.missedQueue.push(q);
+
+    $("#fbTitle").textContent="Incorrect ❌";
+    const hint = buildHint(q);
+    $("#fbText").textContent = state.teacherMode
+      ? `Hint: ${hint}\nExplanation: ${q.explain}`
+      : `Hint: ${hint}`;
+    $("#feedback").className="feedback bad";
+
+    maybeUnlockSubmission();
+
+    state.locked=false; // allow immediate retry
+  }
 }
+
 function maybeUnlockSubmission(){
   const acc=accuracyPct();
   if(acc===100 && state.answeredCorrectly.size===QUESTIONS.length){
@@ -497,9 +517,8 @@ function maybeUnlockSubmission(){
     });
   }
 }
-function next(){
-  $("#nextBtn").disabled=true;
 
+function next(){
   if(state.i >= state.deck.length-1){
     if(state.missedQueue.length){
       const missed=state.missedQueue.slice();
@@ -519,6 +538,7 @@ function next(){
     renderQuestion();
   }
 }
+
 function startGame(){
   const name = ($("#nameInput").value||"").trim();
   if(name.length<3){ alert("Please enter your full name (first + last)."); $("#nameInput").focus(); return; }
@@ -537,16 +557,14 @@ $("#startBtn").addEventListener("click", startGame);
 $("#resetBtn").addEventListener("click", ()=>{ if(confirm("Reset local progress for this game?")) location.reload(); });
 $("#toggleTeacherBtn").addEventListener("click", ()=>setTeacherMode(!state.teacherMode));
 
-$("#nextBtn").addEventListener("click", ()=>{
-  if(!state.started) return;
-  if(state.selectedIndex==null) return;
-  grade();
-  $("#nextBtn").disabled=false;
-  $("#nextBtn").onclick = ()=>{ $("#nextBtn").onclick=null; next(); };
-});
+// Keyboard: 1–4 answers immediately
 window.addEventListener("keydown",(e)=>{
   if(e.shiftKey && e.key.toLowerCase()==="t"){ setTeacherMode(!state.teacherMode); }
-  if(state.started && ["1","2","3","4"].includes(e.key)) selectChoice(parseInt(e.key,10)-1);
+  if(!state.started || state.locked) return;
+
+  if(["1","2","3","4"].includes(e.key)){
+    grade(parseInt(e.key,10)-1);
+  }
 });
 
 (function init(){
@@ -556,3 +574,4 @@ window.addEventListener("keydown",(e)=>{
 </script>
 </body>
 </html>
+
