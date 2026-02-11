@@ -131,7 +131,7 @@
       <div class="pill">Attempts: <strong id="attemptCount">0</strong></div>
       <div class="pill">Accuracy: <strong id="accuracy">0</strong>%</div>
       <div class="spacer"></div>
-      <button class="btn secondary" id="nextBtn" disabled>Next</button>
+      <!-- Next button removed -->
     </div>
   </div>
 
@@ -178,6 +178,8 @@ const shuffle = (arr) => {
   }
   return a;
 };
+
+const AUTO_ADVANCE_MS = 450;
 
 const Time = (() => {
   const pad = (n)=>String(n).padStart(2,'0');
@@ -250,9 +252,8 @@ const Run = {
   }
 };
 
-// 24 questions
+// QUESTIONS unchanged (kept as-is)
 const QUESTIONS = [
-  // 12th — Jefferson/Burr tie
   { id:"CS11-12-1", prompt:"Which amendment created separate Electoral College ballots for president and vice president?", choices:["12th","22nd","23rd","25th"], answer:0,
     explain:"12th changed Electoral College procedure: separate ballots for president and vice president."},
   { id:"CS11-12-2", prompt:"Your class trigger for the 12th Amendment is…", choices:[
@@ -270,7 +271,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"12th = separate ballots to prevent the tie/selection chaos seen in early elections."},
 
-  // 22nd — term limits; FDR 4 terms + near-dictatorship framing
   { id:"CS11-22-1", prompt:"Which amendment established presidential term limits?", choices:["22nd","12th","23rd","25th"], answer:0,
     explain:"22nd Amendment: limits presidents to two elected terms (with specific constitutional details)."},
   { id:"CS11-22-2", prompt:"Your class trigger for the 22nd Amendment focuses on…", choices:[
@@ -288,7 +288,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"22nd is about limiting presidential tenure."},
 
-  // 23rd — DC electors (NOT “vote for president directly”)
   { id:"CS11-23-1", prompt:"Which amendment granted the District of Columbia electoral votes?", choices:["23rd","22nd","12th","25th"], answer:0,
     explain:"23rd gave DC electoral votes based on its growing population."},
   { id:"CS11-23-2", prompt:"Your class trigger for the 23rd Amendment is…", choices:[
@@ -313,7 +312,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"The common trap wording is ‘vote for President.’ Better phrasing: vote for presidential electors."},
 
-  // 25th — JFK assassination, LBJ heart risk, succession/disability process
   { id:"CS11-25-1", prompt:"Which amendment clarified presidential succession and disability procedures?", choices:["25th","23rd","22nd","12th"], answer:0,
     explain:"25th sets processes for succession and presidential disability (VP vacancy, temporary transfer, etc.)."},
   { id:"CS11-25-2", prompt:"Your class trigger for the 25th Amendment is…", choices:[
@@ -331,7 +329,6 @@ const QUESTIONS = [
     ], answer:0,
     explain:"25th covers disability and succession mechanics."},
 
-  // How EC works basics (aligned with CS11 elaboration)
   { id:"CS11-EC-1", prompt:"Electoral votes for a state are based on the number of…", choices:[
       "Representatives + Senators",
       "Only Representatives",
@@ -347,19 +344,16 @@ const QUESTIONS = [
     ], answer:0,
     explain:"CS11: majority of total electoral votes is required to secure presidency."},
 
-  // Mixed identification
   { id:"CS11-MIX-1", prompt:"Match: Jefferson–Burr tie → ?", choices:["12th","22nd","23rd","25th"], answer:0, explain:"Jefferson–Burr tie is the trigger tied to the 12th Amendment."},
   { id:"CS11-MIX-2", prompt:"Match: FDR served four terms → ?", choices:["22nd","12th","23rd","25th"], answer:0, explain:"FDR’s four terms is your class trigger for the 22nd."},
   { id:"CS11-MIX-3", prompt:"Match: DC population growth → ?", choices:["23rd","12th","22nd","25th"], answer:0, explain:"DC population growth aligns to the 23rd."},
   { id:"CS11-MIX-4", prompt:"Match: succession/disability confusion after JFK → ?", choices:["25th","23rd","22nd","12th"], answer:0, explain:"JFK assassination era concerns → 25th."},
 
-  // Distinguish from voting rights amendments
   { id:"CS11-TRICK-1", prompt:"Which amendment listed here is NOT a CS11 ‘structure/function’ amendment?", choices:["26th","12th","22nd","25th"], answer:0,
     explain:"26th is a voting rights amendment (age 18). CS11 focuses on 12th/22nd/23rd/25th."},
   { id:"CS11-TRICK-2", prompt:"Which amendment banned poll taxes?", choices:["24th","12th","22nd","23rd"], answer:0,
     explain:"24th is voting rights (poll taxes), not Electoral College/presidency structure."},
 
-  // Additional reinforcement items
   { id:"CS11-ADD-1", prompt:"Which amendment was designed to avoid the Electoral College producing a tie like Jefferson vs Burr?", choices:["12th","23rd","25th","22nd"], answer:0,
     explain:"12th introduced separate ballots for president and VP to reduce tie risk."},
   { id:"CS11-ADD-2", prompt:"Which amendment ensures DC has electors even though it is not a state?", choices:["23rd","22nd","25th","12th"], answer:0,
@@ -372,7 +366,8 @@ const state = {
   teacherMode:false, started:false, studentName:"",
   deck:[], i:0, correct:0, attempts:0,
   missedQueue:[], answeredCorrectly:new Set(),
-  currentChoices:[], selectedIndex:null, currentCorrectIndex:0
+  currentChoices:[], currentCorrectIndex:0,
+  locked:false
 };
 
 function parseTeacherFromURL(){
@@ -391,7 +386,6 @@ function resetUI(){
   $("#prompt").textContent="Enter your name and click Start.";
   $("#choices").innerHTML="";
   $("#feedback").style.display="none";
-  $("#nextBtn").disabled=true;
   $("#submissionBox").style.display="none";
   $("#submissionText").textContent="";
   $("#timeBox").style.display="none";
@@ -407,10 +401,20 @@ function updateHud(){
 }
 function buildDeck(){state.deck=shuffle(QUESTIONS);}
 
+function buildHint(q){
+  const t = (q.prompt||"").toLowerCase();
+  if(t.includes("separate") && t.includes("ballot")) return "This was created after an early Electoral College tie problem.";
+  if(t.includes("term limit")) return "Think FDR and fears of one person holding office too long.";
+  if(t.includes("district of columbia") || t.includes("dc")) return "This gives DC electors (DC is still not a state).";
+  if(t.includes("succession") || t.includes("disability")) return "This covers what happens if a president is alive but unable to serve.";
+  if(t.includes("electoral votes") && t.includes("based")) return "Use the same math as a state's total members of Congress.";
+  if(t.includes("majority") && t.includes("electoral")) return "Key idea: majority of electoral votes, not popular vote.";
+  return "Match to trigger: Jefferson–Burr tie (12th), FDR four terms (22nd), DC electors (23rd), JFK/succession/disability (25th).";
+}
+
 function renderQuestion(){
   $("#feedback").style.display="none";
-  $("#nextBtn").disabled=true;
-  state.selectedIndex=null;
+  state.locked=false;
 
   const q=state.deck[state.i];
   $("#prompt").textContent=q.prompt;
@@ -426,30 +430,26 @@ function renderQuestion(){
     const div=document.createElement("div");
     div.className="choice";
     div.innerHTML=`<div class="tag">${letters[idx]}</div><div><div style="font-weight:850">${opt.text}</div></div>`;
-    div.addEventListener("click",()=>selectChoice(idx));
+    div.addEventListener("click",()=>grade(idx));
     $("#choices").appendChild(div);
   });
 
   Run.markQuestionShown(state.i, q.id || "CS11");
   updateHud();
 }
-function selectChoice(idx){
-  state.selectedIndex=idx;
-  Array.from($("#choices").children).forEach((n,i)=>{
-    n.classList.remove("correct","wrong");
-    n.style.outline = (i===idx) ? "2px solid rgba(122,162,255,.55)" : "none";
-  });
-  $("#nextBtn").disabled=false;
-}
-function grade(){
+
+function grade(pickedIdx){
+  if(!state.started || state.locked) return;
+  state.locked=true;
+
   const q=state.deck[state.i];
   const letters=["A","B","C","D"];
-  const picked=state.selectedIndex;
+  const picked=pickedIdx;
   const correct=state.currentCorrectIndex;
-  if(picked==null) return;
 
   state.attempts++;
-  Array.from($("#choices").children).forEach(n=>n.style.outline="none");
+  updateHud();
+
   const isCorrect = picked===correct;
 
   Run.recordAnswer({
@@ -470,22 +470,32 @@ function grade(){
   });
 
   $("#feedback").style.display="block";
+
   if(isCorrect){
     state.correct++;
     state.answeredCorrectly.add(q.id);
     $("#fbTitle").textContent="Correct ✅";
-    $("#fbText").textContent="Click Next.";
+    $("#fbText").textContent="Next question…";
     $("#feedback").className="feedback good";
+    updateHud();
+    maybeUnlockSubmission();
+
+    setTimeout(()=>{ next(); }, AUTO_ADVANCE_MS);
+
   } else {
     state.missedQueue.push(q);
     $("#fbTitle").textContent="Incorrect ❌";
-    $("#fbText").textContent = state.teacherMode ? `Explanation: ${q.explain}` : "Try again later. Click Next.";
+    const hint = buildHint(q);
+    $("#fbText").textContent = state.teacherMode
+      ? `Hint: ${hint}\nExplanation: ${q.explain}`
+      : `Hint: ${hint}`;
     $("#feedback").className="feedback bad";
-  }
+    maybeUnlockSubmission();
 
-  updateHud();
-  maybeUnlockSubmission();
+    state.locked=false; // allow re-try on same question
+  }
 }
+
 function maybeUnlockSubmission(){
   const acc=accuracyPct();
   if(acc===100 && state.answeredCorrectly.size===QUESTIONS.length){
@@ -498,8 +508,8 @@ function maybeUnlockSubmission(){
     });
   }
 }
+
 function next(){
-  $("#nextBtn").disabled=true;
   if(state.i >= state.deck.length-1){
     if(state.missedQueue.length){
       const missed=state.missedQueue.slice();
@@ -519,6 +529,7 @@ function next(){
     renderQuestion();
   }
 }
+
 function startGame(){
   const name=($("#nameInput").value||"").trim();
   if(name.length<3){alert("Please enter your full name (first + last)."); $("#nameInput").focus(); return;}
@@ -536,16 +547,16 @@ function startGame(){
 $("#startBtn").addEventListener("click", startGame);
 $("#resetBtn").addEventListener("click", ()=>{ if(confirm("Reset local progress?")) location.reload(); });
 $("#toggleTeacherBtn").addEventListener("click", ()=>setTeacherMode(!state.teacherMode));
-$("#nextBtn").addEventListener("click", ()=>{
-  if(!state.started) return;
-  if(state.selectedIndex==null) return;
-  grade();
-  $("#nextBtn").disabled=false;
-  $("#nextBtn").onclick=()=>{ $("#nextBtn").onclick=null; next(); };
-});
+
 window.addEventListener("keydown",(e)=>{
   if(e.shiftKey && e.key.toLowerCase()==="t"){ setTeacherMode(!state.teacherMode); }
-  if(state.started && ["1","2","3","4"].includes(e.key)) selectChoice(parseInt(e.key,10)-1);
+
+  if(!state.started || state.locked) return;
+
+  if(["1","2","3","4"].includes(e.key)){
+    const idx=parseInt(e.key,10)-1;
+    grade(idx);
+  }
 });
 
 (function init(){
