@@ -621,18 +621,22 @@
   }
 
   function updateStats(){
-    elScoreLine.textContent = `${correct} / ${attempts}`;
-    const acc = attempts ? Math.round((correct/attempts)*100) : 0;
-    elAcc.textContent = `${acc}%`;
+  elScoreLine.textContent = `${correct} / ${attempts}`;
+  const acc = attempts ? Math.round((correct/attempts)*100) : 0;
+  elAcc.textContent = `${acc}%`;
 
-    const mastery = attempts > 0 && acc === 100;
-    elFinish.disabled = !mastery;
-    if(mastery){
-      elFeedback.className = "msg good";
-      elFeedbackText.textContent = "Mastery reached (100%). Click Finish / Submit Code.";
-      elHintBox.style.display = "none";
-    }
+  // ✅ Only show mastery at the END of the game (all questions attempted) AND perfect accuracy
+  const mastery = attempts >= questions.length && acc === 100;
+
+  elFinish.disabled = !mastery;
+
+  if(mastery){
+    elFeedback.className = "msg good";
+    elFeedbackText.textContent = "Mastery reached (100%). Click Finish / Submit Code.";
+    elHintBox.style.display = "none";
   }
+}
+
 
   function setFeedback(type, text){
     elFeedback.className = `msg ${type}`;
