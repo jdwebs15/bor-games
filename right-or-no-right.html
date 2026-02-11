@@ -206,6 +206,24 @@
       padding-left:18px;
     }
     .explain li{margin:6px 0}
+
+    .hint{
+      margin-top:10px;
+      border-radius: 14px;
+      border:1px solid rgba(251,191,36,.45);
+      padding:12px;
+      background: rgba(251,191,36,.10);
+      line-height:1.45;
+      display:none;
+    }
+    .hint h3{
+      margin:0 0 6px;
+      font-size:14px;
+      color: var(--warn);
+      letter-spacing:.2px;
+    }
+    .hint .tiny{ margin:0; color:var(--ink); opacity:.92; font-size:13px; line-height:1.4; }
+
     .filters{
       display:flex;
       flex-direction:column;
@@ -311,7 +329,7 @@
         <div>Start Time: <span class="mono" id="previewStart">—</span></div>
         <div>Finish Time: <span class="mono" id="previewFinish">—</span></div>
       </div>
-      <div class="tiny">Tip: After finishing, take a screenshot of the completion summary.</div>
+      <div class="tiny">Tip: After finishing with 100% accuracy, take a screenshot of the completion summary.</div>
     </div>
   </div>
 
@@ -324,7 +342,7 @@
         <a class="navlink" href="fix-the-violation.html">Game 3</a>
         <a class="navlink" href="amendment-blitz.html">Game 4</a>
       </div>
-      <span class="badge">Strict Mode • Sub-Rights • 14th Added</span>
+      <span class="badge" id="modeBadge">Perfect Run Required • Hints On Miss • Auto-Advance</span>
     </div>
   </header>
 
@@ -334,7 +352,7 @@
         <h1>Game 2 — Right or No Right?</h1>
         <p class="sub">
           Identify the <b>most precise constitutional “sub-right / part”</b> (or choose <b>No Right</b> when nothing in the Bill of Rights/14th applies).
-          <br/>Strict mode: you must answer correctly to move on.
+          <br/>Perfect Run: <b>one wrong answer = not complete</b>. You must restart and earn 100%.
         </p>
 
         <div class="metaRow">
@@ -366,8 +384,12 @@
             <div class="v" id="attemptsQ">0</div>
           </div>
           <div class="stat">
-            <div class="k">Total Attempts</div>
-            <div class="v" id="attemptsTotal">0</div>
+            <div class="k">Total Guesses</div>
+            <div class="v" id="guessesTotal">0</div>
+          </div>
+          <div class="stat">
+            <div class="k">Accuracy</div>
+            <div class="v" id="accuracyLive">100%</div>
           </div>
         </div>
 
@@ -377,15 +399,20 @@
 
         <div class="msg" id="msg">Choose the most precise match.</div>
 
+        <div class="hint" id="hintBox">
+          <h3>Hint</h3>
+          <p class="tiny" id="hintText"></p>
+        </div>
+
         <div class="explain" id="explain" style="display:none;">
-          <h3>Post-Correct Explanation</h3>
+          <h3>Quick Explanation</h3>
           <ul id="explainList"></ul>
         </div>
 
         <div class="controls">
           <button id="restartBtn">Restart</button>
           <button id="skipBtn" title="Teacher use only: skip to the next prompt (does not count as correct)">Teacher Skip</button>
-          <button id="nextBtn" disabled>Next (unlocked after correct)</button>
+          <button id="nextBtn" disabled>Next</button>
         </div>
 
         <div class="footerNote">
@@ -417,10 +444,10 @@
         </div>
 
         <div class="filterBox">
-          <h2>Strict Mode</h2>
+          <h2>Perfect Run Rules</h2>
           <div class="tiny">
-            Wrong answer → attempt counts → you must try again.
-            <br/>Correct answer → explanation appears → Next unlocks.
+            • Any wrong answer = accuracy drops and the run becomes <b>NOT COMPLETE</b>.
+            <br/>• You can keep playing to learn, but you must <b>Restart</b> and go perfect to earn completion.
           </div>
         </div>
       </aside>
@@ -428,6 +455,12 @@
   </main>
 
   <script>
+    // -----------------------------
+    // URL flags
+    // -----------------------------
+    const params = new URLSearchParams(location.search);
+    const TEACHER_MODE = params.get("teacher") === "1";
+
     // -----------------------------
     // Sub-right taxonomy (answer targets)
     // -----------------------------
@@ -560,7 +593,7 @@
         "Complaints/petitions are a direct request to government—core petition right."
       ),
 
-      // 4A Search vs Seizure vs Warrant
+      // 4A
       q("An officer opens a student’s backpack without any specific reason—just a 'random check.'",
         "4A-SEARCH",
         "Protection from unreasonable searches.",
@@ -760,10 +793,14 @@
     // -----------------------------
     let questions = [];
     let idx = 0;
+
     let attemptsThis = 0;
-    let attemptsTotal = 0;
-    let correctThis = false;
+    let totalGuesses = 0;      // counts every click (wrong + correct)
+    let wrongTotal = 0;        // counts wrong clicks (for perfect-run gate)
     let correctCount = 0;
+
+    let correctThis = false;
+    let autoNextTimeout = null;
 
     let timerInt = null;
     let startTime = null;
@@ -780,10 +817,15 @@
     const msgEl = el("msg");
     const explainEl = el("explain");
     const explainListEl = el("explainList");
+
+    const hintBox = el("hintBox");
+    const hintText = el("hintText");
+
     const qNumEl = el("qNum");
     const qTotalEl = el("qTotal");
     const attemptsQEl = el("attemptsQ");
-    const attemptsTotalEl = el("attemptsTotal");
+    const guessesTotalEl = el("guessesTotal");
+    const accuracyLiveEl = el("accuracyLive");
     const timerEl = el("timer");
 
     const restartBtn = el("restartBtn");
@@ -804,6 +846,11 @@
     const filterRow = el("filterRow");
     const filterState = Object.fromEntries(FILTERS.map(f => [f.id, true]));
     renderFilters();
+
+    // Teacher mode visibility
+    if(!TEACHER_MODE){
+      skipBtn.style.display = "none";
+    }
 
     function renderFilters(){
       filterRow.innerHTML = "";
@@ -873,8 +920,6 @@
 
     // ------------------------------------------
     // CHOICE REDUCTION: 6 buttons per question
-    // Correct + 4 distractors (prefer same group)
-    // + No Right (always included if enabled or if correct is NONE)
     // ------------------------------------------
     const MAX_CHOICES = 6;
 
@@ -891,7 +936,6 @@
 
       const correctGroup = correctT ? correctT.group : null;
 
-      // Prefer distractors from same group to keep precision practice tight
       let sameGroup = pool.filter(t => t.group === correctGroup && t.key !== correctKey && t.key !== "NONE");
       let otherGroup = pool.filter(t => t.group !== correctGroup && t.key !== correctKey && t.key !== "NONE");
 
@@ -901,28 +945,19 @@
       const picks = [];
       if(correctT) picks.push(correctT);
 
-      // Fill with up to 4 distractors (prefer same group first)
-      while(picks.length < 5 && sameGroup.length){
-        picks.push(sameGroup.shift());
-      }
-      while(picks.length < 5 && otherGroup.length){
-        picks.push(otherGroup.shift());
-      }
+      while(picks.length < 5 && sameGroup.length) picks.push(sameGroup.shift());
+      while(picks.length < 5 && otherGroup.length) picks.push(otherGroup.shift());
 
-      // Add No Right as last button (if allowed) and if it isn't already present
       if(noneAllowed && noneT && !picks.some(x=>x.key==="NONE")){
-        // If we already have 6, drop the last distractor to make room
         if(picks.length >= MAX_CHOICES) picks.pop();
         picks.push(noneT);
       }
 
-      // If still under MAX_CHOICES, optionally add one more distractor (rare)
       while(picks.length < MAX_CHOICES && otherGroup.length){
         const t = otherGroup.shift();
         if(!picks.some(x=>x.key===t.key)) picks.push(t);
       }
 
-      // Shuffle display so correct isn't always first, but keep No Right at bottom
       const nr = picks.find(x=>x.key==="NONE");
       let rest = picks.filter(x=>x.key!=="NONE");
       rest = shuffle(rest);
@@ -936,7 +971,31 @@
       msgEl.textContent = text;
     }
 
+    function updateAccuracyUI(){
+      const acc = totalGuesses === 0 ? 100 : Math.round((correctCount / totalGuesses) * 100);
+      accuracyLiveEl.textContent = `${acc}%`;
+      guessesTotalEl.textContent = String(totalGuesses);
+
+      // If any wrong happened, show warning badge feel via message nudge (optional)
+      // (We keep this subtle; completion gate handles the real enforcement.)
+    }
+
+    function hideHint(){
+      hintBox.style.display = "none";
+      hintText.textContent = "";
+    }
+
+    function showHint(text){
+      hintBox.style.display = "block";
+      hintText.textContent = text;
+    }
+
     function renderQuestion(){
+      if(autoNextTimeout){
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+
       if(idx >= questions.length){
         endScreen();
         return;
@@ -949,12 +1008,13 @@
       qNumEl.textContent = String(idx+1);
       qTotalEl.textContent = String(questions.length);
       attemptsQEl.textContent = "0";
-      attemptsTotalEl.textContent = String(attemptsTotal);
 
       promptEl.textContent = item.prompt;
       explainEl.style.display = "none";
       explainListEl.innerHTML = "";
       nextBtn.disabled = true;
+
+      hideHint();
       setMsg("", "Choose the most precise match.");
 
       const choiceTargets = buildChoiceSet(item.answerKey);
@@ -968,39 +1028,155 @@
         choicesEl.appendChild(btn);
       });
 
-      // Scroll back to prompt area (helps on phones)
       window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // -----------------------------
+    // Hint engine (escalates by attemptsThis)
+    // -----------------------------
+    function getHint(item, chosenKey, attemptNo){
+      const correctKey = item.answerKey;
+      const correctT = TARGETS.find(x=>x.key===correctKey);
+      const chosenT = TARGETS.find(x=>x.key===chosenKey);
+
+      const correctGroup = correctT ? correctT.group : "";
+      const chosenGroup = chosenT ? chosenT.group : "";
+
+      // Attempt 1 = general classification hint
+      if(attemptNo === 1){
+        if(correctKey === "NONE"){
+          return "Ask yourself: Is the problem caused by the GOVERNMENT (state action)? If it’s a private person/business with no government power involved, this is usually No Right.";
+        }
+        if(chosenKey === "NONE" && correctKey !== "NONE"){
+          return "This IS government action. “No Right” is usually only for private action or for situations that don’t match any constitutional protection.";
+        }
+
+        if(correctGroup === "4A"){
+          return "4A clue: Are they (1) LOOKING through something (SEARCH), (2) TAKING/RESTRAINING someone or property (SEIZURE), or (3) dealing with a WARRANT / probable cause / “general warrant” issue?";
+        }
+        if(correctGroup === "1A"){
+          return "1A clue: Is the government restricting (Speech), (Press/publishing), (Religion), (Assembly/protest), or (Petition/requesting government action)? Pick the MOST precise.";
+        }
+        if(correctGroup === "5A"){
+          return "5A clue: Is it about (1) forcing a confession / punishing silence, (2) trying the SAME offense twice after acquittal, or (3) taking liberty/property without fair PROCEDURE (due process)?";
+        }
+        if(correctGroup === "6A"){
+          return "6A clue: Identify which trial right is violated: Speedy, Public, Jury, Charges, Confrontation (cross-exam), or Counsel (lawyer). Pick the MOST precise.";
+        }
+        if(correctGroup === "8A"){
+          return "8A clue: Is it about (1) Cruel & Unusual punishment, (2) Excessive bail, or (3) Excessive fines? Choose the most precise one.";
+        }
+        if(correctGroup === "14A"){
+          return "14A clue: Is it (1) Citizenship status, (2) State Due Process (no notice/hearing), (3) Equal Protection (unfair discrimination by the state), or (4) Incorporation (state violating a Bill of Rights right)?";
+        }
+        if(correctGroup === "10A"){
+          return "10A clue: Is the federal government grabbing power it was never delegated (states/people keep reserved powers)?";
+        }
+        return "Re-read the prompt and classify the right FIRST by amendment, then choose the MOST precise sub-right.";
+      }
+
+      // Attempt 2 = narrow to the right group if student picked wrong group
+      if(attemptNo === 2){
+        if(chosenGroup && correctGroup && chosenGroup !== correctGroup){
+          return `You picked a ${chosenGroup} option, but the issue in the prompt fits ${correctGroup}. Re-classify the problem by amendment group first.`;
+        }
+        // same group but wrong sub-right → precision hint
+        if(correctGroup === "4A"){
+          return "4A precision: SEARCH = government examines/look through your stuff or body/space. SEIZURE = government takes/holds property or restrains your movement. WARRANT = probable cause + particularity (no blanket/general warrants).";
+        }
+        if(correctGroup === "1A"){
+          return "1A precision: Speech = expressing opinions/criticism. Press = publishing/reporting. Religion = government endorsing religion or restricting religious practice. Assembly = peaceful protest/gathering. Petition = requesting government action/complaining to officials.";
+        }
+        if(correctGroup === "6A"){
+          return "6A precision: Speedy = delay. Public = closed courtroom. Jury = biased/rigged jury selection. Charges = not told what you're accused of. Confrontation = no cross-exam of witness. Counsel = denied lawyer.";
+        }
+        if(correctGroup === "14A"){
+          return "14A precision: Equal Protection = discriminatory state law. Due Process (state) = no notice/hearing before deprivation. Incorporation = state/local violating a Bill of Rights right (like speech). Citizenship = born in U.S. but denied citizenship.";
+        }
+        if(correctGroup === "5A"){
+          return "5A precision: Self-incrimination = coerced confession / forced to talk. Double jeopardy = tried twice for same offense after acquittal. Due process (federal) = federal government takes property/liberty without fair procedures.";
+        }
+        if(correctGroup === "8A"){
+          return "8A precision: Bail is pre-trial money to ensure appearance; fines are money penalties; cruel/unusual is inhumane or grossly disproportionate punishment/conditions.";
+        }
+        if(correctGroup === "10A"){
+          return "10A precision: Ask: Did Congress/federal agency take over an area normally handled by states, without a clear enumerated power?";
+        }
+        return "Pick the most precise sub-right within the correct amendment group.";
+      }
+
+      // Attempt 3+ = reveal strong directional cue without giving the label
+      if(correctGroup === "1A") return "Think: Is this about publishing/reporting (press), or personal expression/criticism (speech), or protest gathering (assembly), or religious practice/endorsement (religion), or requesting government action (petition)?";
+      if(correctGroup === "4A") return "Think: Are they LOOKING (search) vs TAKING/RESTRAINING (seizure) vs a WARRANT/PC problem (probable cause/particularity)?";
+      if(correctGroup === "5A") return "Think: confession/silence (self-incrimination) vs retrial for same crime (double jeopardy) vs no fair procedure before taking property (due process).";
+      if(correctGroup === "6A") return "Think: delay (speedy), closed courtroom (public), biased jury (jury), not told charges (charges), no cross-exam (confront), no lawyer (counsel).";
+      if(correctGroup === "8A") return "Think: bail amount, fine amount, or inhumane punishment/conditions.";
+      if(correctGroup === "10A") return "Think: enumerated powers vs reserved powers—did the feds overreach into state police powers?";
+      if(correctGroup === "14A") return "Think: discrimination (equal protection) vs no notice/hearing (due process state) vs state violating Bill of Rights (incorporation) vs citizenship denial.";
+      if(correctKey === "NONE") return "Think: Is this really government action? If not, Constitution usually doesn’t apply directly.";
+      return "Re-classify the issue, then select the most precise sub-right.";
     }
 
     function handleChoice(chosenKey){
       const item = questions[idx];
       if(correctThis) return;
 
+      // Count every click as a guess for accuracy math
+      totalGuesses++;
+      updateAccuracyUI();
+
       if(chosenKey === item.answerKey){
         correctThis = true;
         correctCount++;
-        setMsg("good", "Correct ✅  Next is unlocked.");
+        updateAccuracyUI();
 
+        hideHint();
+
+        setMsg("good", wrongTotal === 0
+          ? "Correct ✅  Auto-advancing… (Perfect run still alive)"
+          : "Correct ✅  Auto-advancing… (Run already not perfect)"
+        );
+
+        // Quick explanation (briefly), then auto-advance
         explainEl.style.display = "block";
+        explainListEl.innerHTML = "";
+
         const t = TARGETS.find(x=>x.key===item.answerKey);
         const title = t ? t.label : item.answerKey;
 
-        explainListEl.innerHTML = "";
         addExplain(`<b>Correct sub-right/part:</b> ${title}`);
         addExplain(`<b>Right protected:</b> ${item.explain.rightProtected}`);
         addExplain(`<b>Limit on government:</b> ${item.explain.limitOnGov}`);
         addExplain(`<b>Why it applies:</b> ${item.explain.whyApplies}`);
 
-        nextBtn.disabled = false;
+        // Next button stays disabled in student flow (auto-advance),
+        // but keep it available for teacher mode if you want.
+        nextBtn.disabled = !TEACHER_MODE;
+
+        autoNextTimeout = setTimeout(() => {
+          idx++;
+          renderQuestion();
+        }, 1250);
+
       } else {
+        // Wrong: counts against perfect run and accuracy
         attemptsThis++;
-        attemptsTotal++;
+        wrongTotal++;
+
         attemptsQEl.textContent = String(attemptsThis);
-        attemptsTotalEl.textContent = String(attemptsTotal);
 
         const chosen = TARGETS.find(x=>x.key===chosenKey);
         const chosenLabel = chosen ? chosen.label : "That choice";
-        setMsg("bad", `Not quite ❌  You chose: ${chosenLabel}. Try again (strict mode).`);
+
+        setMsg("bad", `Not quite ❌  You chose: ${chosenLabel}. Try again.`);
+
+        // Provide escalated hint
+        const hint = getHint(item, chosenKey, attemptsThis);
+        showHint(hint);
+
+        // Explanation stays hidden until correct
+        explainEl.style.display = "none";
+        explainListEl.innerHTML = "";
       }
     }
 
@@ -1017,25 +1193,42 @@
       stopTimer();
 
       const totalQ = questions.length;
-      const accuracy = attemptsTotal === 0 ? 100 : Math.round((totalQ / attemptsTotal) * 100);
+      const acc = totalGuesses === 0 ? 0 : Math.round((correctCount / totalGuesses) * 100);
+      const perfect = (wrongTotal === 0) && (correctCount === totalQ) && (totalGuesses === totalQ);
 
       choicesEl.innerHTML = "";
+
+      const status = perfect
+        ? `<span style="color:var(--good);font-weight:900">COMPLETE ✅ (100% Accuracy)</span>`
+        : `<span style="color:var(--bad);font-weight:900">NOT COMPLETE ❌ (Must Restart and Go Perfect)</span>`;
+
       promptEl.innerHTML = `
         <b>Finished!</b><br/><br/>
+        ${status}<br/><br/>
         <div class="mono">
           Student: <b>${escapeHtml(studentName)}</b><br/>
           Start: ${fmtLocal(startISO)}<br/>
           Finish: ${fmtLocal(finishISO)}<br/>
           Elapsed: <b>${timerEl.textContent}</b><br/>
-          Total Attempts: <b>${attemptsTotal}</b><br/>
           Questions: <b>${totalQ}</b><br/>
-          Approx. Accuracy: <b>${accuracy}%</b>
+          Correct: <b>${correctCount}</b><br/>
+          Total Guesses: <b>${totalGuesses}</b><br/>
+          Wrong: <b>${wrongTotal}</b><br/>
+          Accuracy: <b>${acc}%</b>
         </div>
         <div style="margin-top:10px;color:var(--muted);font-size:12px;line-height:1.35">
-          Screenshot this summary for submission.
+          ${perfect
+            ? "Screenshot this summary for submission."
+            : "You may screenshot for evidence of practice, but it does NOT count as completion. Press Restart and earn 100%."}
         </div>
       `;
-      setMsg("good", "Nice. Restart to reshuffle (filters apply on restart).");
+
+      setMsg(perfect ? "good" : "bad", perfect
+        ? "Perfect run achieved. Nice work."
+        : "Run not perfect. Restart and go 100% to complete."
+      );
+
+      hideHint();
       explainEl.style.display = "none";
       nextBtn.disabled = true;
     }
@@ -1047,15 +1240,30 @@
     }
 
     function restart(){
-      // restart does NOT ask for name again; name stays at top
+      if(autoNextTimeout){
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+
       questions = shuffle(applyFilters());
       idx = 0;
+
       attemptsThis = 0;
-      attemptsTotal = 0;
+      totalGuesses = 0;
+      wrongTotal = 0;
       correctCount = 0;
+
       finishISO = null;
       finishStampEl.textContent = "—";
       previewFinish.textContent = "—";
+
+      attemptsQEl.textContent = "0";
+      guessesTotalEl.textContent = "0";
+      accuracyLiveEl.textContent = "100%";
+
+      hideHint();
+      explainEl.style.display = "none";
+      explainListEl.innerHTML = "";
 
       setMsg("", "Choose the most precise match.");
       startTimer();
@@ -1064,15 +1272,19 @@
 
     // Controls
     restartBtn.addEventListener("click", restart);
+
+    // Next is mostly teacher-use now (student flow auto-advances)
     nextBtn.addEventListener("click", () => {
-      if(!correctThis) return;
+      if(!TEACHER_MODE) return;
       idx++;
       renderQuestion();
     });
+
     skipBtn.addEventListener("click", () => {
+      if(!TEACHER_MODE) return;
       idx++;
       renderQuestion();
-      setMsg("warn", "Teacher skip used. (No credit awarded.)");
+      setMsg("warn", "Teacher skip used.");
     });
 
     // Name overlay flow
@@ -1096,14 +1308,17 @@
       previewStart.textContent = fmtLocal(startISO);
 
       overlay.style.display = "none";
-
-      // Start game
       restart();
     }
 
-    // Boot: show overlay first
+    // Boot
     overlay.style.display = "flex";
+
+    // Tiny UI cue for teacher mode
+    const modeBadge = document.getElementById("modeBadge");
+    modeBadge.textContent = TEACHER_MODE
+      ? "Teacher Mode • Perfect Run Required • Auto-Advance"
+      : "Perfect Run Required • Hints On Miss • Auto-Advance";
   </script>
 </body>
 </html>
-
