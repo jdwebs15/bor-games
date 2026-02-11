@@ -273,6 +273,7 @@
         <div class="pill">Scenario <b id="qNum">1</b>/<b id="qTotal">0</b></div>
         <div class="pill">Correct Chains <b id="correctCt">0</b></div>
         <div class="pill">Total Attempts <b id="attemptCt">0</b></div>
+        <div class="pill">Accuracy <b id="accPct">0</b>%</div>
         <div class="pill">This Scenario Attempts <b id="attemptThis">0</b></div>
         <div class="pill">Timer <b id="timeEl">0:00</b></div>
         <div class="pill">Now <b id="nowStamp">—</b></div>
@@ -499,6 +500,9 @@
     let streak = 0;
     let correctChains = 0;
 
+    // Accuracy: count correct "steps" (Stage 1 correct + Stage 2 correct)
+    let correctSteps = 0;
+
     let shuffleOn = true;
 
     // Timer
@@ -595,6 +599,10 @@
       el("qNum").textContent = String(idx+1);
       el("correctCt").textContent = String(correctChains);
       el("attemptCt").textContent = String(totalAttempts);
+
+      const acc = totalAttempts ? Math.round((correctSteps/totalAttempts)*100) : 0;
+      el("accPct").textContent = String(acc);
+
       el("attemptThis").textContent = String(scenarioAttempts);
       el("attemptBadge").textContent = `Attempt #: ${scenarioAttempts}`;
       el("streakBadge").textContent = `Streak: ${streak}`;
@@ -607,6 +615,7 @@
       updateStats();
 
       if(choice === card.amendment){
+        correctSteps++; // ✅ accuracy step
         stage = 2;
         el("stageBadge").textContent = "Stage: 2/2";
         el("stage1Choices").style.display = "none";
@@ -627,6 +636,7 @@
       updateStats();
 
       if(choice === card.fixCorrect){
+        correctSteps++; // ✅ accuracy step
         correctChains++;
         streak++;
         setFeedback("good","Correct Chain!","You identified the amendment and the fix. Read the explanation, then click Next.");
@@ -692,7 +702,13 @@
       el("btnHint").disabled = true;
 
       const elapsed = fmtTime(Date.now() - startTs);
-      setFeedback("good","Session Complete",`Correct chains: ${correctChains} • Attempts: ${totalAttempts} • Time: ${elapsed}. Click Restart to replay.`);
+      const acc = totalAttempts ? Math.round((correctSteps/totalAttempts)*100) : 0;
+
+      setFeedback(
+        "good",
+        "Session Complete",
+        `Correct chains: ${correctChains} • Attempts: ${totalAttempts} • Accuracy: ${acc}% • Time: ${elapsed}. Click Restart to replay.`
+      );
 
       el("scenarioText").textContent = "Finish! Replay to build automaticity: identify → fix → explain.";
       el("explainBox").style.display = "block";
@@ -710,6 +726,7 @@
       scenarioAttempts = 0;
       streak = 0;
       correctChains = 0;
+      correctSteps = 0;
 
       sessionStart = new Date();
       startTs = Date.now();
