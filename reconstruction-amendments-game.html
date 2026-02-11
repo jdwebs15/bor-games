@@ -94,7 +94,6 @@
     }
     .choice:hover{background: rgba(255,255,255,.075)}
     .choice:active{transform: scale(.99)}
-    .choice input{margin-top:3px}
     .choice .tag{
       width: 28px; height:28px; border-radius:10px;
       display:flex;align-items:center;justify-content:center;
@@ -216,7 +215,7 @@
       <div class="pill">Attempts: <strong id="attemptCount">0</strong></div>
       <div class="pill">Accuracy: <strong id="accuracy">0</strong>%</div>
       <div class="spacer"></div>
-      <button class="btn secondary" id="nextBtn" disabled>Next</button>
+      <!-- Next removed -->
     </div>
   </div>
 
@@ -242,8 +241,9 @@
     <div class="card">
       <h2 style="margin:0 0 10px 0;font-size:1.08rem;">Rules</h2>
       <ul class="tiny" style="margin:0 0 10px 18px;line-height:1.5;">
-        <li>Select an answer, then click <strong>Next</strong>.</li>
-        <li>If wrong: the question returns later until mastered.</li>
+        <li>Click an answer to submit.</li>
+        <li>If correct: auto-advances to the next question.</li>
+        <li>If wrong: you get a hint and retry immediately (the miss counts in accuracy).</li>
         <li>Teacher Mode shows an explanation only <strong>after a wrong answer</strong>.</li>
         <li>Submission summary appears only at <strong>100% accuracy</strong>.</li>
       </ul>
@@ -272,7 +272,8 @@ const shuffle = (arr) => {
   }
   return a;
 };
-const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+
+const AUTO_ADVANCE_MS = 450;
 
 /** =========================
  *  TIMER + TIMESTAMP SYSTEM
@@ -289,7 +290,7 @@ const Time = (() => {
     return d.toLocaleString([], { year:'numeric', month:'2-digit', day:'2-digit',
       hour:'2-digit', minute:'2-digit', second:'2-digit' });
   };
-  return { pad, fmtClock, fmtStamp };
+  return { fmtClock, fmtStamp };
 })();
 
 const Run = {
@@ -374,10 +375,9 @@ const Run = {
 
 /** =========================
  *  QUESTION BANK (CS9)
- *  24 items for 10+ minutes
+ *  (unchanged)
  *  ========================= */
 const QUESTIONS = [
-  // 13th Amendment: abolition + 10th Amendment “states' rights” trigger
   {
     id:"CS9-13A-1",
     prompt:"Which amendment abolished slavery nationwide?",
@@ -417,7 +417,6 @@ const QUESTIONS = [
     explain:"13th ends slavery. 14th defines citizenship/equal protection. 15th addresses voting rights based on race."
   },
 
-  // 14th Amendment: citizenship, due process, equal protection — response to Southern denial + Black Codes/Jim Crow
   {
     id:"CS9-14A-1",
     prompt:"Which amendment defined and extended citizenship to people born or naturalized in the U.S.?",
@@ -490,7 +489,6 @@ const QUESTIONS = [
     explain:"That’s the clean trigger chain: state abuse/denial → national constitutional protections."
   },
 
-  // 15th Amendment: voting rights (race) — response to Southern denial
   {
     id:"CS9-15A-1",
     prompt:"Which amendment prevents denying the right to vote based on race, color, or previous condition of servitude?",
@@ -530,7 +528,6 @@ const QUESTIONS = [
     explain:"The 15th existed, but Jim Crow-era barriers persisted for decades."
   },
 
-  // Mixed Reconstruction Amendment identification + struggle
   {
     id:"CS9-MIX-1",
     prompt:"Which set correctly matches the Reconstruction Amendments?",
@@ -620,11 +617,11 @@ const state = {
   i: 0,
   correct: 0,
   attempts: 0,
-  // track missed Qs so they recycle
   missedQueue: [],
-  answeredCorrectly: new Set(), // by question id
+  answeredCorrectly: new Set(),
   currentChoices: [],
-  selectedIndex: null
+  currentCorrectIndex: 0,
+  locked: false
 };
 
 function parseTeacherFromURL(){
@@ -635,8 +632,9 @@ function setTeacherMode(on){
   state.teacherMode = !!on;
   $("#toggleTeacherBtn").textContent = state.teacherMode ? "Teacher Mode: ON" : "Teacher Mode";
   $("#teacherPanel").classList.toggle("show", state.teacherMode);
-  Run.markAction("TEACHER_MODE", state.teacherMode ? "ON" : "OFF");
+  if(state.started) Run.markAction("TEACHER_MODE", state.teacherMode ? "ON" : "OFF");
 }
+
 function resetAll(){
   state.started=false;
   state.studentName="";
@@ -647,7 +645,8 @@ function resetAll(){
   state.missedQueue=[];
   state.answeredCorrectly = new Set();
   state.currentChoices=[];
-  state.selectedIndex=null;
+  state.currentCorrectIndex=0;
+  state.locked=false;
 
   $("#qNum").textContent="—";
   $("#qTotal").textContent="—";
@@ -658,7 +657,6 @@ function resetAll(){
   $("#choices").innerHTML="";
   $("#feedback").className="feedback";
   $("#feedback").style.display="none";
-  $("#nextBtn").disabled=true;
 
   $("#submissionBox").style.display="none";
   $("#submissionText").textContent="";
@@ -666,9 +664,9 @@ function resetAll(){
   $("#timeBox").style.display="none";
   $("#startCard").style.display="flex";
 }
+
 function accuracyPct(){
-  if(state.attempts===0) return 0;
-  return Math.round((state.correct/state.attempts)*100);
+  return state.attempts===0 ? 0 : Math.round((state.correct/state.attempts)*100);
 }
 function updateHud(){
   $("#qNum").textContent = state.started ? String(state.i+1) : "—";
@@ -677,32 +675,34 @@ function updateHud(){
   $("#attemptCount").textContent = String(state.attempts);
   $("#accuracy").textContent = String(accuracyPct());
 }
-function buildDeck(){
-  // We’ll shuffle and also ensure we have enough items for 10+ minutes.
-  // Wrong answers recycle via missedQueue.
-  state.deck = shuffle(QUESTIONS);
+function buildDeck(){ state.deck = shuffle(QUESTIONS); }
+
+function buildHint(q){
+  const p=(q.prompt||"").toLowerCase();
+
+  if(p.includes("abolish") || p.includes("slavery")) return "Hint: The first Reconstruction Amendment ends slavery.";
+  if(p.includes("citizenship") || p.includes("equal protection") || p.includes("due process")) return "Hint: The middle Reconstruction Amendment is citizenship + due process + equal protection.";
+  if(p.includes("vote") && (p.includes("race") || p.includes("color") || p.includes("servitude"))) return "Hint: The last Reconstruction Amendment is about voting rights and race.";
+  if(p.includes("jim crow") || p.includes("black codes")) return "Hint: Think which amendment was meant to stop states from denying legal protection/citizenship.";
+  if(p.includes("property") || p.includes("procedures")) return "Hint: Due process is the key phrase.";
+  return "Hint: 13th = ends slavery; 14th = citizenship/due process/equal protection; 15th = voting rights (race).";
 }
+
 function renderQuestion(){
   $("#feedback").className="feedback";
   $("#feedback").style.display="none";
   $("#fbTitle").textContent="";
   $("#fbText").textContent="";
-  $("#nextBtn").disabled=true;
-  state.selectedIndex = null;
+  state.locked=false;
 
   const q = state.deck[state.i];
   $("#prompt").textContent = q.prompt;
 
-  // Shuffle answer order each time
   const labeled = q.choices.map((t,idx)=>({ text:t, origIndex: idx }));
   const shuffled = shuffle(labeled);
-
-  // Find new correct index
-  const correctItem = shuffled.findIndex(x => x.origIndex === q.answer);
   state.currentChoices = shuffled;
-  state.currentCorrectIndex = correctItem;
+  state.currentCorrectIndex = shuffled.findIndex(x => x.origIndex === q.answer);
 
-  // render
   const letters = ["A","B","C","D"];
   $("#choices").innerHTML = "";
   shuffled.forEach((opt,idx)=>{
@@ -715,9 +715,9 @@ function renderQuestion(){
         <div style="font-weight:850">${opt.text}</div>
       </div>
     `;
-    div.addEventListener("click", ()=>selectChoice(idx));
+    div.addEventListener("click", ()=>grade(idx));
     div.addEventListener("keydown",(e)=>{
-      if(e.key==="Enter"||e.key===" "){ e.preventDefault(); selectChoice(idx); }
+      if(e.key==="Enter"||e.key===" "){ e.preventDefault(); grade(idx); }
     });
     $("#choices").appendChild(div);
   });
@@ -725,87 +725,72 @@ function renderQuestion(){
   Run.markQuestionShown(state.i, q.id || "CS9");
   updateHud();
 }
-function selectChoice(idx){
-  state.selectedIndex = idx;
-  const nodes = Array.from($("#choices").children);
-  nodes.forEach((n,i)=>{
-    n.classList.remove("correct","wrong");
-    if(i===idx) n.style.outline = "2px solid rgba(122,162,255,.55)";
-    else n.style.outline = "none";
-  });
-  $("#nextBtn").disabled=false;
-}
-function grade(){
+
+function grade(picked){
+  if(!state.started || state.locked) return;
+  state.locked=true;
+
   const q = state.deck[state.i];
   const letters = ["A","B","C","D"];
-  const picked = state.selectedIndex;
   const correct = state.currentCorrectIndex;
 
-  if(picked==null) return;
-
+  // attempt counts ONLY on answer click
   state.attempts += 1;
-
-  const nodes = Array.from($("#choices").children);
-  nodes.forEach((n,i)=>n.style.outline="none");
-
-  const pickedText = state.currentChoices[picked].text;
-  const correctText = state.currentChoices[correct].text;
+  updateHud();
 
   const isCorrect = picked === correct;
 
-  // mark UI
+  const nodes = Array.from($("#choices").children);
   nodes.forEach((node, idx)=>{
     node.classList.remove("correct","wrong");
     if(idx===correct) node.classList.add("correct");
     if(idx===picked && !isCorrect) node.classList.add("wrong");
   });
 
-  // log
   Run.recordAnswer({
     qIndex: state.i,
     prompt: q.prompt,
     choiceLabel: letters[picked],
-    choiceText: pickedText,
+    choiceText: state.currentChoices[picked].text,
     isCorrect,
     correctLabel: letters[correct],
     reasonText: q.explain || ""
   });
 
+  $("#feedback").style.display="block";
+
   if(isCorrect){
     state.correct += 1;
     state.answeredCorrectly.add(q.id);
 
-    $("#feedback").className = "feedback good";
-    $("#feedback").style.display="block";
+    $("#feedback").className="feedback good";
     $("#fbTitle").textContent = "Correct ✅";
-    $("#fbText").textContent = "Nice. Click Next.";
+    $("#fbText").textContent = "Next question…";
+
+    updateHud();
+    maybeUnlockSubmission();
+
+    setTimeout(()=>next(), AUTO_ADVANCE_MS);
 
   } else {
-    // recycle the question later
     state.missedQueue.push(q);
 
-    $("#feedback").className = "feedback bad";
-    $("#feedback").style.display="block";
+    $("#feedback").className="feedback bad";
     $("#fbTitle").textContent = "Incorrect ❌";
+    const hint = buildHint(q);
 
-    // Explanation only after wrong AND only when teacher mode ON
-    if(state.teacherMode){
-      $("#fbText").textContent = `Explanation: ${q.explain}`;
-    } else {
-      $("#fbText").textContent = "Try again later. Click Next.";
-    }
+    $("#fbText").textContent = state.teacherMode
+      ? `Hint: ${hint}\nExplanation: ${q.explain}`
+      : `Hint: ${hint}`;
+
+    maybeUnlockSubmission();
+    state.locked=false; // allow retry immediately
   }
-
-  // if at 100% and all items have been answered correctly at least once (no mastery gaps)
-  updateHud();
-  maybeUnlockSubmission();
 }
+
 function maybeUnlockSubmission(){
   const acc = accuracyPct();
-  const masteredCount = state.answeredCorrectly.size;
-  const totalUnique = QUESTIONS.length;
-
-  if(acc === 100 && masteredCount === totalUnique){
+  if(acc === 100 && state.answeredCorrectly.size === QUESTIONS.length){
     $("#submissionBox").style.display="block";
     $("#submissionText").textContent = Run.buildSummary({
       studentName: state.studentName,
@@ -815,15 +800,10 @@ function maybeUnlockSubmission(){
     });
   }
 }
-function next(){
-  // If there are missed questions queued, cycle them in AFTER progressing through base deck
-  // This makes it “10+ min” and ensures mastery is required.
-  $("#nextBtn").disabled=true;
 
-  // If we are at end of the main deck, append missedQueue items (unique order shuffle)
+function next(){
   if(state.i >= state.deck.length - 1){
     if(state.missedQueue.length > 0){
-      // Rebuild a new run: missed items only (shuffle) and clear queue.
       const missed = state.missedQueue.slice();
       state.missedQueue = [];
       state.deck = shuffle(missed);
@@ -831,7 +811,6 @@ function next(){
       renderQuestion();
       return;
     } else {
-      // If no missed, just loop a random question until they hit 100% (if not already)
       state.deck = shuffle(QUESTIONS);
       state.i = 0;
       renderQuestion();
@@ -875,28 +854,17 @@ $("#resetBtn").addEventListener("click", ()=>{
     location.reload();
   }
 });
-$("#nextBtn").addEventListener("click", ()=>{
-  if(!state.started) return;
-  if(state.selectedIndex == null) return;
-  grade();
-  // After grading, Next becomes enabled again to move on.
-  $("#nextBtn").disabled=false;
-  // But clicking Next again should move to next question
-  $("#nextBtn").onclick = () => { $("#nextBtn").onclick=null; next(); };
-});
+$("#toggleTeacherBtn").addEventListener("click", ()=>setTeacherMode(!state.teacherMode));
 
-$("#toggleTeacherBtn").addEventListener("click", ()=>{
-  setTeacherMode(!state.teacherMode);
-});
 window.addEventListener("keydown",(e)=>{
   if(e.shiftKey && e.key.toLowerCase()==="t"){
     setTeacherMode(!state.teacherMode);
-    const msg = state.teacherMode ? "Teacher Mode ON" : "Teacher Mode OFF";
-    $("#fbTitle").textContent = msg;
   }
-  // Keyboard answer shortcuts 1-4
-  if(state.started && ["1","2","3","4"].includes(e.key)){
-    selectChoice(parseInt(e.key,10)-1);
+  if(!state.started || state.locked) return;
+
+  // Keyboard answer shortcuts 1-4 submit immediately
+  if(["1","2","3","4"].includes(e.key)){
+    grade(parseInt(e.key,10)-1);
   }
 });
 
