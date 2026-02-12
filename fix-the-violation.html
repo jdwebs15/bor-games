@@ -90,6 +90,41 @@
       padding:14px;
     }
 
+    /* Name gate */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(3,6,14,.78);
+      display:flex; align-items:center; justify-content:center;
+      padding:18px;
+      z-index:9999;
+      backdrop-filter: blur(6px);
+    }
+    .gate{
+      width:min(680px,100%);
+      border:1px solid var(--border);
+      border-radius: 20px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.30));
+      box-shadow: var(--shadow);
+      padding:16px;
+    }
+    .gate h2{margin:0 0 6px; font-size:18px}
+    .gate p{margin:0 0 14px; color:var(--muted); font-size:13px; line-height:1.35}
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    input[type="text"]{
+      flex:1 1 280px;
+      padding:12px 12px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      font-size: 14px;
+      outline:none;
+    }
+    input[type="text"]::placeholder{ color: rgba(231,238,252,.45); }
+    .tiny{ margin-top:10px; color: rgba(231,238,252,.65); font-size:11.5px; }
+
     .scenario{
       background: linear-gradient(180deg, rgba(255,92,122,.10), rgba(0,0,0,.18));
       border:1px solid rgba(255,92,122,.20);
@@ -256,10 +291,46 @@
       font-size: 12px;
     }
     .linkish{color: rgba(231,238,252,.75); text-decoration: underline; cursor:pointer;}
+
+    /* Submission screen */
+    .submitBox{
+      margin-top:12px;
+      display:none;
+      border-radius:14px;
+      border:1px solid rgba(122,162,255,.35);
+      background: linear-gradient(180deg, rgba(122,162,255,.12), rgba(0,0,0,.18));
+      padding:12px;
+    }
+    .submitBox h3{margin:0 0 8px;font-size:14px}
+    .codeRow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .code{
+      font-family: var(--mono);
+      font-size: 13px;
+      padding:10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      user-select: all;
+    }
   </style>
 </head>
 <body>
-  <div class="app">
+
+  <!-- NAME GATE -->
+  <div class="overlay" id="nameOverlay" aria-modal="true" role="dialog">
+    <div class="gate">
+      <h2>Enter your name to start</h2>
+      <p>This game requires <b>100% accuracy</b> (no missed attempts) to unlock the submission screen.</p>
+      <div class="row">
+        <input id="studentName" type="text" placeholder="First & last name" autocomplete="name" maxlength="40" />
+        <button class="good" id="btnStart">Start</button>
+      </div>
+      <div class="tiny">Tip: If you miss even once, restart to earn mastery.</div>
+    </div>
+  </div>
+
+  <div class="app" id="appRoot" style="filter:none">
     <header>
       <div>
         <h1>Bill of Rights — Fix the Violation</h1>
@@ -270,6 +341,7 @@
       </div>
 
       <div class="stats">
+        <div class="pill">Name <b id="namePill">—</b></div>
         <div class="pill">Scenario <b id="qNum">1</b>/<b id="qTotal">0</b></div>
         <div class="pill">Correct Chains <b id="correctCt">0</b></div>
         <div class="pill">Total Attempts <b id="attemptCt">0</b></div>
@@ -299,7 +371,6 @@
           <button class="primary" id="btnHint">Hint</button>
           <button id="btnSkip">Teacher Skip</button>
           <button id="btnRestart">Restart</button>
-          <button class="good" id="btnNext" style="display:none">Next Scenario</button>
         </div>
 
         <div class="feedback" id="feedback">
@@ -310,11 +381,26 @@
           </div>
         </div>
 
+        <!-- ONLY shows for 3 seconds after an initially-correct Stage 2 answer -->
         <div class="explain" id="explainBox">
           <h3 id="explainTitle">Explanation</h3>
           <div class="grid" id="explainGrid"></div>
           <div class="mini" id="explainMini"></div>
         </div>
+
+        <!-- Submission screen: ONLY if 100% with no errors -->
+        <div class="submitBox" id="submitBox">
+          <h3>✅ Mastery Achieved — Submission</h3>
+          <div class="help" id="submitSummary" style="margin:0 0 10px">
+            You earned 100% accuracy with no missed attempts.
+          </div>
+          <div class="codeRow">
+            <div class="code" id="submitCode">CODE-—</div>
+            <button class="primary" id="btnCopyCode">Copy Code</button>
+          </div>
+          <div class="mini" id="submitMini"></div>
+        </div>
+
       </section>
 
       <aside class="card sidebar">
@@ -380,7 +466,7 @@
       { key:"10", label:"10th" },
     ];
 
-    // Violation scenarios + best fix
+    // 24 scenarios (20–25 target) — each has amendment + best fix + explanation
     const scenarioBank = [
       {
         scenario: "Police search a student’s backpack and phone with no warrant and no probable cause—just a hunch.",
@@ -393,7 +479,39 @@
         ],
         right: "Protection against unreasonable search and seizure; warrants require probable cause.",
         beliefTie: "The 4th Amendment limits federal/state police power by requiring probable cause and (usually) warrants.",
-        why: "The fix is to follow the warrant/probable cause rule instead of random searches."
+        why: "The fix is to follow the warrant/probable cause rule instead of random searches.",
+        hintS1: "Search/warrant/probable cause points to the 4th Amendment.",
+        hintS2: "Choose the option that requires probable cause and (usually) a warrant—not permission slips or random searches."
+      },
+      {
+        scenario: "Officers stop a driver for a broken taillight, then search the trunk with no consent, no probable cause, and no warrant.",
+        amendment: "4",
+        fixCorrect: "Limit the search: police need probable cause (and often a warrant) or a valid exception—otherwise no trunk search.",
+        fixChoices: [
+          "Limit the search: police need probable cause (and often a warrant) or a valid exception—otherwise no trunk search.",
+          "Allow a full vehicle search during any traffic stop, no questions asked.",
+          "Search only if the officer is curious about what might be inside."
+        ],
+        right: "Protection against unreasonable searches; probable cause and exceptions matter.",
+        beliefTie: "The 4th Amendment restricts government searches so police power isn’t unlimited.",
+        why: "A minor traffic stop alone doesn’t automatically justify a trunk search.",
+        hintS1: "Vehicle search rules still fall under the 4th Amendment.",
+        hintS2: "Pick the choice that requires probable cause/warrant/exception—not curiosity."
+      },
+      {
+        scenario: "School officials open a student’s locked locker because they heard a rumor, but they have no specific evidence connecting that student.",
+        amendment: "4",
+        fixCorrect: "Require reasonable justification tied to the student; don’t search based only on vague rumors with no specific basis.",
+        fixChoices: [
+          "Require reasonable justification tied to the student; don’t search based only on vague rumors with no specific basis.",
+          "Search every locker every day to prevent any possible wrongdoing.",
+          "Only search students who complain about the search."
+        ],
+        right: "Protection against unreasonable searches; evidence-based justification.",
+        beliefTie: "The 4th Amendment limits searches by requiring a real basis, not generalized suspicion.",
+        why: "Search authority still needs a specific reason—random fishing expeditions violate privacy protections.",
+        hintS1: "This is a search justification issue → 4th Amendment.",
+        hintS2: "Choose the option that requires a specific, reasonable basis."
       },
       {
         scenario: "A prosecutor puts a person on trial again for the same crime after the jury already found them not guilty.",
@@ -406,7 +524,24 @@
         ],
         right: "Protection against double jeopardy.",
         beliefTie: "The 5th Amendment limits government by preventing repeated prosecutions and forcing self-incrimination.",
-        why: "Once acquitted, the government cannot try the same person again for that offense."
+        why: "Once acquitted, the government cannot try the same person again for that offense.",
+        hintS1: "A second trial after acquittal = double jeopardy (5th).",
+        hintS2: "Pick the choice that ends the case after acquittal."
+      },
+      {
+        scenario: "A defendant is charged and the police keep questioning after the defendant clearly says, 'I want a lawyer,' until they 'give in.'",
+        amendment: "5",
+        fixCorrect: "Stop custodial interrogation once counsel is requested; questioning must respect constitutional protections and voluntariness.",
+        fixChoices: [
+          "Stop custodial interrogation once counsel is requested; questioning must respect constitutional protections and voluntariness.",
+          "Keep questioning until the suspect becomes too tired to resist.",
+          "Promise freedom only if the suspect signs a confession."
+        ],
+        right: "Protection from compelled self-incrimination; protections during interrogation.",
+        beliefTie: "The 5th Amendment limits government pressure tactics and protects due process.",
+        why: "Continuing coercive questioning after counsel is requested undermines voluntariness and constitutional safeguards.",
+        hintS1: "Interrogation/forced statements point to 5th Amendment protections.",
+        hintS2: "Choose the option that stops coercive questioning and respects counsel request."
       },
       {
         scenario: "During interrogation, officers threaten a suspect with harm unless they confess, and the suspect signs a confession to make it stop.",
@@ -419,7 +554,24 @@
         ],
         right: "No compelled self-incrimination.",
         beliefTie: "The 5th Amendment protects civil liberties by limiting government pressure during criminal investigations.",
-        why: "Coerced confessions violate the self-incrimination protection and due process."
+        why: "Coerced confessions violate the self-incrimination protection and due process.",
+        hintS1: "Threats to force a confession = 5th Amendment issue.",
+        hintS2: "Pick the option that makes statements voluntary and bans coercion."
+      },
+      {
+        scenario: "A court orders a person to testify about a crime they may have committed, and threatens jail if they refuse.",
+        amendment: "5",
+        fixCorrect: "Respect the right against self-incrimination; the person cannot be forced to provide testimony that could incriminate them.",
+        fixChoices: [
+          "Respect the right against self-incrimination; the person cannot be forced to provide testimony that could incriminate them.",
+          "Force testimony anyway because the court demands it.",
+          "Punish refusal by adding extra criminal charges automatically."
+        ],
+        right: "Right against self-incrimination.",
+        beliefTie: "The 5th Amendment limits government power by preventing compelled incriminating testimony.",
+        why: "The government cannot require a person to incriminate themselves.",
+        hintS1: "Being forced to testify about your own crime = 5th.",
+        hintS2: "Choose the option that protects against compelled incriminating testimony."
       },
       {
         scenario: "A defendant is charged with a serious crime but is not allowed a lawyer, even though they cannot afford one.",
@@ -432,7 +584,24 @@
         ],
         right: "Right to counsel.",
         beliefTie: "The 6th Amendment limits government power by guaranteeing fair-trial protections in criminal cases.",
-        why: "A fair trial requires counsel when the defendant cannot afford one."
+        why: "A fair trial requires counsel when the defendant cannot afford one.",
+        hintS1: "No lawyer in a criminal case = 6th Amendment counsel.",
+        hintS2: "Pick the choice that guarantees counsel."
+      },
+      {
+        scenario: "A person sits in jail for years awaiting trial because the court keeps delaying without a strong reason.",
+        amendment: "6",
+        fixCorrect: "Provide a speedy trial; courts must move cases forward and cannot delay indefinitely without justification.",
+        fixChoices: [
+          "Provide a speedy trial; courts must move cases forward and cannot delay indefinitely without justification.",
+          "Delay the trial until public attention disappears.",
+          "Skip the trial and sentence immediately."
+        ],
+        right: "Right to a speedy trial.",
+        beliefTie: "The 6th Amendment prevents government from punishing by delay and protects fair process.",
+        why: "Long, unjustified delays undermine fairness and pressure defendants unfairly.",
+        hintS1: "Delays before trial = 6th Amendment speedy trial.",
+        hintS2: "Choose the option that requires timely proceedings."
       },
       {
         scenario: "At trial, the judge refuses to let the defense question the key witness who accuses the defendant.",
@@ -445,7 +614,39 @@
         ],
         right: "Right to confront accusers.",
         beliefTie: "The 6th Amendment limits government by requiring a fair process where accusations can be tested in court.",
-        why: "Confrontation is essential to evaluate credibility and accuracy."
+        why: "Confrontation is essential to evaluate credibility and accuracy.",
+        hintS1: "Questioning witnesses = confrontation (6th).",
+        hintS2: "Pick the choice that allows cross-examination."
+      },
+      {
+        scenario: "A judge holds a criminal trial in secret and refuses to allow the public or press to attend without a safety reason.",
+        amendment: "6",
+        fixCorrect: "Hold a public trial unless a narrow, lawful reason requires limited closure; transparency protects fairness.",
+        fixChoices: [
+          "Hold a public trial unless a narrow, lawful reason requires limited closure; transparency protects fairness.",
+          "Make all trials secret so the public can’t criticize outcomes.",
+          "Allow only the prosecution’s family to attend."
+        ],
+        right: "Right to a public trial.",
+        beliefTie: "The 6th Amendment helps prevent abuse by requiring transparency in criminal trials.",
+        why: "Public trials reduce corruption and help ensure accountability.",
+        hintS1: "Public vs secret trial = 6th Amendment.",
+        hintS2: "Choose the option that keeps trials public except for narrow legal reasons."
+      },
+      {
+        scenario: "A defendant is brought to trial but is never told exactly what charges they are facing until the day of trial.",
+        amendment: "6",
+        fixCorrect: "Inform the accused of the nature and cause of the accusation in advance so they can prepare a defense.",
+        fixChoices: [
+          "Inform the accused of the nature and cause of the accusation in advance so they can prepare a defense.",
+          "Keep charges vague to make conviction easier.",
+          "Let the prosecutor change charges mid-trial with no notice."
+        ],
+        right: "Right to be informed of charges.",
+        beliefTie: "The 6th Amendment limits government by requiring clear notice and fair preparation time.",
+        why: "You can’t defend yourself if you don’t know what you’re accused of.",
+        hintS1: "Not told charges = 6th Amendment.",
+        hintS2: "Pick the choice that guarantees clear notice of charges."
       },
       {
         scenario: "A city punishes a citizen for peacefully criticizing the mayor online, even though it caused no disruption.",
@@ -458,7 +659,84 @@
         ],
         right: "Freedom of speech (no viewpoint-based punishment).",
         beliefTie: "The 1st Amendment protects civil liberties by limiting government censorship and retaliation.",
-        why: "The fix is to protect criticism and avoid viewpoint discrimination."
+        why: "The fix is to protect criticism and avoid viewpoint discrimination.",
+        hintS1: "Punished for criticism = 1st Amendment speech.",
+        hintS2: "Choose the option that stops viewpoint punishment."
+      },
+      {
+        scenario: "A school bans a student newspaper from printing an article that criticizes school policy, without evidence it would cause disruption.",
+        amendment: "1",
+        fixCorrect: "Allow protected press; restrictions must be narrow and justified—not censorship of criticism.",
+        fixChoices: [
+          "Allow protected press; restrictions must be narrow and justified—not censorship of criticism.",
+          "Ban any article that questions authority.",
+          "Require the paper to publish only positive stories about the school."
+        ],
+        right: "Freedom of the press.",
+        beliefTie: "The 1st Amendment limits government control over information and criticism.",
+        why: "Censoring criticism without a strong, lawful reason violates press freedom principles.",
+        hintS1: "Newspaper/printing = 1st Amendment (press).",
+        hintS2: "Pick the choice that allows press unless there’s a narrow, lawful justification."
+      },
+      {
+        scenario: "The city requires a permit to hold a peaceful march, but denies permits only to groups with unpopular views.",
+        amendment: "1",
+        fixCorrect: "Use viewpoint-neutral rules: permits must be applied fairly to all groups (time/place/manner), not based on beliefs.",
+        fixChoices: [
+          "Use viewpoint-neutral rules: permits must be applied fairly to all groups (time/place/manner), not based on beliefs.",
+          "Deny permits to groups the mayor disagrees with.",
+          "Allow marches only if speakers praise the government."
+        ],
+        right: "Freedom of assembly; no viewpoint discrimination.",
+        beliefTie: "The 1st Amendment limits officials from picking winners/losers in public debate.",
+        why: "Government can regulate logistics, but not based on viewpoint.",
+        hintS1: "March/permit/assembly = 1st Amendment.",
+        hintS2: "Pick the option that uses neutral rules, not viewpoint-based denials."
+      },
+      {
+        scenario: "A town passes a law banning people from attending any religious service on weekends.",
+        amendment: "1",
+        fixCorrect: "Remove the ban; government cannot prohibit the free exercise of religion (and must remain neutral toward religion).",
+        fixChoices: [
+          "Remove the ban; government cannot prohibit the free exercise of religion (and must remain neutral toward religion).",
+          "Allow the ban because the town wants people to work more.",
+          "Require all residents to attend only one approved religion."
+        ],
+        right: "Free exercise of religion.",
+        beliefTie: "The 1st Amendment limits government interference with religious practice.",
+        why: "Government cannot forbid religious worship in a broad, discriminatory way.",
+        hintS1: "Banning religious service = 1st Amendment (religion).",
+        hintS2: "Pick the option that restores free exercise and neutrality."
+      },
+      {
+        scenario: "A public school forces students to participate in a prayer led by a teacher.",
+        amendment: "1",
+        fixCorrect: "Stop school-sponsored prayer; government institutions must not establish or endorse religion.",
+        fixChoices: [
+          "Stop school-sponsored prayer; government institutions must not establish or endorse religion.",
+          "Require prayer because it 'builds character.'",
+          "Punish students who choose not to pray."
+        ],
+        right: "No establishment of religion; freedom of conscience.",
+        beliefTie: "The 1st Amendment prevents government from promoting religion through official action.",
+        why: "Public schools are government institutions; they cannot sponsor religious exercises.",
+        hintS1: "School-led prayer = 1st Amendment establishment issue.",
+        hintS2: "Pick the choice that ends government-sponsored religious activity."
+      },
+      {
+        scenario: "Police arrest a person for handing out flyers criticizing a new law on the sidewalk in front of city hall.",
+        amendment: "1",
+        fixCorrect: "Allow peaceful political expression in public spaces; any restrictions must be content-neutral and narrowly tailored.",
+        fixChoices: [
+          "Allow peaceful political expression in public spaces; any restrictions must be content-neutral and narrowly tailored.",
+          "Ban any criticism near government buildings.",
+          "Require speakers to praise the government to be allowed."
+        ],
+        right: "Freedom of speech and petition.",
+        beliefTie: "The 1st Amendment limits government retaliation and protects civic participation.",
+        why: "Political speech is highly protected; public sidewalks are classic public forums.",
+        hintS1: "Flyers/criticism/petitioning government = 1st Amendment.",
+        hintS2: "Pick the option that protects political speech with neutral time/place/manner rules."
       },
       {
         scenario: "A judge sets extremely high bail for a minor nonviolent offense specifically to keep the accused jailed before trial.",
@@ -471,7 +749,39 @@
         ],
         right: "Protection against excessive bail.",
         beliefTie: "The 8th Amendment limits government punishment power (excessive bail, cruel/unusual punishment).",
-        why: "Bail cannot be used as pre-trial punishment."
+        why: "Bail cannot be used as pre-trial punishment.",
+        hintS1: "Bail issue = 8th Amendment.",
+        hintS2: "Pick the choice that sets non-excessive bail for lawful reasons."
+      },
+      {
+        scenario: "A court sentences a teen to an extreme, harsh punishment for a minor offense mainly to 'make an example' out of them.",
+        amendment: "8",
+        fixCorrect: "Ensure punishments are proportional; avoid cruel or unusual penalties that are far harsher than the offense.",
+        fixChoices: [
+          "Ensure punishments are proportional; avoid cruel or unusual penalties that are far harsher than the offense.",
+          "Increase punishments as much as possible to scare others.",
+          "Punish based on the judge’s personal anger, not the law."
+        ],
+        right: "Protection against cruel and unusual punishment; proportionality principles.",
+        beliefTie: "The 8th Amendment limits punishment power so penalties aren’t barbaric or grossly disproportionate.",
+        why: "Punishment must fit the crime; extreme penalties for minor offenses raise 8th Amendment concerns.",
+        hintS1: "Harsh punishment/proportionality = 8th Amendment.",
+        hintS2: "Pick the option that makes punishment proportional and not excessive."
+      },
+      {
+        scenario: "A jail denies medical care to inmates as a 'lesson,' even when it causes serious harm.",
+        amendment: "8",
+        fixCorrect: "Provide humane conditions and necessary medical care; punishment cannot be cruel or deliberately harmful.",
+        fixChoices: [
+          "Provide humane conditions and necessary medical care; punishment cannot be cruel or deliberately harmful.",
+          "Deny care to increase suffering and deter crime.",
+          "Only provide care if inmates can pay cash up front."
+        ],
+        right: "Protection against cruel and unusual punishment (humane treatment).",
+        beliefTie: "The 8th Amendment limits government’s power over people in custody.",
+        why: "Deliberate denial of basic care is cruel and undermines humane standards.",
+        hintS1: "Cruel jail conditions = 8th Amendment.",
+        hintS2: "Pick the option that requires humane treatment and needed care."
       },
       {
         scenario: "Congress orders states to run local school rules exactly as the federal government dictates, even though the Constitution does not delegate that power.",
@@ -484,9 +794,44 @@
         ],
         right: "Reserved powers to the states or the people.",
         beliefTie: "The 10th Amendment limits federal power by reserving non-delegated powers to states/people.",
-        why: "The fix is to respect federalism and delegated powers."
+        why: "The fix is to respect federalism and delegated powers.",
+        hintS1: "Federal commandeering state policy = 10th Amendment federalism.",
+        hintS2: "Pick the choice that respects reserved powers and limits federal control."
+      },
+      {
+        scenario: "A federal agency tells a state governor to enforce a new federal policy using state police, even though the state refuses and the Constitution doesn’t require it.",
+        amendment: "10",
+        fixCorrect: "Respect state choice: the federal government cannot force state officials to carry out federal programs (no commandeering).",
+        fixChoices: [
+          "Respect state choice: the federal government cannot force state officials to carry out federal programs (no commandeering).",
+          "Order the state to comply with any federal demand, no matter what.",
+          "Arrest the governor for disagreeing with the policy."
+        ],
+        right: "Federalism limits; powers not delegated are reserved.",
+        beliefTie: "The 10th Amendment limits federal authority over state governments.",
+        why: "The federal government cannot compel state officials to administer federal programs.",
+        hintS1: "Forcing state officials to enforce federal policy = 10th.",
+        hintS2: "Pick the option that respects state autonomy under federalism."
+      },
+      {
+        scenario: "A state bans all handguns for law-abiding adults in their homes, even when the purpose is self-defense.",
+        amendment: "2",
+        fixCorrect: "Allow law-abiding individuals to keep and bear arms consistent with constitutional limits; do not impose a total ban on common arms for lawful self-defense.",
+        fixChoices: [
+          "Allow law-abiding individuals to keep and bear arms consistent with constitutional limits; do not impose a total ban on common arms for lawful self-defense.",
+          "Ban all firearms everywhere with no exceptions.",
+          "Allow firearms only for government officials, not ordinary citizens."
+        ],
+        right: "Right to keep and bear arms (subject to lawful regulation).",
+        beliefTie: "The 2nd Amendment limits government power to ban common lawful possession outright.",
+        why: "A total ban on common arms for lawful self-defense conflicts with 2nd Amendment protections.",
+        hintS1: "Gun ban/self-defense at home points to the 2nd Amendment.",
+        hintS2: "Pick the choice that avoids an outright total ban on common lawful possession."
       }
     ];
+
+    // Ensure we are in the requested 20–25 range (already 24).
+    // You can add more later without touching game logic.
 
     /**********************
      * STATE
@@ -495,15 +840,18 @@
     let idx = 0;
 
     let stage = 1; // 1=amendment, 2=fix
-    let totalAttempts = 0;
+    let totalAttempts = 0;     // counts every click attempt, correct or not (accuracy denominator)
     let scenarioAttempts = 0;
     let streak = 0;
     let correctChains = 0;
-
-    // Accuracy: count correct "steps" (Stage 1 correct + Stage 2 correct)
-    let correctSteps = 0;
+    let correctSteps = 0;      // counts ONLY correct attempts (accuracy numerator)
 
     let shuffleOn = true;
+
+    // Name + mastery state
+    let studentName = "";
+    let everMissed = false;      // once true, mastery cannot be reached without restart
+    let explainTimer = null;
 
     // Timer
     let sessionStart = new Date();
@@ -514,24 +862,73 @@
     const el = (id) => document.getElementById(id);
 
     function init(){
-      buildDeck();
-      el("qTotal").textContent = String(scenarioBank.length);
+      // Gate the game behind name entry
+      el("btnStart").onclick = startFromGate;
+      el("studentName").addEventListener("keydown", (e)=>{
+        if(e.key === "Enter") startFromGate();
+      });
 
-      el("startStamp").textContent = fmtDateTime(sessionStart);
+      // Prep stamps (will re-stamp at start)
+      el("startStamp").textContent = "—";
       el("nowStamp").textContent = fmtDateTime(new Date());
 
+      // Disable play area until started
+      setAppEnabled(false);
+
+      // Wire always-available UI
+      el("btnHint").onclick = showHint;
+      el("btnSkip").onclick = teacherSkip;
+      el("btnRestart").onclick = restart;
+      el("toggleShuffle").onclick = toggleShuffle;
+      el("btnCopyCode").onclick = copySubmission;
+
+      // Build + render buttons now (safe), but game won't proceed until start
       renderButtons();
-      wireUI();
+
+      // Keep the "Now" clock running even on gate
+      startNowClock();
+    }
+
+    function startFromGate(){
+      const raw = (el("studentName").value || "").trim();
+      if(!raw){
+        el("studentName").focus();
+        return;
+      }
+      studentName = raw.replace(/\s+/g," ").slice(0,40);
+      el("namePill").textContent = studentName;
+
+      // Close overlay
+      el("nameOverlay").style.display = "none";
+
+      // Start session timers
+      sessionStart = new Date();
+      startTs = Date.now();
+      el("startStamp").textContent = fmtDateTime(sessionStart);
+
+      // Enable app
+      setAppEnabled(true);
+
+      // Build deck and start
+      buildDeck();
+      el("qTotal").textContent = String(deck.length);
+
       startTimers();
       render();
     }
 
-    function wireUI(){
-      el("btnHint").onclick = showHint;
-      el("btnSkip").onclick = teacherSkip;
-      el("btnRestart").onclick = restart;
-      el("btnNext").onclick = nextScenario;
-      el("toggleShuffle").onclick = toggleShuffle;
+    function setAppEnabled(on){
+      // simple UX: dim & disable pointer events
+      const root = el("appRoot");
+      root.style.opacity = on ? "1" : "0.55";
+      root.style.pointerEvents = on ? "auto" : "none";
+      // allow overlay regardless
+      el("nameOverlay").style.pointerEvents = "auto";
+    }
+
+    function startNowClock(){
+      if(nowId) clearInterval(nowId);
+      nowId = setInterval(()=> el("nowStamp").textContent = fmtDateTime(new Date()), 1000);
     }
 
     function buildDeck(){
@@ -560,7 +957,7 @@
     function renderFixButtons(card){
       const s2 = el("stage2Choices");
       s2.innerHTML = "";
-      // shuffle choices so students can't memorize position
+      // shuffle fix choices so students can't memorize position
       const choices = [...card.fixChoices];
       for(let k=choices.length-1;k>0;k--){
         const j = Math.floor(Math.random()*(k+1));
@@ -575,6 +972,8 @@
     }
 
     function render(){
+      clearExplain();
+
       const card = deck[idx];
 
       stage = 1;
@@ -588,8 +987,9 @@
 
       el("stage1Choices").style.display = "grid";
       el("stage2Choices").style.display = "none";
-      el("btnNext").style.display = "none";
-      el("explainBox").style.display = "none";
+
+      el("btnHint").disabled = false;
+      el("btnSkip").disabled = false;
 
       setFeedback("warn","Directions","Stage 1: Identify the amendment being violated.");
       updateStats();
@@ -606,135 +1006,234 @@
       el("attemptThis").textContent = String(scenarioAttempts);
       el("attemptBadge").textContent = `Attempt #: ${scenarioAttempts}`;
       el("streakBadge").textContent = `Streak: ${streak}`;
+
+      // If they have ever missed, mastery cannot be reached without restart
+      if(everMissed){
+        // No nag banner here; just ensure submission won't appear.
+      }
     }
+
+    function disableChoices(){
+      [...el("stage1Choices").querySelectorAll("button")].forEach(b=>b.disabled=true);
+      [...el("stage2Choices").querySelectorAll("button")].forEach(b=>b.disabled=true);
+    }
+    function enableChoices(){
+      [...el("stage1Choices").querySelectorAll("button")].forEach(b=>b.disabled=false);
+      [...el("stage2Choices").querySelectorAll("button")].forEach(b=>b.disabled=false);
+    }
+
+    /**********************
+     * REQUIRED BEHAVIOR
+     * - Correct: move to next question automatically, with 3s explanation ONLY when initially correct
+     * - Incorrect: show hint to help correct, but accuracy reflects missed attempt
+     * - Submission screen ONLY if 100% with NO errors
+     **********************/
 
     function answerStage1(choice){
       const card = deck[idx];
+
       totalAttempts++;
       scenarioAttempts++;
-      updateStats();
+      const wasCorrect = (choice === card.amendment);
 
-      if(choice === card.amendment){
-        correctSteps++; // ✅ accuracy step
+      if(wasCorrect){
+        correctSteps++; // accuracy numerator
         stage = 2;
         el("stageBadge").textContent = "Stage: 2/2";
         el("stage1Choices").style.display = "none";
         el("stage2Choices").style.display = "grid";
         renderFixButtons(card);
+
         setFeedback("good","Stage 1 Correct","Now Stage 2: Choose the best fix (what must the government do instead).");
       } else {
+        everMissed = true;
         streak = 0;
-        setFeedback("bad","Try again","Identify the RIGHT being violated, then match it to the amendment.");
+        // show a helpful hint automatically (as requested)
+        const h = card.hintS1 || "Hint: Identify the right being violated first, then match the amendment.";
+        setFeedback("bad","Incorrect — Hint", h);
       }
+
       updateStats();
     }
 
     function answerStage2(choice){
       const card = deck[idx];
+
       totalAttempts++;
       scenarioAttempts++;
-      updateStats();
 
-      if(choice === card.fixCorrect){
-        correctSteps++; // ✅ accuracy step
+      const wasCorrect = (choice === card.fixCorrect);
+
+      if(wasCorrect){
+        correctSteps++;  // accuracy numerator
         correctChains++;
         streak++;
-        setFeedback("good","Correct Chain!","You identified the amendment and the fix. Read the explanation, then click Next.");
+
+        // ✅ 3-second explanation ONLY on initially-correct Stage 2 completion
         showExplanation(card);
-        el("btnNext").style.display = "inline-block";
+
+        // Disable clicking while explanation is visible, then auto-advance
+        disableChoices();
+        el("btnHint").disabled = true;
+        el("btnSkip").disabled = true;
+
+        // Move directly to next question after 3 seconds
+        explainTimer = setTimeout(()=>{
+          clearExplain();
+          enableChoices();
+          el("btnHint").disabled = false;
+          el("btnSkip").disabled = false;
+
+          // Advance
+          if(idx < deck.length - 1){
+            idx++;
+            render();
+          } else {
+            finishOrSubmit();
+          }
+        }, 3000);
+
+        setFeedback("good","Correct","Nice — auto-advancing in 3 seconds…");
       } else {
+        everMissed = true;
         streak = 0;
-        setFeedback("bad","Not the best fix","Pick the option that stops the violation and follows the amendment’s limit on government power.");
+
+        // Show hint to help correct but do NOT advance; accuracy already penalized by attempt
+        const h = card.hintS2 || "Hint: Choose the option that stops the violation and follows the amendment’s limit on government power.";
+        setFeedback("bad","Incorrect — Hint", h);
+
+        // keep Stage 2 active for retry
       }
+
       updateStats();
+    }
+
+    function clearExplain(){
+      if(explainTimer) { clearTimeout(explainTimer); explainTimer = null; }
+      el("explainBox").style.display = "none";
     }
 
     function showExplanation(card){
       el("explainBox").style.display = "block";
-      el("explainTitle").textContent = `Explanation: ${card.amendment}${suffix(card.amendment)} Amendment — Fix the Violation`;
+      el("explainTitle").textContent = `Why it's correct: ${card.amendment}${suffix(card.amendment)} Amendment`;
       el("explainGrid").innerHTML = `
         <div><b>Right Protected:</b> ${escapeHtml(card.right)}</div>
         <div><b>Best Fix:</b> ${escapeHtml(card.fixCorrect)}</div>
         <div><b>Why:</b> ${escapeHtml(card.why)}</div>
-        <div><b>Belief Tie (limits on government):</b> ${escapeHtml(card.beliefTie)}</div>
       `;
-      el("explainMini").textContent = "OST habit: Identify the right → name the amendment → apply the limit by choosing the fix.";
+      el("explainMini").textContent = "Auto-advance in 3 seconds…";
     }
 
     function showHint(){
       const card = deck[idx];
-      const t = card.scenario.toLowerCase();
       let hint = "Hint: Identify the right being violated first, then match the amendment.";
 
-      if(t.includes("search") || t.includes("warrant") || t.includes("probable")) hint = "Hint: Search/warrant/probable cause = 4th Amendment.";
-      if(t.includes("not guilty") || t.includes("again") || t.includes("same crime")) hint = "Hint: Second trial after acquittal = 5th (double jeopardy).";
-      if(t.includes("confess") || t.includes("threaten")) hint = "Hint: Forced confession = 5th (self-incrimination).";
-      if(t.includes("lawyer") || t.includes("counsel") || t.includes("witness")) hint = "Hint: Trial protections (counsel/confrontation) = 6th.";
-      if(t.includes("critic") || t.includes("speech") || t.includes("online")) hint = "Hint: Punishing criticism/speech = 1st.";
-      if(t.includes("bail")) hint = "Hint: Excessive bail = 8th.";
-      if(t.includes("states") || t.includes("federal") || t.includes("not delegate")) hint = "Hint: Reserved powers/federalism = 10th.";
+      if(stage === 1){
+        hint = card.hintS1 || hint;
+      } else {
+        hint = card.hintS2 || "Hint: Pick the option that actually stops the violation and follows the amendment’s limit on government power.";
+      }
 
       setFeedback("warn","Hint",hint);
     }
 
-    function nextScenario(){
-      if(idx < deck.length - 1){
-        idx++;
-        render();
-      } else {
-        finish();
-      }
-    }
-
     function teacherSkip(){
+      clearExplain();
       if(idx < deck.length - 1){
         idx++;
         render();
       } else {
-        finish();
+        finishOrSubmit();
       }
     }
 
-    function finish(){
-      el("stage1Choices").style.display = "none";
-      el("stage2Choices").style.display = "none";
-      el("btnNext").style.display = "none";
+    function finishOrSubmit(){
+      clearExplain();
+      disableChoices();
       el("btnHint").disabled = true;
+      el("btnSkip").disabled = true;
 
       const elapsed = fmtTime(Date.now() - startTs);
       const acc = totalAttempts ? Math.round((correctSteps/totalAttempts)*100) : 0;
 
+      // Mastery condition: all chains completed AND perfect accuracy AND no misses ever
+      const mastery = (correctChains === deck.length) && (acc === 100) && (!everMissed) && (totalAttempts === correctSteps);
+
+      if(mastery){
+        showSubmission(elapsed, acc);
+      } else {
+        setFeedback(
+          "warn",
+          "Session Complete (Not Mastery)",
+          `Chains: ${correctChains}/${deck.length} • Attempts: ${totalAttempts} • Accuracy: ${acc}% • Time: ${elapsed}. To unlock submission, restart and earn 100% with no misses.`
+        );
+        el("scenarioText").textContent = "Finish! Restart to earn mastery (perfect run).";
+        el("submitBox").style.display = "none";
+        el("explainBox").style.display = "block";
+        el("explainTitle").textContent = "How to earn mastery";
+        el("explainGrid").innerHTML = `
+          <div><b>Requirement:</b> 100% accuracy with <b>no missed attempts</b> (no hints needed).</div>
+          <div><b>Tip:</b> Slow down. Identify the <b>right</b> first, then name the amendment, then select the fix.</div>
+        `;
+        el("explainMini").textContent = "Restart resets your mastery status.";
+      }
+    }
+
+    function showSubmission(elapsed, acc){
+      const code = makeCode(studentName, sessionStart, elapsed);
+
       setFeedback(
         "good",
-        "Session Complete",
-        `Correct chains: ${correctChains} • Attempts: ${totalAttempts} • Accuracy: ${acc}% • Time: ${elapsed}. Click Restart to replay.`
+        "Mastery Achieved",
+        `Perfect run: ${correctChains}/${deck.length} • Attempts: ${totalAttempts} • Accuracy: ${acc}% • Time: ${elapsed}.`
       );
 
-      el("scenarioText").textContent = "Finish! Replay to build automaticity: identify → fix → explain.";
-      el("explainBox").style.display = "block";
-      el("explainTitle").textContent = "Next step";
-      el("explainGrid").innerHTML = `
-        <div><b>Goal:</b> Fewer attempts with accurate fixes (application skill).</div>
-        <div><b>Next game:</b> Game 4 will be an “Amendment Blitz” speed round.</div>
-      `;
-      el("explainMini").textContent = "Teacher note: add more violation scenarios in scenarioBank.";
+      el("scenarioText").textContent = "✅ You earned mastery. Submit your code below.";
+      el("submitCode").textContent = code;
+
+      el("submitSummary").innerHTML = `Name: <b>${escapeHtml(studentName)}</b> • Date: <b>${escapeHtml(fmtDate(sessionStart))}</b> • Time: <b>${escapeHtml(elapsed)}</b>`;
+      el("submitMini").textContent = "Paste this code into the submission form or show it to your teacher.";
+
+      el("submitBox").style.display = "block";
+
+      // Hide explain (not needed here)
+      el("explainBox").style.display = "none";
+    }
+
+    function copySubmission(){
+      const txt = el("submitCode").textContent || "";
+      if(!txt || txt === "CODE-—") return;
+      navigator.clipboard?.writeText(txt).then(()=>{
+        setFeedback("good","Copied","Submission code copied to clipboard.");
+      }).catch(()=>{
+        setFeedback("warn","Copy failed","Select and copy the code manually.");
+      });
     }
 
     function restart(){
+      clearExplain();
+
       idx = 0;
       totalAttempts = 0;
       scenarioAttempts = 0;
       streak = 0;
       correctChains = 0;
       correctSteps = 0;
+      everMissed = false;
 
       sessionStart = new Date();
       startTs = Date.now();
       el("startStamp").textContent = fmtDateTime(sessionStart);
 
-      el("btnHint").disabled = false;
+      el("submitBox").style.display = "none";
 
       buildDeck();
+      el("qTotal").textContent = String(deck.length);
+
+      enableChoices();
+      el("btnHint").disabled = false;
+      el("btnSkip").disabled = false;
+
       render();
     }
 
@@ -762,9 +1261,6 @@
     function startTimers(){
       if(timerId) clearInterval(timerId);
       timerId = setInterval(()=> el("timeEl").textContent = fmtTime(Date.now() - startTs), 500);
-
-      if(nowId) clearInterval(nowId);
-      nowId = setInterval(()=> el("nowStamp").textContent = fmtDateTime(new Date()), 1000);
     }
 
     function fmtTime(ms){
@@ -785,6 +1281,12 @@
       const ss = String(d.getSeconds()).padStart(2,"0");
       return `${mm}/${dd}/${yyyy} ${hh}:${mi}:${ss} ${ampm}`;
     }
+    function fmtDate(d){
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      return `${mm}/${dd}/${yyyy}`;
+    }
 
     function escapeHtml(s){
       return String(s)
@@ -800,6 +1302,21 @@
       if(n==="2") return "nd";
       if(n==="3") return "rd";
       return "th";
+    }
+
+    function makeCode(name, startDate, elapsed){
+      // deterministic-ish, readable code (no student data saved; code is generated locally)
+      const base = `${name}|${startDate.toISOString()}|${elapsed}`;
+      let h = 2166136261; // FNV-1a-ish
+      for(let i=0;i<base.length;i++){
+        h ^= base.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      h >>>= 0;
+      const tail = h.toString(16).toUpperCase().padStart(8,"0");
+      const initials = name.split(" ").filter(Boolean).map(x=>x[0].toUpperCase()).slice(0,3).join("");
+      const d = fmtDate(startDate).replaceAll("/","");
+      return `BOR-${initials}-${d}-${tail}`;
     }
   </script>
 </body>
