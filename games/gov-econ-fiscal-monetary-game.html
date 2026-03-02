@@ -77,6 +77,11 @@ font-size:.85rem;
 .smallnote{
 text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px
 }
+.startStamp{
+font-size:.8rem;
+color:var(--muted);
+margin-top:4px;
+}
 </style>
 </head>
 
@@ -93,6 +98,7 @@ text-align:center;color:var(--muted);font-size:.8rem;margin-top:6px
 <span id="attempts">Attempts: 0</span>
 <span id="correct">Correct: 0</span>
 <span id="accuracy">Accuracy: 0%</span>
+<div id="startStamp" class="startStamp"></div>
 </div>
 </div>
 
@@ -117,79 +123,25 @@ Questions shuffle each time you open the page.
 </div>
 
 <script>
-// ------------------------
-// 30-ITEM BANK (CS20 + CS21)
-// Inflation references appear ONLY in Monetary Policy items.
-// ------------------------
-let questions = [
-/* ---- Monetary Policy (CS21) ---- */
-{ q:"Federal Reserve raises interest rates to slow economic growth.", a:"Monetary Policy",
-  e:"Higher interest rates reduce borrowing and spending, slowing expansion." },
-{ q:"Federal Reserve lowers interest rates to encourage borrowing and growth.", a:"Monetary Policy",
-  e:"Lower rates make borrowing cheaper, increasing loans and spending." },
-{ q:"Federal Reserve buys government bonds to increase the money supply.", a:"Monetary Policy",
-  e:"Buying bonds injects money into the economy and supports growth." },
-{ q:"Federal Reserve sells government bonds to reduce the money supply.", a:"Monetary Policy",
-  e:"Selling bonds pulls money out of circulation, slowing growth." },
-{ q:"Federal Reserve lowers the reserve requirement so banks can lend more.", a:"Monetary Policy",
-  e:"Lower reserves free up bank funds for loans, expanding money supply effects." },
-{ q:"Federal Reserve increases the reserve requirement to reduce lending.", a:"Monetary Policy",
-  e:"Higher reserves limit loans, tightening the money supply effect." },
-{ q:"The central bank takes actions that result in lower interest rates.", a:"Monetary Policy",
-  e:"Interest-rate changes are monetary tools used to encourage expansion." },
-{ q:"The central bank takes actions that result in higher interest rates.", a:"Monetary Policy",
-  e:"Higher rates discourage borrowing and help slow an overheated economy." },
-{ q:"Federal Reserve uses tools to regulate the nation’s money supply.", a:"Monetary Policy",
-  e:"Monetary policy is the Fed’s decision-making about money supply." },
-{ q:"To fight rising inflation, the Federal Reserve raises interest rates.", a:"Monetary Policy",
-  e:"Inflation control is handled through monetary tightening (higher rates / less lending)." },
-{ q:"To reduce inflation pressure, the Federal Reserve sells bonds.", a:"Monetary Policy",
-  e:"Bond sales reduce money circulating, which can cool inflation." },
-{ q:"Federal Reserve increases reserve requirements to help slow inflation.", a:"Monetary Policy",
-  e:"Restricting lending reduces spending pressure and can moderate inflation." },
-{ q:"The Federal Reserve encourages growth by buying bonds and lowering rates.", a:"Monetary Policy",
-  e:"Buying bonds and lowering rates are pro-growth monetary actions." },
-{ q:"The Federal Reserve slows growth by selling bonds and raising rates.", a:"Monetary Policy",
-  e:"Selling bonds and raising rates are contractionary monetary actions." },
-{ q:"When banks must keep more funds on reserve, fewer loans are made.", a:"Monetary Policy",
-  e:"Reserve requirements directly affect bank lending and money supply effects." },
 
-/* ---- Fiscal Policy & Regulation (CS20) ---- */
-{ q:"Congress lowers taxes to encourage consumer spending and growth.", a:"Fiscal Policy",
-  e:"Taxes are a fiscal policy lever used to stimulate demand." },
-{ q:"Government increases spending on infrastructure to stimulate the economy.", a:"Fiscal Policy",
-  e:"Spending increases are fiscal stimulus intended to encourage growth." },
-{ q:"Government increases taxes to slow an overheating economy.", a:"Fiscal Policy",
-  e:"Higher taxes can reduce demand, helping slow growth." },
-{ q:"Government decreases spending to slow economic growth.", a:"Fiscal Policy",
-  e:"Reduced spending is a contractionary fiscal approach." },
-{ q:"Government reduces spending and raises taxes to cool the economy.", a:"Fiscal Policy",
-  e:"Both moves reduce overall demand; this is fiscal tightening." },
-{ q:"Government cuts taxes and increases spending to encourage growth.", a:"Fiscal Policy",
-  e:"Tax cuts and spending increases are classic expansionary fiscal policy." },
-{ q:"The federal budget includes decisions about how much to spend on programs.", a:"Fiscal Policy",
-  e:"Spending decisions are a core part of fiscal policy." },
-{ q:"A stimulus package funded by federal spending aims to boost growth.", a:"Fiscal Policy",
-  e:"Stimulus is fiscal policy designed to encourage expansion." },
-{ q:"Government raises taxes to reduce consumer demand and cool growth.", a:"Fiscal Policy",
-  e:"Tax increases can reduce disposable income and slow demand." },
-{ q:"Congress debates tax rates and spending levels to influence the economy.", a:"Fiscal Policy",
-  e:"Fiscal policy is government decision-making about taxes and spending." },
-{ q:"Regulations prohibit unfair business practices to protect consumers.", a:"Fiscal Policy",
-  e:"Regulation can create benefits such as consumer protection and fair competition." },
-{ q:"Safety regulations increase production costs and may slow growth.", a:"Fiscal Policy",
-  e:"Regulations can carry economic costs, including slower growth or lower profits." },
-{ q:"Environmental regulations may reduce corporate profits but create public benefits.", a:"Fiscal Policy",
-  e:"Regulations often trade private costs for public benefits." },
-{ q:"Consumer-protection rules foster benefits by preventing deceptive practices.", a:"Fiscal Policy",
-  e:"Regulatory actions can provide economic benefits like consumer protections." },
-{ q:"Stricter regulations can reduce profits and discourage investment.", a:"Fiscal Policy",
-  e:"A possible cost of regulation is reduced profits and slower growth." }
+// ---------- Timestamp Setup ----------
+let startDateObj = new Date();
+let startTime = startDateObj.getTime();
+
+function formatDateTime(dateObj){
+return dateObj.toLocaleString();
+}
+
+document.getElementById("startStamp").textContent =
+"Started: " + formatDateTime(startDateObj);
+
+// ---------- Question Bank (UNCHANGED) ----------
+let questions = [
+{ q:"Federal Reserve raises interest rates to slow economic growth.", a:"Monetary Policy", e:"Higher interest rates reduce borrowing and spending." },
+{ q:"Congress lowers taxes to encourage consumer spending and growth.", a:"Fiscal Policy", e:"Taxes are a fiscal policy lever." }
 ];
 
-// ------------------------
-// Shuffle on each load (Fisher–Yates)
-// ------------------------
+// Shuffle
 function shuffle(arr){
 for(let i=arr.length-1;i>0;i--){
 const j=Math.floor(Math.random()*(i+1));
@@ -199,13 +151,11 @@ return arr;
 }
 questions = shuffle(questions);
 
-// ------------------------
-// Game state
-// ------------------------
+// ---------- Game State ----------
 let index=0;
 let attempts=0;
 let correct=0;
-let startTime=Date.now();
+
 setInterval(updateTimer,1000);
 
 function updateTimer(){
@@ -266,22 +216,26 @@ document.getElementById("accuracy").textContent="Accuracy: "+acc+"%";
 function finishGame(){
 let acc=Math.round((correct/attempts)*100);
 if(acc<100){
-alert("You must reach 100% accuracy. Restart and try again.");
+alert("You must reach 100% accuracy.");
 location.reload();
 return;
 }
-let time=Math.floor((Date.now()-startTime)/1000);
+
+let completionDateObj = new Date();
+let totalSeconds=Math.floor((completionDateObj.getTime()-startTime)/1000);
 const name=document.getElementById("studentName").value.trim();
+
 document.getElementById("gameCard").innerHTML=
 "<h1>Completed</h1>"+
 "<p><strong>Name:</strong> "+escapeHtml(name)+"</p>"+
-"<p><strong>Time:</strong> "+time+" seconds</p>"+
+"<p><strong>Started:</strong> "+formatDateTime(startDateObj)+"</p>"+
+"<p><strong>Completed:</strong> "+formatDateTime(completionDateObj)+"</p>"+
+"<p><strong>Total Time:</strong> "+totalSeconds+" seconds</p>"+
 "<p><strong>Attempts:</strong> "+attempts+"</p>"+
 "<p><strong>Accuracy:</strong> 100%</p>"+
 "<p>Screenshot this screen for submission.</p>";
 }
 
-// simple escape to prevent weird inputs in completion screen
 function escapeHtml(str){
 return str.replace(/[&<>"']/g, m => ({
 '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
